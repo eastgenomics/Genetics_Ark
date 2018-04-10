@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% load render_table from django_tables2 %}
+
+
+{% block body_block %}
+
+
+<strong>Search results for '{{query}}'</strong><br>
+
+<hr>
+
+<strong> Samples:</strong>
+<ul>
+
+{% for sample in samples %}
+
+   <li> {{ sample.name }} 
+{% endfor %}
+</ul>
+<hr>
+<br>
+
+<strong> Runfolders:</strong>
+<ul>
+{% for runfolder in runfolders %}
+
+   <li> {{ runfolder.name }}
+{% endfor %}
+</ul>
+<hr>
+<br>
+
+
+
+{% endblock %}
+
+

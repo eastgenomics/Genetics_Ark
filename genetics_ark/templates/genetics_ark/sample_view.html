@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+
+{% block body_block %}
+{% load render_table from django_tables2 %}
+{% block extrastyle %}
+  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
+{% endblock %}
+
+
+<h2>Sample :: {{ sample_name }}</h2><br>
+
+
+{% for sample in samples %}
+  <ul>
+   <li>Project: {{ sample.project.name }}
+   <li>Panel(s): {{ sample.panels }}
+   <li>Runfolder: {{ sample.runfolder.name }}
+   <li>total reads: {{ sample.stats.total_reads }}
+   <li>mapped reads: {{  sample.stats.mapped_reads }}
+   <li>mean isize: {{  sample.stats.mean_isize }}
+   <li>mean het ratio: {{  sample.stats.mean_het_ratio }}
+   <li>mean homo ratio: {{  sample.stats.mean_homo_ratio }}
+   <li>bases on target: {{  sample.stats.bases_on_target }} %
+   <li>mean target coverage: {{  sample.stats.mean_target_coverage }}
+   <li>bases w/ >100x coverage: {{  sample.stats.coverage_100x }}
+
+   <li>Dup reads: {{  sample.stats.duplicate_reads }}
+    
+   <li> <button type='button' id="igv_{{sample.id}}">Browse bamfile</button>
+
+   <div class="container-fluid" id="igv_browser_{{sample.id}}" style="padding:5px; border:1px solid lightgray"></div>
+
+  </ul>    
+
+{% endfor %}
+
+
+    <hr>
+{% endblock %}
+
+
+{% block script %}
+
+    $(document).ready(function () {
+
+    {% for sample in samples %}
+
+      $( "button#igv_{{sample.id}}" ).click( function() {    
+
+        console.log('pushed button')
+
+        var div = $("#igv_browser_{{sample.id}}")[0],
+                options = {
+                    showNavigation: true,
+                    showRuler: true,
+                    showKaryo: false,
+                    reference: {
+                        id: "hg19"
+                    },
+                    genome: "hg19",
+                    locus: "8:128,747,267-128,754,546",
+                    tracks: [
+                        {
+                            name: "Gencode v19",
+                            type: "annotation",
+                            format: "bed",
+                            sourceType: "file",
+                            url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz",
+                            indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz.tbi",
+                            order: Number.MAX_VALUE,
+                            visibilityWindow: 300000000,
+                            displayMode: "EXPANDED"
+                        }, 
+                        {
+                          // bams need to be served by a real web-server!
+                            url: 'http://bams2.ctrulab.uk/{{sample.runfolder.name}}/bams/{{sample.name}}.bam',
+                            name: '{{sample.name}}',
+                            alignmentShading: 'strand',
+                            height: 300
+                        }
+
+                    ]
+                };
+
+        igv.createBrowser(div, options);
+      });
+    {% endfor %}
+
+    });
+
+{% endblock %}

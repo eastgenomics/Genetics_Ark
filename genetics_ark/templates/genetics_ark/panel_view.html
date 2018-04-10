@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+
+{% block body_block %}
+{% load render_table from django_tables2 %}
+{% block extrastyle %}
+  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
+{% endblock %}
+
+
+<h2>Panel :: {{ panel.name }}</h2><br>
+
+
+  <ul>
+   <li>Gene(s): {{ genes|safe }}
+   <li>Sample(s): {{ samples|safe }}
+  </ul>    
+
+    <hr>
+{% endblock %}
+
+
+{% block script %}
+{% endblock %}

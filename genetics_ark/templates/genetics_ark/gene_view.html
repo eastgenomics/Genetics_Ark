@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+
+{% load render_table from django_tables2 %}
+{% block extrastyle %}
+  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
+{% endblock %}
+
+{% block body_block %}
+
+
+<h2>Gene :: {{ gene_name }}</h2><br>
+
+{% render_table gene_table %}
+
+
+{% endblock %}
+
+
+{% block script %}
+{% endblock %}

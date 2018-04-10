@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+
+{% block body_block %}
+
+
+<h2> Contacts: </h2>
+<br>
+
+
+
+{% comment %}
+# Build a table of contacts, first the table header and then below
+# iterating through each of the contacts.
+{% endcomment %}
+
+<div class="row">
+ <div class=" col-md-4">
+   <table cellpadding="5" cellspacing="5" class="col-sm-3 table table-condensed table-bordered table-hover" >
+  <tr>
+    <th>Name</th>
+    <th>Company</th>
+    <th></th>
+    <th></th>
+    <th>Notes</th>
+   </tr>
+
+{% for contact in contacts %}
+
+
+ </tr>
+
+   <td> {{ contact.name }} </td>
+   <td> {{ contact.company.name }} </td>
+   <td> <a href={% url 'contact_edit' contact.id %} class="btn btn-info" id="contact_edit"  > Edit </button></td>
+   <td> <a href={% url 'contact_delete' contact.id %} class="btn btn-danger" id="contact_delete"  > Delete </button></td>
+   <td> {{ contact.note }} </td>
+{% comment %}
+{% endcomment %}
+
+
+    </tr>
+{% endfor %}    
+
+
+</table>
+ </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block script %}
+{% endblock %}
+
+

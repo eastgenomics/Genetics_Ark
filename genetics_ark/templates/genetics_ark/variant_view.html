@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% load render_table from django_tables2 %}
+
+
+{% block body_block %}
+
+
+{% if ref and alt %}
+<h2>Variant: {{ chrom }}:{{ pos }} {{ref}}/{{alt}}</h2>
+{% else %}
+<h3>Variant: {{ chrom }}:{{ pos }}</h3>
+{%endif%}
+
+
+<hr>
+
+{% if nothing_found %}
+
+<strong> Variant not present in the database </strong>
+
+{% else %}
+
+
+<div class="row">
+ <div class=" col-md-4">
+   <table cellpadding="5" cellspacing="5" class="col-sm-3 table table-condensed table-bordered table-hover" >
+  <tr>
+    <th >Project</th>
+    <th >Hets</th>
+    <th >Homs</th>
+    <th >Samples</th>
+    <th >Frequency</th>
+   </tr>
+
+{% for project in projects %}
+
+
+ </tr>
+
+   <td> {{ project.name }} </td>
+   <td> {{ project.hets }}</td>
+   <td> {{ project.homs }}</td>
+   <td> {{ project.total }}</td>
+   <td> {{ project.freq }}</td>
+
+
+    </tr>
+{% endfor %}    
+</table>
+</div>
+</div>
+
+<hr>
+<BR>
+
+{% for project in projects %}
+
+  {% if project.samples %}
+<h3>Project: {{project.name}} </h3><br>
+
+    {% render_table project.samples %}
+<hr>
+<br>
+  {% endif %}
+
+{% endfor %}
+
+<div class="container-fluid" id="igvDiv" style="padding:5px; border:1px solid lightgray"></div>
+
+{% endif %}
+
+{% endblock %}
+
