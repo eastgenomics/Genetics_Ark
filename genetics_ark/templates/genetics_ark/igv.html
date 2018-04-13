@@ -46,12 +46,11 @@
                      }, 
                      {
                      // bams need to be served by a real web-server!
-                        url: 'http://bams2.ctrulab.uk/{{analysis.runfolder.name}}/bams/{{analysis.name}}.bam',
-                        name: '{{sample_name}}',
-                        alignmentShading: 'strand',
-                        height: 300
+                     url: 'http://bams2.ctrulab.uk/{{runfolder_name}}/bams/{{sample_name}}.bam',
+                     name: '{{sample_name}}',
+                     alignmentShading: 'strand',
+                     height: 300
                      }
-
                     ]
                 };
 
