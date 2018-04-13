@@ -51,42 +51,113 @@ def projects_list( request ):
 
 
 
+def igv( request, analysis_id=None, sample_name=None, runfolder_name=None, chrom=None, pos=None):
+    """ create a page with the js IGV viewer for the sample
+
+    """
+
+
+    if analysis_id is not None:
+        analysis = Models.Analysis.objects.get( pk = analysis_id )
+
+        sample_name = analysis.sample.name
+        runfolder_name = analysis.runfolder.name
+
+
+    context_dict = { 'sample_name': sample_name, 
+                     'runfolder_name': runfolder_name,
+                     }
+
+    if chrom is not None:
+        context_dict['chrom'] = chrom
+
+    if pos is not None:
+        context_dict['pos'] = pos
+
+    return render( request, "genetics_ark/igv.html", context_dict )
+
 
 
 
 def sample_view( request, sample_id = None, sample_name = None):
 
     context_dict = {}
+
+    sample = None
     
     if sample_id is not None:
-        sample = Models.Sample.objects.get( pk = sample_id )
-        context_dict = { 'sample': sample }
+        sample = Models.Sample.objects.get( pk = sample_id )    
 
-        sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
-        sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
-        sample.panels = sample_panels
-
-        context_dict[ 'sample_name' ] = sample.name
-
-    
-
-    if sample_name is not None:
+    elif sample_name is not None:
         samples = Models.Sample.objects.filter( name__exact = sample_name )
-        context_dict[ 'sample_name' ] = sample_name
-        #if len( samples ) == 1 :
-        #    context_dict = { 'sample': samples[0] }
-        #else:
-        for sample in samples:
-            sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
+        sample = samples[0]
 
-            sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
-            sample.panels = sample_panels
+    context_dict = { 'sample': sample }
+    context_dict[ 'panels' ] = []
+    sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
+    for sample_panel in sample_panels:
+        panel = Models.Panel.objects.filter( name = sample_panel.panel_name )[0]
+        context_dict[ 'panels' ].append( panel )
+#    sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
+#    sample.panels = sample_panels
 
-        context_dict = { 'samples': samples }
+    context_dict[ 'sample_name' ] = sample.name
+    context_dict[ 'project_name' ] = sample.project.name
+
+    analyses = Models.Analysis.objects.filter( sample_id = sample.id )
+    for analysis in analyses:
+        if ( analysis.versions is None):
+            continue
+        versions = analysis.versions.split(";")
+        analysis.versions = []
+        for version in versions:
+            analysis.versions.append(version.split(":"))
+
+        analysis.versions = sorted( analysis.versions )
+
+    context_dict[ 'analyses' ] = analyses
+
+    pp.pprint( context_dict )
 
         
     return render( request, "genetics_ark/sample_view.html", context_dict )
 
+
+def genes_in_panel( panel_id ):
+    """ Get genes, and their clincial transcripts for genes in a panel 
+
+    Args:
+       panel_id (int): primary key of the panel
+
+    Returns:
+      dict of genes of transcripts
+
+    Raises:
+       None
+
+    """
+
+    gene_panels = Models.GenePanel.objects.filter( panel_id__exact = panel_id )
+    genes_dict = {}
+    for gene_panel in gene_panels:
+        transcripts = Models.Transcript.objects.filter( gene_id__exact = gene_panel.gene_id).filter( clinical_transcript__exact = 'Y')
+        for transcript in transcripts:
+            gene_name = transcript.gene.name
+            if ( gene_name not in genes_dict ):
+                genes_dict[ gene_name ] = {}
+                genes_dict[ gene_name ]['transcripts'] = []
+            
+            genes_dict[ gene_name ]['transcripts'].append( transcript.refseq )
+
+
+    pp.pprint( genes_dict )
+
+    genes_list = []
+    for gene in sorted(genes_dict):
+        genes_list.append([ gene, ", ".join(genes_dict[ gene ]['transcripts'])])
+
+
+    return genes_list
 
 def panel_view( request, panel_id):
 
@@ -96,20 +167,17 @@ def panel_view( request, panel_id):
     context_dict[ 'panel' ] = panel
 
 
-
-    gene_panels = Models.GenePanel.objects.filter( panel_id__exact = panel.id )
-    genes = ", ".join(["<A HREF="+reverse("gene_view", args=[gene_panel.gene.name])+">"+gene_panel.gene.name+"</a>" for gene_panel in gene_panels])
-#    print genes
-    context_dict[ 'genes' ] = genes
-
     sample_panels = Models.SamplePanel.objects.filter( panel_name__exact = panel.name )
-    samples = ", ".join(["<A HREF="+reverse("sample_view",args=[sample_panel.sample.name])+">"+sample_panel.sample.name+"</a>" for sample_panel in sample_panels])
-#    print "Samples w/ this panel:",  len( sample_panels )
+    samples = []
+    for sample_panel in sample_panels:
+        samples.append( sample_panel.sample.name )
+
     context_dict[ 'samples' ] = samples
 
+    context_dict[ 'genes' ] = genes_in_panel( panel_id )
 
+    pp.pprint( context_dict )
 
-        
     return render( request, "genetics_ark/panel_view.html", context_dict )
 
 
@@ -119,14 +187,31 @@ def gene_view( request, gene_name):
     context_dict = {}
     context_dict[ 'gene_name' ] = gene_name
     
-    genes = Models.Gene.objects.filter( name__exact = gene_name )
+    gene = Models.Gene.objects.filter( name__exact = gene_name )
 
-    gene_table = Tables.GeneTable( genes )
-    gene_table.order_by = "RefSeq"
-    context_dict[ 'gene_table' ] =  gene_table 
-    RequestConfig(request).configure( gene_table )
+    pp.pprint( gene )
 
-    pp.pprint( gene_table )
+    if ( len(gene) == 0 ):
+        return render( request, "genetics_ark/gene_not_found.html", context_dict )
+        
+    gene = gene[0]
+
+    context_dict[ 'gene_id' ] = gene.id
+    
+    transcripts = Models.Transcript.objects.filter( gene_id__exact = gene.id )
+
+    context_dict[ 'transcripts' ] = transcripts
+    
+    gene_panels = Models.GenePanel.objects.filter( gene_id__exact = gene.id )
+    context_dict[ 'panels' ] = []
+    for gene_panel in gene_panels:
+        panel = gene_panel.panel
+        context_dict[ 'panels' ].append( [panel.name, panel.id])
+
+
+    context_dict[ 'panels' ] = sorted( context_dict[ 'panels' ] )
+
+
         
     return render( request, "genetics_ark/gene_view.html", context_dict )
 
@@ -140,7 +225,7 @@ def qc_project( request, project_id ):
         # render a page telling the user that the project does not exsist
         pass
     
-    runfolders = list( Models.Runfolder.objects.filter( sample__project_id = project_id  ).distinct())
+    runfolders = list( Models.Runfolder.objects.filter( analysis__sample__project_id = project_id  ).distinct())
     total_reads     = []
     perc_mapped     = []
     perc_dups       = []
@@ -150,11 +235,11 @@ def qc_project( request, project_id ):
 
     for runfolder in runfolders:
 
-        if ( not ccbg_misc.is_a_number(runfolder.total_reads )):
+        # Dont have summed stats for the runfolder calculate them
+        if ( not ccbg_misc.is_a_number( runfolder.total_reads )):
             runfolder = Models.Runfolder.calc_stats( runfolder )
 
         runfolder = model_to_dict( runfolder )
-#        pp.pprint ( runfolder )
 
         if ( runfolder['total_reads'] is not None ):
             total_reads.append( runfolder['total_reads'] )
@@ -165,7 +250,7 @@ def qc_project( request, project_id ):
 
         if ( ccbg_misc.is_a_number( runfolder[ 'duplicate_reads' ] ) and 
              ccbg_misc.is_a_number(runfolder[ 'mapped_reads' ])):
-            print "{}/{}"
+#            print "{}/{}"
             perc_dups.append( runfolder[ 'duplicate_reads' ]*100.0/runfolder['mapped_reads'] )
 
         if ( runfolder['bases_on_target'] is not None ):
@@ -204,8 +289,6 @@ def qc_project( request, project_id ):
 
 
         if (runfolder['total_reads'] is not None ):
-#            pp.pprint( total_reads )
-#            pp.pprint( runfolder['total_reads'] )
             total_reads_boxplot = ccbg_misc.svg_boxplot( total_reads, runfolder['total_reads'])
             runfolder['total_reads'] = django.utils.safestring.mark_safe( "%s %s" %(ccbg_misc.readable_number(runfolder['total_reads']), total_reads_boxplot ))
 
@@ -240,14 +323,13 @@ def qc_runfolder( request, runfolder_id):
 
 #    runfolder_stats = Stats.objects.filter( sample__runfolder = runfolder_name)
 
-    runfolder_stats = Models.Stats.objects.filter( sample__runfolder = runfolder_id )
+    runfolder_stats = Models.Analysis.objects.filter( runfolder = runfolder_id )
 
     stats = []
     average = {}
     samples = 0
-    first_print = True
-    for runfolder_stat in runfolder_stats:
 
+    for runfolder_stat in runfolder_stats:
 
         if ( ccbg_misc.is_a_number( runfolder_stat.total_reads ) and  ccbg_misc.is_a_number( runfolder_stat.mapped_reads )):
             runfolder_stat.perc_mapped = runfolder_stat.mapped_reads*100.0/runfolder_stat.total_reads
@@ -260,8 +342,6 @@ def qc_runfolder( request, runfolder_id):
         sample = runfolder_stat.sample.name
 
         runfolder_stat = model_to_dict( runfolder_stat )
-
-#        pp.pprint( runfolder_stat )
 
         runfolder_stat ['name'] = sample
 
@@ -280,14 +360,9 @@ def qc_runfolder( request, runfolder_id):
         runfolder_stat ['perc_mapped'] = runfolder_stat[ 'mapped_reads' ]*100.0/runfolder_stat[ 'total_reads' ]
         runfolder_stat ['perc_dups']   = runfolder_stat[ 'duplicate_reads' ]*100/runfolder_stat[ 'mapped_reads' ]
 
-
-
-
         runfolder_stat ['bases_on_target'] = runfolder_stat ['bases_on_target']*100
 
-
         for item in runfolder_stat:
-
 
             if ( type(runfolder_stat[ item ]) is not float and  type(runfolder_stat[ item ]) is not int and type(runfolder_stat[ item ]) is not long ):
                 continue
@@ -297,11 +372,6 @@ def qc_runfolder( request, runfolder_id):
                 
             average[ item ] += runfolder_stat[ item ]
 
-
-#            if ( item != 'perc_mapped'):
-#                runfolder_stat[ item ] =  runfolder_stat[ item ] 
-
-
         stats.append( runfolder_stat )
 
     for item in average:
@@ -309,8 +379,6 @@ def qc_runfolder( request, runfolder_id):
             average[ item ] = average[ item ]*1.0/samples
 
         average[ item ] = ccbg_misc.readable_number( average[ item ])
-
-#    pp.pprint( stats )
 
     rf_table = Tables.SampleTable( stats )
 
@@ -358,27 +426,29 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
     for project in Models.Project.objects.all().order_by('name'):
             
         total = len( Models.Sample.objects.filter( project__exact = project.id) )
+        if total == 0:
+            continue
         
         homs = 0
         hets = 0
 
         samples = []
-        SampleVariants = Models.SampleVariant.objects.filter( variant__exact = variant.id ).filter( sample__project__exact = project.id)
-        for sample_variant in SampleVariants:
-            sample_variant.name = sample_variant.sample.name
-            if sample_variant.allele_count == 2:
+        AnalysisVariants = Models.AnalysisVariant.objects.filter( variant__exact = variant.id ).filter( analysis__sample__project__exact = project.id)
+        for analysis_variant in AnalysisVariants:
+            analysis_variant.name = analysis_variant.analysis.sample.name
+            if analysis_variant.allele_count == 2:
                 homs += 1
-                sample_variant.zygosity = "HOM"
+                analysis_variant.zygosity = "HOM"
             else:
                 hets += 1
-                sample_variant.zygosity = "HET"
+                analysis_variant.zygosity = "HET"
 
-            print "sample id {}".format( sample_variant.sample_id )
-            sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample_variant.sample_id )
+#            print "analysis id {}".format( analysis_variant.analysis_id )
+            sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = analysis_variant.analysis.sample.id )
             sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
-            sample_variant.panels = sample_panels
+            analysis_variant.panels = sample_panels
 
-            samples.append( sample_variant)
+            samples.append( analysis_variant)
  
         project_dict = {}
         project_dict[ 'name' ] = project.name
@@ -388,7 +458,8 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
         project_dict[ 'freq' ] = 0
 
         if (total > 0 and (hets+homs) >= 1 ):
-            freq = (hets + homs*2.0)/total*2.0
+            freq = (hets + homs*2.0)/(total*2.0)
+
             if freq < 0.0001:
                 project_dict[ 'freq' ] = "{0:.4E}".format( freq )
             else:

@@ -8,15 +8,44 @@
 {% endblock %}
 
 
-<h2>Panel :: {{ panel.name }}</h2><br>
+<h2>{{ panel.name }}</h2><br>
 
 
-  <ul>
-   <li>Gene(s): {{ genes|safe }}
-   <li>Sample(s): {{ samples|safe }}
-  </ul>    
+<div class="col-sm1">
+<table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
+  <tr>
 
-    <hr>
+    <th >Gene</th>
+    <th >Transcript(s)</th>
+   </tr>
+  </tr>
+
+  {% for gene, transcripts in genes %}
+    <tr>
+    <td> <a href={% url 'gene_view' gene %}>{{gene}}</a></td><td>{{transcripts}}</td>
+    </tr>
+
+
+  {% endfor %}
+
+</table>
+</div>
+
+<h4> Samples referred for panel </h4>
+
+<div class="col-sm1">
+<table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
+
+  {% for sample in samples %}
+    <tr>
+    <td> <a href={% url 'sample_view' sample %}>{{sample}}</a></td>
+    </tr>
+  {% endfor %}
+
+</table>
+</div>
+
+
 {% endblock %}
 
 

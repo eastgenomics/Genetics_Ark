@@ -8,28 +8,99 @@
 {% endblock %}
 
 
-<h2>Sample :: {{ sample_name }}</h2><br>
+<h2>{{ sample_name }} </h2><br>
 
 
-{% for sample in samples %}
-  <ul>
-   <li>Project: {{ sample.project.name }}
-   <li>Panel(s): {{ sample.panels }}
-   <li>Runfolder: {{ sample.runfolder.name }}
-   <li>total reads: {{ sample.stats.total_reads }}
-   <li>mapped reads: {{  sample.stats.mapped_reads }}
-   <li>mean isize: {{  sample.stats.mean_isize }}
-   <li>mean het ratio: {{  sample.stats.mean_het_ratio }}
-   <li>mean homo ratio: {{  sample.stats.mean_homo_ratio }}
-   <li>bases on target: {{  sample.stats.bases_on_target }} %
-   <li>mean target coverage: {{  sample.stats.mean_target_coverage }}
-   <li>bases w/ >100x coverage: {{  sample.stats.coverage_100x }}
+<table border=0 cellpadding="1" cellspacing="1" class="table table-condensed">
 
-   <li>Dup reads: {{  sample.stats.duplicate_reads }}
+    <tr>
+      <td>GM</td><td>gm17.12345</td><td>Name:</td><td>Joe Doe</td>
+    </tr>
+    <tr>
+      <td>DOB</td><td>1/1/1970</td><td>Capture</td><td>{{ project_name }}</td>
+    </tr>
+
+    <tr>
+      <td>Panel(s):</td>
+    </tr>
+
+{% for panel in panels %}
+  <tr><td><a href={% url 'panel_view'  panel.id %}>{{panel.name}}</a></td></tr>
+{% endfor %}
+
+</table>
+
+
+
+{% for analysis in analyses %}
+  
+<h4>{{analysis.runfolder.name}}</h4>
+
+   <a href= {% url 'igv' analysis.id %} type = "button" class = "btn btn-success">View in IGV</a><br>
+
+  (Re-)analyse sample <br>
+<br>
+
+
+<div class="panel panel-warning">
+  <div class="panel-heading">QC</div>
+  <div class="panel-body">
+
+<table border=0 cellpadding="1" cellspacing="1" class="table table-condensed">
+
+    <tr>
+      <td>Total reads</td>
+      <td>{{ analysis.total_reads}}</td>
+      <td>Mapped reads</td>
+      <td>{{ analysis.total_reads}}</td>
+      <td>Duplicate reads</td>
+      <td>{{ analysis.duplicate_reads}}</td>
+    </tr>
+
+    <tr>
+      <td>Mean insert size</td>
+      <td>{{ analysis.mean_isize}}</td>
+      <td>Mean het ration</td>
+      <td>{{ analysis.mean_het_ratio}}</td>
+      <td>Mean hom ration</td>
+      <td>{{ analysis.mean_homo_ratio}}</td>
+    </tr>
+
+    <tr>
+      <td>Bases on target:</td>
+      <td>{{  analysis.bases_on_target }} </td>
+      <td>Mean target coverage</td>
+      <td>{{  analysis.mean_target_coverage }}</td>
+      <td>bases w/ > 100x coverage</td>
+      <td>{{  analysis.coverage_100x }}</td>
+    </tr>
+
+    <tr>
+      <th>Versions</th>
+    </tr>
+
+
+    {% for software, version in analysis.versions %}
+
+    <tr>
+      <td>{{software}}</td><td>{{version}}</td>
+    </tr>
+    {% endfor %}
+
+
+</table>
+
+
+
+
+  </div>
+</div>
+
+
     
-   <li> <button type='button' id="igv_{{sample.id}}">Browse bamfile</button>
+   <li> <button type='button' id="igv_{{analysis.id}}">Browse bamfile</button>
 
-   <div class="container-fluid" id="igv_browser_{{sample.id}}" style="padding:5px; border:1px solid lightgray"></div>
+   <div class="container-fluid" id="igv_browser_{{analysis.id}}" style="padding:5px; border:1px solid lightgray"></div>
 
   </ul>    
 
@@ -39,18 +110,17 @@
     <hr>
 {% endblock %}
 
-
 {% block script %}
 
     $(document).ready(function () {
 
-    {% for sample in samples %}
+    {% for analysis in analysiss %}
 
-      $( "button#igv_{{sample.id}}" ).click( function() {    
+      $( "button#igv_{{analysis.id}}" ).click( function() {    
 
         console.log('pushed button')
 
-        var div = $("#igv_browser_{{sample.id}}")[0],
+        var div = $("#igv_browser_{{analysis.id}}")[0],
                 options = {
                     showNavigation: true,
                     showRuler: true,
@@ -74,7 +144,7 @@
                         }, 
                         {
                           // bams need to be served by a real web-server!
-                            url: 'http://bams2.ctrulab.uk/{{sample.runfolder.name}}/bams/{{sample.name}}.bam',
+                            url: 'http://bams2.ctrulab.uk/{{analysis.runfolder.name}}/bams/{{analysis.name}}.bam',
                             name: '{{sample.name}}',
                             alignmentShading: 'strand',
                             height: 300

@@ -98,7 +98,7 @@ DATABASES = {
 
     'genetics_ark_db': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark',
+        'NAME': 'genetics_ark_1_1_0_django',
         'USER': 'easih_admin',
         'PASSWORD': 'easih',
         'HOST': 'mgsrv01',
@@ -111,14 +111,14 @@ if ( DEBUG == False ):
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'genetics_ark_django',
-            'USER': 'ccbg_admin',
+            'user': 'ccbg_admin',
             'PASSWORD': 'ccbg',
             'HOST': 'sql01',
             },
 
         'genetics_ark_db': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark',
+            'NAME': 'genetics_ark_1_1_0',
             'USER': 'ccbg_admin',
             'PASSWORD': 'ccbg',
             'HOST': 'sql01',
