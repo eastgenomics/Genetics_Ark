@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+
+{% block body_block %}
+{% load render_table from django_tables2 %}
+
+
+<h1>Create report for {{analysis.sample.name}} in {{analysis.runfolder.name}}</h1><br>
+
+
+{% if panel_form %}
+
+<div class="form-group"  method="post" action="">
+  <form role="form"  id="panel_form" method="post" action="">
+    {% csrf_token %}
+
+    <button class="btn btn-info"  name="add_panel" value="true" >Add panel</button> 
+    {{ panel_form.panel }}</br>
+
+    </br>
+
+    <button class="btn btn-info"  name="add_gene" value='true' >Add gene</button> 
+    {{ panel_form.gene }}
+
+    <br><br>
+
+    <h4>Selected panels</h4>
+   
+
+    {% for selected_panel in selected_panels %}
+      <button class="btn btn-danger"  name="rm_panel" value="{{selected_panel.id}}" >{{selected_panel.name}} <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span></button> 
+    {% endfor %}
+
+    <br>
+
+    <input type='text' name='selected_panels' value='{{selected_panels_text}}' hidden /><br>
+
+    <h4>Selected genes </h4>
+
+
+    {% for selected_transcript in selected_transcripts %}
+      <button class="btn btn-danger"  name="rm_transcript" value="{{selected_transcript.id}}" >{{selected_transcript.gene.name}} <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span></button> 
+    {% endfor %}
+
+    <br>
+
+    <input type='text' name='selected_transcripts' value='{{selected_transcripts_text}}' hidden/><br>
+
+    <br><br>
+    <button class="btn btn-info"  name="create_report" value="True" >Generate report</button> 
+
+    <a href={% url 'sample_view' analysis.sample.name %} type = "button" class = "btn btn-info">Back to sample </a>
+
+</form>
+<BR><BR>
+{% endif %}
+  
+	  
+{% endblock %}
+
+

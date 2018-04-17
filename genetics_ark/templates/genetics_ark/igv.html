@@ -20,6 +20,7 @@
 
 {% block script %}
 
+
     $(document).ready(function () {
 
       var div = $("#igv_browser")[0],
@@ -31,7 +32,9 @@
                    id: "hg19"
             },
             genome: "hg19",
-            locus: "8:128,747,267-128,754,546",
+    {% if chrom and pos %}
+            locus: "{{chrom}}:{{pos}}",
+    {% endif %}
              tracks: [
                     {
                      name: "Gencode v19",

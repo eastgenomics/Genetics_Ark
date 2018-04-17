@@ -10,12 +10,19 @@ urlpatterns = [
         
     url(r'^projects/$', views.projects_list, name='projects_list'),
 
-    url(r'^igv/(?P<analysis_id>[0-9]+)$', views.igv, name='igv'),
+    url(r'^igv/(?P<analysis_id>[0-9]+)/$', views.igv, name='igv'),
     url(r'^igv/(?P<sample_name>[GXWC0-9]+)/(?P<runfolder_name>[KNM\_0-9]+)/$', views.igv, name='igv'),
     url(r'^igv/(?P<sample_name>[GXWC0-9]+)/(?P<runfolder_name>[KNM\_0-9]+)/(?P<chrom>[0-9XYxy]+)/(?P<pos>[0-9]+)/$', views.igv, name='igv'),
+    url(r'^igv/(?P<analysis_id>[0-9]+)/(?P<chrom>[0-9XYxy]+)/(?P<pos>[0-9]+)/$', views.igv, name='igv'),
     
     url(r'^sample/(?P<sample_id>[0-9]+)/$', views.sample_view, name='sample_view'),
     url(r'^sample/(?P<sample_name>[A-Z0-9]+)/$', views.sample_view, name='sample_view'),
+
+    url(r'^analysis/report/(?P<analysis_id>[0-9]+)/$', views.analysis_report, name='analysis_report'),
+
+    url(r'^analysis/report/create/(?P<analysis_id>[0-9]+)/$', views.report_create, name='report_create'),
+    url(r'^analysis/report/create/(?P<analysis_id>[0-9]+)/$', views.report_create, name='report_create'),
+    url(r'^analysis/report/done/(?P<tmp_key>[0-9a-zA-Z]+)/$', views.report_done_ajax, name='report_done_ajax'),
 
     url(r'^panel/(?P<panel_id>[0-9]+)/$', views.panel_view, name='panel_view'),
     url(r'^gene/(?P<gene_name>[A-Za-z0-9\-]+)/$', views.gene_view, name='gene_view'),

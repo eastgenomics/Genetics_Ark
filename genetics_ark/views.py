@@ -3,6 +3,12 @@ from django.shortcuts import render
 import os
 import re
 import json
+import operator
+import subprocess
+import shlex
+import shutil
+import string 
+import random 
 
 import pprint as pp
 
@@ -96,7 +102,7 @@ def sample_view( request, sample_id = None, sample_name = None):
     context_dict[ 'panels' ] = []
     sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
     for sample_panel in sample_panels:
-        panel = Models.Panel.objects.filter( name = sample_panel.panel_name )[0]
+        panel = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')[0]
         context_dict[ 'panels' ].append( panel )
 #    sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
 #    sample.panels = sample_panels
@@ -117,10 +123,207 @@ def sample_view( request, sample_id = None, sample_name = None):
 
     context_dict[ 'analyses' ] = analyses
 
-    pp.pprint( context_dict )
+#    pp.pprint( context_dict )
 
         
     return render( request, "genetics_ark/sample_view.html", context_dict )
+
+
+def random_string(length=10):
+    """ Creates a random string 
+
+    Args:
+      length (int): length of string to generate, default 10
+
+    returns:
+      string
+
+    raises:
+      None
+    """
+
+    random_string = ""
+    # Choose from lowercase, uppercase,  and digits
+    alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    for n in range(0, length):
+        random_string += random.choice( alphabet )
+
+    return random_string
+
+def report_create( request, analysis_id, tmp_key=None ):
+    
+    
+    analysis = Models.Analysis.objects.get( pk = analysis_id)
+    context_dict = {'analysis': analysis }
+
+
+    panel_list = []
+
+
+    if 'selected_panels' in request.POST and request.POST['selected_panels'] != '':
+        for selected_panel in request.POST['selected_panels'].split(","):
+            panel = Models.Panel.objects.get( pk = selected_panel )
+
+            panel_list.append( panel.name )
+
+
+    if 'selected_transcripts' in request.POST and request.POST['selected_transcripts'] != '':
+        for selected_transcript in request.POST['selected_transcripts'].split(","):
+            transcript = Models.Transcript.objects.get( pk = selected_transcript )
+
+            panel_list.append( "_{}".format(transcript.gene.name ))
+
+
+    panels = ", ".join( panel_list )
+
+
+    cmd = "/software/packages/ctru-clinical/scripts/gemini/vcf2xls_nirvana.pl -p \"{panels}\" -v /data/gemini/{runfolder}/vcfs/{sample}.refseq_nirvana_203.annotated.vcf ".format(runfolder=analysis.runfolder.name, sample=analysis.sample.name, panels=panels)
+
+    context_dict['cmd'] = cmd 
+
+    path = "static_dev/tmp/"
+    random_tmp = random_string()
+
+    stderr_file_name = "{}{}.stderr".format(path, random_tmp)
+    stdout_file_name = "{}{}.stdout".format(path, random_tmp)
+
+    stderr_file = open( stderr_file_name, "w+" )
+    stdout_file = open( stdout_file_name, "w+" )
+
+    context_dict['tmp_key'] = random_tmp
+
+    cmd = shlex.split( cmd )
+
+    p = subprocess.Popen( cmd , shell=False, stderr = stderr_file , stdout = stdout_file)
+
+    
+    return render( request, "genetics_ark/report_create.html", context_dict )
+
+
+
+def report_done_ajax( request, tmp_key ):
+    
+    path = 'static_dev/tmp/'
+
+    stdout_name = "{}{}.stdout".format( path, tmp_key)
+    print stdout_name
+
+    result_dict = {'status': 'running' }
+
+    if ( os.path.isfile( stdout_name )):
+        fh = open( stdout_name, 'rU')
+        lines = ""
+        for line in fh.readlines():
+            line = line.rstrip( "\n" )
+            print line
+            lines += line +"<br>"
+
+            if line == 'SUCCESS':
+                result_dict['status'] = 'done'
+            elif re.match('Output excel file', line):
+                result_dict['file'] = re.sub(r'.* == ', '', line)
+                shutil.copy2(result_dict['file'], 'static_dev/tmp/')
+                result_dict['file'] = re.sub(r'.*/', '', line)
+            elif re.match('Died at', line):
+                result_dict['status'] = 'failed'
+                
+        
+    result_dict['progress'] = lines
+    
+    response_text = json.dumps(result_dict, separators=(',',':'))
+#    pp.pprint( response_text )
+    return HttpResponse(response_text, content_type="application/json")
+    
+    
+
+def analysis_report( request, analysis_id):
+    
+    context = {}
+    analysis = Models.Analysis.objects.get( pk = analysis_id)
+    context[ 'analysis' ] = analysis
+    context['selected_panels'] = []
+    context['selected_transcripts'] = []
+    if request.method == 'POST':
+
+        form = Forms.PanelForm( request.POST )
+#        pp.pprint(request.POST)
+
+        # Have we been provided with a valid form?
+        if form.is_valid():
+
+            if 'create_report' in request.POST:
+                return (report_create( request, analysis_id ))
+
+            context[ 'panel_form'] = form
+
+            selected_panels = []
+            if 'selected_panels' in form.data and form.data['selected_panels'] != '':
+                selected_panels = form.data['selected_panels'].split(",")
+
+            selected_transcripts = []
+            if 'selected_transcripts' in form.data and form.data['selected_transcripts'] != '':
+                selected_transcripts = form.data['selected_transcripts'].split(",")
+
+            if 'add_panel' in request.POST:
+#                pp.pprint(request.POST)
+
+                selected_panels += [request.POST['panel']]
+                selected_panels = list( set( selected_panels ))
+
+            
+            if 'rm_panel' in request.POST:
+                selected_panels.remove( request.POST['rm_panel'] )
+
+            selected_panels = list( set( selected_panels ))
+            context['selected_panels_text'] = ",".join( selected_panels )
+
+            for panel_id in selected_panels:
+                if panel_id is None or panel_id == '':
+                        continue
+
+                panel = Models.Panel.objects.get( pk = panel_id )
+                context['selected_panels'].append( panel )
+                    
+            context['selected_panels'] = sorted( context['selected_panels'], key=operator.attrgetter('name'))
+
+
+            if 'add_gene' in request.POST:
+#                pp.pprint(request.POST)
+
+                selected_transcripts += [request.POST['gene']]
+                selected_transcripts = list( set( selected_transcripts ))
+
+            
+            if 'rm_transcript' in request.POST:
+                selected_transcripts.remove( request.POST['rm_transcript'] )
+
+            selected_transcripts = list( set( selected_transcripts ))
+            context['selected_transcripts_text'] = ",".join( selected_transcripts )
+
+            for transcript_id in selected_transcripts:
+                if transcript_id is None or transcript_id == '':
+                        continue
+
+                transcript = Models.Transcript.objects.get( pk = transcript_id )
+                context['selected_transcripts'].append( transcript )
+
+            context['selected_transcripts'] = sorted( context['selected_transcripts'], key=operator.attrgetter('gene.name'))
+                    
+        else:
+            pp.pprint( form.errors)
+            context[ 'panel_form'] = form
+
+    else:
+        context[ 'panel_form'] = Forms.PanelForm(  )
+
+    
+
+
+    return render(request, "genetics_ark/analysis_report.html", context)
+
+    
+
+
 
 
 def genes_in_panel( panel_id ):
@@ -150,7 +353,7 @@ def genes_in_panel( panel_id ):
             genes_dict[ gene_name ]['transcripts'].append( transcript.refseq )
 
 
-    pp.pprint( genes_dict )
+#    pp.pprint( genes_dict )
 
     genes_list = []
     for gene in sorted(genes_dict):
@@ -176,7 +379,7 @@ def panel_view( request, panel_id):
 
     context_dict[ 'genes' ] = genes_in_panel( panel_id )
 
-    pp.pprint( context_dict )
+#    pp.pprint( context_dict )
 
     return render( request, "genetics_ark/panel_view.html", context_dict )
 
@@ -189,7 +392,7 @@ def gene_view( request, gene_name):
     
     gene = Models.Gene.objects.filter( name__exact = gene_name )
 
-    pp.pprint( gene )
+#    pp.pprint( gene )
 
     if ( len(gene) == 0 ):
         return render( request, "genetics_ark/gene_not_found.html", context_dict )
@@ -444,9 +647,14 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
                 analysis_variant.zygosity = "HET"
 
 #            print "analysis id {}".format( analysis_variant.analysis_id )
+#            sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
+#            analysis_variant.panels = sample_panels
             sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = analysis_variant.analysis.sample.id )
-            sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
-            analysis_variant.panels = sample_panels
+            analysis_variant.panels = []
+            for sample_panel in sample_panels:
+                panel = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')[0]
+                analysis_variant.panels.append( panel )
+            
 
             samples.append( analysis_variant)
  
@@ -466,8 +674,9 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
                 project_dict[ 'freq' ] = "{0:.4f}".format( freq )
 
             if ( freq < 0.10 ):
-                project_dict[ 'samples' ] = Tables.SampleAAFTable( samples )
-                RequestConfig(request, paginate={'per_page': 36}).configure( project_dict[ 'samples' ] )
+#                project_dict[ 'samples' ] = Tables.SampleAAFTable( samples )
+#                RequestConfig(request, paginate={'per_page': 36}).configure( project_dict[ 'samples' ] )
+                project_dict[ 'samples' ] =  samples 
 
         context_dict[ 'projects' ].append( project_dict )
 

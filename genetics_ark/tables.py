@@ -12,6 +12,7 @@ class SampleAAFTable(tables.Table):
     quality         = tables.Column(verbose_name="Quality")
     aaf             = tables.Column(verbose_name="AAF")
     allele_count    = tables.Column(verbose_name="Genotype")
+#    panels          = tables.LinkColumn('panels', args=[A('panel_name')], verbose_name='Panel(s)')
     panels          = tables.Column(verbose_name="Panels")
 
     class Meta:
