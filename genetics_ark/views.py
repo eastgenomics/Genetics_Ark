@@ -102,8 +102,10 @@ def sample_view( request, sample_id = None, sample_name = None):
     context_dict[ 'panels' ] = []
     sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
     for sample_panel in sample_panels:
-        panel = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')[0]
-        context_dict[ 'panels' ].append( panel )
+        panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
+	if (panels.count() > 0):
+
+	    context_dict[ 'panels' ].append( panels[0] )
 #    sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
 #    sample.panels = sample_panels
 
@@ -177,11 +179,12 @@ def report_create( request, analysis_id, tmp_key=None ):
     panels = ", ".join( panel_list )
 
 
-    cmd = "/software/packages/ctru-clinical/scripts/gemini/vcf2xls_nirvana.pl -p \"{panels}\" -v /data/gemini/{runfolder}/vcfs/{sample}.refseq_nirvana_203.annotated.vcf ".format(runfolder=analysis.runfolder.name, sample=analysis.sample.name, panels=panels)
+    cmd = "/mnt/storage/apps/software/ccbg_toolbox/1.2.1/bin/vcf2xls_nirvana.pl -p \"{panels}\" -v /mnt/storage/data/NGS/{runfolder}/vcfs/{sample}.refseq_nirvana_203.annotated.vcf -R /mnt/storage/data/NGS/{runfolder}/stats/{runfolder}.refseq_nirvana_5bp.gz".format(runfolder=analysis.runfolder.name, sample=analysis.sample.name, panels=panels)
+    print( cmd )
 
     context_dict['cmd'] = cmd 
 
-    path = "static_dev/tmp/"
+    path = "static/tmp/"
     random_tmp = random_string()
 
     stderr_file_name = "{}{}.stderr".format(path, random_tmp)
@@ -193,7 +196,6 @@ def report_create( request, analysis_id, tmp_key=None ):
     context_dict['tmp_key'] = random_tmp
 
     cmd = shlex.split( cmd )
-
     p = subprocess.Popen( cmd , shell=False, stderr = stderr_file , stdout = stdout_file)
 
     
@@ -203,32 +205,45 @@ def report_create( request, analysis_id, tmp_key=None ):
 
 def report_done_ajax( request, tmp_key ):
     
-    path = 'static_dev/tmp/'
+    path = 'static/tmp/'
 
     stdout_name = "{}{}.stdout".format( path, tmp_key)
+    stderr_name = "{}{}.stderr".format(path, tmp_key)
+
     print stdout_name
 
     result_dict = {'status': 'running' }
 
     if ( os.path.isfile( stdout_name )):
         fh = open( stdout_name, 'rU')
-        lines = ""
+        lines = "<b>PROGRESS</b><br>"
         for line in fh.readlines():
             line = line.rstrip( "\n" )
-            print line
             lines += line +"<br>"
 
             if line == 'SUCCESS':
                 result_dict['status'] = 'done'
             elif re.match('Output excel file', line):
                 result_dict['file'] = re.sub(r'.* == ', '', line)
-                shutil.copy2(result_dict['file'], 'static_dev/tmp/')
+                shutil.copy2(result_dict['file'], 'static/tmp/')
                 result_dict['file'] = re.sub(r'.*/', '', line)
             elif re.match('Died at', line):
                 result_dict['status'] = 'failed'
                 
         
     result_dict['progress'] = lines
+
+
+    if ( os.path.isfile( stderr_name )):
+        fh = open( stderr_name, 'rU')
+        lines = "<BR> <b>ERRORS: </b><br>"
+        for line in fh.readlines():
+            line = line.rstrip( "\n" )
+            print line
+            lines += line +"<br>"
+
+    result_dict['progress'] += lines
+
     
     response_text = json.dumps(result_dict, separators=(',',':'))
 #    pp.pprint( response_text )
@@ -652,8 +667,10 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
             sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = analysis_variant.analysis.sample.id )
             analysis_variant.panels = []
             for sample_panel in sample_panels:
-                panel = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')[0]
-                analysis_variant.panels.append( panel )
+                panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
+                if ( panels.len() > 0):
+
+                    analysis_variant.panels.append( panels[0] )
             
 
             samples.append( analysis_variant)

@@ -11,8 +11,8 @@ urlpatterns = [
     url(r'^projects/$', views.projects_list, name='projects_list'),
 
     url(r'^igv/(?P<analysis_id>[0-9]+)/$', views.igv, name='igv'),
-    url(r'^igv/(?P<sample_name>[GXWC0-9]+)/(?P<runfolder_name>[KNM\_0-9]+)/$', views.igv, name='igv'),
-    url(r'^igv/(?P<sample_name>[GXWC0-9]+)/(?P<runfolder_name>[KNM\_0-9]+)/(?P<chrom>[0-9XYxy]+)/(?P<pos>[0-9]+)/$', views.igv, name='igv'),
+    url(r'^igv/(?P<sample_name>[GXWIC0-9]+)/(?P<runfolder_name>[KNM\_0-9]+)/$', views.igv, name='igv'),
+    url(r'^igv/(?P<sample_name>[GXWIC0-9]+)/(?P<runfolder_name>[KNM\_0-9]+)/(?P<chrom>[0-9XYxy]+)/(?P<pos>[0-9]+)/$', views.igv, name='igv'),
     url(r'^igv/(?P<analysis_id>[0-9]+)/(?P<chrom>[0-9XYxy]+)/(?P<pos>[0-9]+)/$', views.igv, name='igv'),
     
     url(r'^sample/(?P<sample_id>[0-9]+)/$', views.sample_view, name='sample_view'),

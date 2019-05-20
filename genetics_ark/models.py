@@ -176,7 +176,7 @@ class Runfolder(models.Model):
     #
     def calc_stats(self ):
 
-        print "Calculating stats for runfolder: {}".format(self.name)
+#        print "Calculating stats for runfolder: {}".format(self.name)
         
         total_reads         = 0
         mapped_reads        = 0
@@ -217,7 +217,7 @@ class Runfolder(models.Model):
 
 
             if ( skip ):
-                print "Skipping {}/{}".format( analysis.name, skip )
+#                print "Skipping {}/{}".format( analysis.name, skip )
                 continue
             
             total_reads         += analysis.total_reads

@@ -79,7 +79,7 @@
    <td> {{ sample.depth }}</td>
    <td> {{ sample.quality }} </td>
    <td> {{ sample.aaf }}</td>
-   <td> {{ sample.allele_count }} </td>
+   <td> {{ sample.zygosity }} </td>
    <td> {% for panel in  sample.panels %} 
      <A href={% url 'panel_view' panel.id %}> {{panel.name}}</a> &nbsp;
      {% endfor %}

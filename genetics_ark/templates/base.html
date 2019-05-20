@@ -76,6 +76,7 @@
 	   {% comment %}
 	   {% endcomment %}
 
+            <li><a href="{% url 'primers_index' %}">Primer designer </a></li>
             <li><a href="{% url 'projects_list' %}">Projects </a></li>
            {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}?next={% url 'index' %}">Logout {{ user.username }} </a></li>

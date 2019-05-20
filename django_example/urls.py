@@ -25,6 +25,9 @@ urlpatterns = [
     # All urls starting with genetics_ark goes to the genetics_ark app
     url(r'^genetics_ark/', include('genetics_ark.urls')),
 
+    # All urls starting with genetics_ark goes to the genetics_ark app
+    url(r'^primer_designer/', include('primer_designer.urls')),
+
     # Easy login/logout stuff
     url(r'^login/$', auth_views.login, name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/' }, name='logout'),

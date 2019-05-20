@@ -14,19 +14,24 @@
 <table border=0 cellpadding="1" cellspacing="1" class="table table-condensed">
 
     <tr>
-      <td>GM</td><td>gm17.12345</td><td>Name:</td><td>Joe Doe</td>
+      <td>GM</td><td>gm</td><td>Name:</td><td></td>
     </tr>
     <tr>
-      <td>DOB</td><td>1/1/1970</td><td>Capture</td><td>{{ project_name }}</td>
+      <td>DOB</td><td>1/1/1</td><td>Capture</td><td>{{ project_name }}</td>
     </tr>
 
     <tr>
-      <td>Panel(s):</td>
+      <td>Panel(s) and Gene(s):</td>
     </tr>
 
 {% for panel in panels %}
   <tr><td><a href={% url 'panel_view'  panel.id %}>{{panel.name}}</a></td></tr>
 {% endfor %}
+
+{% for gene in genes %}
+  <tr><td><a href={% url 'gene_view'  gene.name %}>{{gene.name}}</a></td></tr>
+{% endfor %}
+
 
 </table>
 
