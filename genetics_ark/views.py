@@ -24,12 +24,12 @@ import django.middleware.csrf
 
 from django.forms.models import model_to_dict
 
-
 import genetics_ark.models as Models
 import genetics_ark.forms  as Forms
 import genetics_ark.tables as Tables
 
 import genetics_ark.ccbg_misc as ccbg_misc
+
 
 #@login_required(login_url='/login/')
 def index(request):
@@ -54,21 +54,16 @@ def projects_list( request ):
     return render( request, "genetics_ark/projects_list.html", context_dict )
 
 
-
-
-
 def igv( request, analysis_id=None, sample_name=None, runfolder_name=None, chrom=None, pos=None):
     """ create a page with the js IGV viewer for the sample
 
     """
-
 
     if analysis_id is not None:
         analysis = Models.Analysis.objects.get( pk = analysis_id )
 
         sample_name = analysis.sample.name
         runfolder_name = analysis.runfolder.name
-
 
     context_dict = { 'sample_name': sample_name, 
                      'runfolder_name': runfolder_name,
@@ -81,8 +76,6 @@ def igv( request, analysis_id=None, sample_name=None, runfolder_name=None, chrom
         context_dict['pos'] = pos
 
     return render( request, "genetics_ark/igv.html", context_dict )
-
-
 
 
 def sample_view( request, sample_id = None, sample_name = None):
@@ -101,10 +94,11 @@ def sample_view( request, sample_id = None, sample_name = None):
     context_dict = { 'sample': sample }
     context_dict[ 'panels' ] = []
     sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
+
     for sample_panel in sample_panels:
         panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
-	if (panels.count() > 0):
 
+	if (panels.count() > 0):
 	    context_dict[ 'panels' ].append( panels[0] )
 #    sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
 #    sample.panels = sample_panels
@@ -113,11 +107,14 @@ def sample_view( request, sample_id = None, sample_name = None):
     context_dict[ 'project_name' ] = sample.project.name
 
     analyses = Models.Analysis.objects.filter( sample_id = sample.id )
+
     for analysis in analyses:
         if ( analysis.versions is None):
             continue
+
         versions = analysis.versions.split(";")
         analysis.versions = []
+
         for version in versions:
             analysis.versions.append(version.split(":"))
 
@@ -125,9 +122,17 @@ def sample_view( request, sample_id = None, sample_name = None):
 
     context_dict[ 'analyses' ] = analyses
 
+    deconsSamples = Models.DeconSample.objects.filter(sample_id__exact = sample.id)
+
+    context_dict['decon_runs'] = []
+
+    for deconSample in deconsSamples:
+        decons = deconSample.decon
+        context_dict['decon_runs'].append(decons)
+
+    context_dict['decon_runs'] = sorted(context_dict['decon_runs'])
 #    pp.pprint( context_dict )
 
-        
     return render( request, "genetics_ark/sample_view.html", context_dict )
 
 
@@ -152,15 +157,13 @@ def random_string(length=10):
 
     return random_string
 
+
 def report_create( request, analysis_id, tmp_key=None ):
-    
     
     analysis = Models.Analysis.objects.get( pk = analysis_id)
     context_dict = {'analysis': analysis }
 
-
     panel_list = []
-
 
     if 'selected_panels' in request.POST and request.POST['selected_panels'] != '':
         for selected_panel in request.POST['selected_panels'].split(","):
@@ -168,16 +171,13 @@ def report_create( request, analysis_id, tmp_key=None ):
 
             panel_list.append( panel.name )
 
-
     if 'selected_transcripts' in request.POST and request.POST['selected_transcripts'] != '':
         for selected_transcript in request.POST['selected_transcripts'].split(","):
             transcript = Models.Transcript.objects.get( pk = selected_transcript )
 
             panel_list.append( "_{}".format(transcript.gene.name ))
 
-
     panels = ", ".join( panel_list )
-
 
     cmd = "/mnt/storage/apps/software/ccbg_toolbox/1.2.1/bin/vcf2xls_nirvana.pl -p \"{panels}\" -v /mnt/storage/data/NGS/{runfolder}/vcfs/{sample}.refseq_nirvana_203.annotated.vcf -R /mnt/storage/data/NGS/{runfolder}/stats/{runfolder}.refseq_nirvana_5bp.gz".format(runfolder=analysis.runfolder.name, sample=analysis.sample.name, panels=panels)
     print( cmd )
@@ -198,9 +198,7 @@ def report_create( request, analysis_id, tmp_key=None ):
     cmd = shlex.split( cmd )
     p = subprocess.Popen( cmd , shell=False, stderr = stderr_file , stdout = stdout_file)
 
-    
     return render( request, "genetics_ark/report_create.html", context_dict )
-
 
 
 def report_done_ajax( request, tmp_key ):
@@ -217,26 +215,28 @@ def report_done_ajax( request, tmp_key ):
     if ( os.path.isfile( stdout_name )):
         fh = open( stdout_name, 'rU')
         lines = "<b>PROGRESS</b><br>"
+
         for line in fh.readlines():
             line = line.rstrip( "\n" )
             lines += line +"<br>"
 
             if line == 'SUCCESS':
                 result_dict['status'] = 'done'
+
             elif re.match('Output excel file', line):
                 result_dict['file'] = re.sub(r'.* == ', '', line)
                 shutil.copy2(result_dict['file'], 'static/tmp/')
                 result_dict['file'] = re.sub(r'.*/', '', line)
+
             elif re.match('Died at', line):
                 result_dict['status'] = 'failed'
                 
-        
     result_dict['progress'] = lines
-
 
     if ( os.path.isfile( stderr_name )):
         fh = open( stderr_name, 'rU')
         lines = "<BR> <b>ERRORS: </b><br>"
+
         for line in fh.readlines():
             line = line.rstrip( "\n" )
             print line
@@ -244,13 +244,11 @@ def report_done_ajax( request, tmp_key ):
 
     result_dict['progress'] += lines
 
-    
     response_text = json.dumps(result_dict, separators=(',',':'))
 #    pp.pprint( response_text )
     return HttpResponse(response_text, content_type="application/json")
     
     
-
 def analysis_report( request, analysis_id):
     
     context = {}
@@ -258,6 +256,7 @@ def analysis_report( request, analysis_id):
     context[ 'analysis' ] = analysis
     context['selected_panels'] = []
     context['selected_transcripts'] = []
+    
     if request.method == 'POST':
 
         form = Forms.PanelForm( request.POST )
@@ -281,11 +280,9 @@ def analysis_report( request, analysis_id):
 
             if 'add_panel' in request.POST:
 #                pp.pprint(request.POST)
-
                 selected_panels += [request.POST['panel']]
                 selected_panels = list( set( selected_panels ))
 
-            
             if 'rm_panel' in request.POST:
                 selected_panels.remove( request.POST['rm_panel'] )
 
@@ -301,14 +298,11 @@ def analysis_report( request, analysis_id):
                     
             context['selected_panels'] = sorted( context['selected_panels'], key=operator.attrgetter('name'))
 
-
             if 'add_gene' in request.POST:
 #                pp.pprint(request.POST)
-
                 selected_transcripts += [request.POST['gene']]
                 selected_transcripts = list( set( selected_transcripts ))
 
-            
             if 'rm_transcript' in request.POST:
                 selected_transcripts.remove( request.POST['rm_transcript'] )
 
@@ -331,14 +325,7 @@ def analysis_report( request, analysis_id):
     else:
         context[ 'panel_form'] = Forms.PanelForm(  )
 
-    
-
-
     return render(request, "genetics_ark/analysis_report.html", context)
-
-    
-
-
 
 
 def genes_in_panel( panel_id ):
@@ -357,25 +344,28 @@ def genes_in_panel( panel_id ):
 
     gene_panels = Models.GenePanel.objects.filter( panel_id__exact = panel_id )
     genes_dict = {}
+
     for gene_panel in gene_panels:
         transcripts = Models.Transcript.objects.filter( gene_id__exact = gene_panel.gene_id).filter( clinical_transcript__exact = 'Y')
+
         for transcript in transcripts:
             gene_name = transcript.gene.name
+
             if ( gene_name not in genes_dict ):
                 genes_dict[ gene_name ] = {}
                 genes_dict[ gene_name ]['transcripts'] = []
             
             genes_dict[ gene_name ]['transcripts'].append( transcript.refseq )
 
-
 #    pp.pprint( genes_dict )
 
     genes_list = []
+
     for gene in sorted(genes_dict):
         genes_list.append([ gene, ", ".join(genes_dict[ gene ]['transcripts'])])
 
-
     return genes_list
+
 
 def panel_view( request, panel_id):
 
@@ -384,9 +374,9 @@ def panel_view( request, panel_id):
     panel = Models.Panel.objects.get( pk = panel_id )
     context_dict[ 'panel' ] = panel
 
-
     sample_panels = Models.SamplePanel.objects.filter( panel_name__exact = panel.name )
     samples = []
+
     for sample_panel in sample_panels:
         samples.append( sample_panel.sample.name )
 
@@ -397,7 +387,6 @@ def panel_view( request, panel_id):
 #    pp.pprint( context_dict )
 
     return render( request, "genetics_ark/panel_view.html", context_dict )
-
 
 
 def gene_view( request, gene_name):
@@ -421,18 +410,16 @@ def gene_view( request, gene_name):
     context_dict[ 'transcripts' ] = transcripts
     
     gene_panels = Models.GenePanel.objects.filter( gene_id__exact = gene.id )
+
     context_dict[ 'panels' ] = []
+
     for gene_panel in gene_panels:
         panel = gene_panel.panel
         context_dict[ 'panels' ].append( [panel.name, panel.id])
 
-
     context_dict[ 'panels' ] = sorted( context_dict[ 'panels' ] )
 
-
-        
     return render( request, "genetics_ark/gene_view.html", context_dict )
-
 
 
 def qc_project( request, project_id ):
@@ -480,7 +467,6 @@ def qc_project( request, project_id ):
         if ( runfolder['bases_100x_coverage'] is not None ):
             bases_100x.append( runfolder['bases_100x_coverage'] )
 
-
     runfolder_avgs = []
     
     for runfolder in runfolders:
@@ -489,7 +475,6 @@ def qc_project( request, project_id ):
             runfolder = Models.Runfolder.calc_stats( runfolder )
 #            pp.pprint( runfolder )
 
-            
         runfolder = model_to_dict( runfolder )
 
         if ( ccbg_misc.is_a_number( runfolder[ 'duplicate_reads' ] ) and ccbg_misc.is_a_number(runfolder[ 'mapped_reads' ])):
@@ -503,8 +488,6 @@ def qc_project( request, project_id ):
 
             perc_mapped_boxplot = ccbg_misc.svg_boxplot( perc_mapped, runfolder['perc_mapped'])
             runfolder['perc_mapped'] = django.utils.safestring.mark_safe( "%.2f%% %s " % (runfolder['perc_mapped'],  perc_mapped_boxplot ))
-
-
 
         if (runfolder['total_reads'] is not None ):
             total_reads_boxplot = ccbg_misc.svg_boxplot( total_reads, runfolder['total_reads'])
@@ -524,7 +507,6 @@ def qc_project( request, project_id ):
             bases_100x_boxplot = ccbg_misc.svg_boxplot( bases_100x, runfolder['bases_100x_coverage'])
             runfolder['coverage_100x'] = django.utils.safestring.mark_safe( "%.2f%% %s " % (runfolder['bases_100x_coverage']*100,  bases_100x_boxplot ))
              
-            
         runfolder_avgs.append( runfolder )
 
     stats_table = Tables.StatsTable( runfolder_avgs )
@@ -537,6 +519,7 @@ def qc_project( request, project_id ):
 
     return render( request, "genetics_ark/qc_project.html", context)
 
+
 def qc_runfolder( request, runfolder_id):
 
 #    runfolder_stats = Stats.objects.filter( sample__runfolder = runfolder_name)
@@ -548,7 +531,6 @@ def qc_runfolder( request, runfolder_id):
     samples = 0
 
     for runfolder_stat in runfolder_stats:
-
         if ( ccbg_misc.is_a_number( runfolder_stat.total_reads ) and  ccbg_misc.is_a_number( runfolder_stat.mapped_reads )):
             runfolder_stat.perc_mapped = runfolder_stat.mapped_reads*100.0/runfolder_stat.total_reads
 
@@ -581,7 +563,6 @@ def qc_runfolder( request, runfolder_id):
         runfolder_stat ['bases_on_target'] = runfolder_stat ['bases_on_target']*100
 
         for item in runfolder_stat:
-
             if ( type(runfolder_stat[ item ]) is not float and  type(runfolder_stat[ item ]) is not int and type(runfolder_stat[ item ]) is not long ):
                 continue
 
@@ -636,14 +617,15 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
     variant = variants[ 0 ]
 
-    context_dict['ref']   = variant.ref
-    context_dict['alt']   = variant.alt
-    context_dict['id']    = variant.id
+    context_dict['ref'] = variant.ref
+    context_dict['alt'] = variant.alt
+    context_dict['id']  = variant.id
 
     context_dict[ 'projects' ] = []
+
     for project in Models.Project.objects.all().order_by('name'):
-            
         total = len( Models.Sample.objects.filter( project__exact = project.id) )
+
         if total == 0:
             continue
         
@@ -652,11 +634,14 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
         samples = []
         AnalysisVariants = Models.AnalysisVariant.objects.filter( variant__exact = variant.id ).filter( analysis__sample__project__exact = project.id)
+
         for analysis_variant in AnalysisVariants:
             analysis_variant.name = analysis_variant.analysis.sample.name
+
             if analysis_variant.allele_count == 2:
                 homs += 1
                 analysis_variant.zygosity = "HOM"
+
             else:
                 hets += 1
                 analysis_variant.zygosity = "HET"
@@ -666,13 +651,13 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 #            analysis_variant.panels = sample_panels
             sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = analysis_variant.analysis.sample.id )
             analysis_variant.panels = []
+
             for sample_panel in sample_panels:
                 panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
-                if ( panels.len() > 0):
 
+                if ( panels.len() > 0):
                     analysis_variant.panels.append( panels[0] )
             
-
             samples.append( analysis_variant)
  
         project_dict = {}
@@ -687,6 +672,7 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
             if freq < 0.0001:
                 project_dict[ 'freq' ] = "{0:.4E}".format( freq )
+
             else:
                 project_dict[ 'freq' ] = "{0:.4f}".format( freq )
 
@@ -697,6 +683,24 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
         context_dict[ 'projects' ].append( project_dict )
 
+    context_dict["comment"] = variant.comment
+
+    if request.method == "POST":
+        comment_form = Forms.CommentForm(request.POST)
+
+        if comment_form.is_valid():
+            comment = comment_form.cleaned_data['message']
+
+            variant.comment = comment
+            variant.save()
+
+            return render(request, 'genetics_ark/variant_view.html', context_dict)
+
+    else:
+        comment_form = Forms.CommentForm()
+        
+    context_dict["form"] = comment_form
+
     return (render(request,'genetics_ark/variant_view.html', context_dict))
     
 
@@ -704,14 +708,11 @@ def doc_notes( request ):
     return render( request, 'genetics_ark/doc_notes.html')
 
 
-
 def _awesome_search(max_results=0, starts_with=''):
 
-    
     search_list = []
     if starts_with:
 #        search_list = search_list ]
-
         search_list  = [ {'value':x.name} for x in  Models.Sample.objects.filter(name__istartswith=starts_with)[:max_results] ][:5]
         search_list += [ {'value':x.name} for x in  Models.Gene.objects.filter(name__istartswith=starts_with)[:max_results] ][:5]
         search_list += [ {'value':x.name} for x in  Models.Runfolder.objects.filter(name__istartswith=starts_with)[:max_results] ][:5]
@@ -746,8 +747,8 @@ def search(request):
 
 
     if request.method == 'GET':  
-
         query = request.GET['query']
+
         if ( Models.Sample.objects.filter( name__exact = query)):
             return HttpResponseRedirect(reverse("sample_view", args=[query] ))
 
@@ -776,9 +777,105 @@ def search(request):
 
 #        pp.pprint( context_dict )
 
-
         return render( request, 'genetics_ark/search.html', context_dict)
-
 
     return HttpResponse( reverse('index') )
 
+
+def cnv_view(request, CNV_id):
+    # dict of data passed to the template
+    context_dict = {}
+    # somehow get the data from url and filter
+    cnv = Models.CNV.objects.filter(pk=CNV_id)
+
+    if (len(cnv) == 0):
+        return render(request, "genetics_ark/cnv_not_found.html", context_dict)
+        
+    # filter return a list? so need only value matching the query
+    cnv = cnv[0]
+    # weird syntax to filter
+    decongenesCNVs = Models.DecongeneCNV.objects.filter(CNV_id__exact = cnv.id)
+
+    deconsCNVs = Models.DeconCNV.objects.filter(CNV_id__exact = cnv.id)
+
+    context_dict['decongenes'] = []
+    context_dict['decons'] = []
+
+    # get every gene using the geneCNV table
+    for decongenesCNV in decongenesCNVs:
+        gene = decongenesCNV.decongene
+        context_dict['decongenes'].append(gene)
+
+    # get every decon using the deconCNV table
+    for deconCNV in deconsCNVs:
+        decon = deconCNV.decon
+        context_dict['decons'].append(decon)
+
+    nb_samples, samples = Models.CNV.calc_nb(cnv)
+
+    context_dict['cnv'] = cnv
+    context_dict['decongenes'] = sorted(context_dict['decongenes'])
+    context_dict['decons'] = sorted(context_dict['decons'])
+    context_dict['nb_samples'] = nb_samples
+    context_dict['samples'] = samples
+
+    return render(request, "genetics_ark/cnv_view.html", context_dict)
+
+
+def decon_view(request, Decon_id):
+    # review cnv_view for info, pretty much the same thing
+    context_dict = {}
+
+    decon = Models.Decon.objects.filter(pk=Decon_id)
+
+    if (len(decon) == 0):
+        return render(request, "genetics_ark/decon_not_found.html", context_dict)
+
+    decon = decon[0]
+
+    samplesDecons = Models.DeconSample.objects.filter(decon_id__exact = decon.id)
+
+    deconsCNVs = Models.DeconCNV.objects.filter(decon_id__exact = decon.id)
+
+    context_dict['samples'] = []
+    context_dict['CNVs'] = []
+
+    for sampleDecon in samplesDecons:
+        sample = sampleDecon.sample
+        context_dict['samples'].append(sample)
+
+    for deconCNV in deconsCNVs:
+        CNV = deconCNV.CNV
+        context_dict['CNVs'].append(CNV)
+
+    context_dict['decon'] = decon
+    context_dict['samples'] = sorted(context_dict['samples'])
+    context_dict['CNVs'] = sorted(context_dict['CNVs'])
+    context_dict['deconCNVs'] = deconsCNVs
+
+    return render(request, "genetics_ark/decon_view.html", context_dict)
+
+
+def decongene_view(request, Decongene_id):
+
+    context_dict = {}
+
+    decongene = Models.Decongene.objects.filter(pk = Decongene_id)
+
+    if (len(decongene) == 0):
+        return render(request, "genetics_ark/decon_not_found.html", context_dict)
+
+    decongene = decongene[0]
+
+    CNVs2decongenes = Models.DecongeneCNV.objects.filter(decongene_id__exact = decongene.id)
+
+    context_dict['CNVs'] = []
+
+    for CNV2decongene in CNVs2decongenes:
+        CNV = CNV2decongene.CNV
+        context_dict['CNVs'].append(CNV)
+
+    context_dict["decongene"] = decongene
+    context_dict["CNVs"] = sorted(context_dict["CNVs"])
+
+    return render(request, "genetics_ark/decongene_view.html", context_dict)

@@ -18,24 +18,22 @@ class RegionsForm( forms.Form ):
         cleaned_data = self.cleaned_data
 
         for line in cleaned_data['regions'].split("\n"):
-
             print "'{}'".format( line )
             line = line.rstrip("\r") 
             fields = re.split(r'[\t ]+', line)
+                
             # each line should have 3 pieces of information
             if (len(fields) != 3):
                 raise forms.ValidationError("{} does not contain the required 3 fields".format( line ) )
-
-
 
             # Check on valid reference names
             if fields[2].lower() not in ['grch37', 'grch38' ]:
                 raise forms.ValidationError("{} invalid reference name".format( fields[2] ) )
 
-
             pos_fields = re.split("[:-]", fields[ 1 ])
 
             print ("Fields:", "--".join(pos_fields))
+
             if len( pos_fields ) < 2:
                 raise forms.ValidationError("Region needs a : between chromosome and position ({})".format( fields[ 1] ) )
                 
@@ -46,6 +44,7 @@ class RegionsForm( forms.Form ):
             for pos in pos_fields[1:]:
                 try: 
                     int(pos)
+
                 except ValueError:
                     raise forms.ValidationError("{} positions is not an integer".format( pos ) )
 

@@ -7,8 +7,6 @@ urlpatterns = [
                
                url(r'^create/$', views.create, name='primers_create'),
                url(r'^primers_done_ajax/(?P<tmp_key>[0-9a-zA-Z]+)$', views.primers_done_ajax, name='primers_done_ajax'),
-
-               
-               ]
+]
 
 

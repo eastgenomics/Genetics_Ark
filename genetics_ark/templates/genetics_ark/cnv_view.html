@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% load render_table from django_tables2 %}
+{% block extrastyle %}
+  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
+{% endblock %}
+
+{% block body_block %}
+
+
+<h2>CNV: chr{{ cnv.chr }}&nbsp;{{ cnv.start }}&nbsp;{{ cnv.end }}</h2></br>
+
+<div class="col-sm1">
+  <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
+    <tr>
+      <th>Chr:</th><td>{{ cnv.chr }}</td>
+    </tr>
+    <tr>
+      <th>Start:</th><td>{{ cnv.start }}</td>
+    </tr>
+    <tr>
+      <th>End:</th><td>{{ cnv.end }}</td>
+    </tr>
+    <tr>
+      <th>Type:</th><td>{{ cnv.type }}</td>
+    </tr>
+
+  </table>
+</div>
+
+
+<div style="width: 100%; overflow: hidden;">
+  <div style="width: 475px; float: left;">
+    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+      <tr>
+        <th>Genes:</th>
+      </tr>
+
+      {% for decongene in decongenes %}
+
+      <tr>
+        <td><a href={% url 'decongene_view' decongene.id %}>{{ decongene.name }}</td>
+      </tr>
+
+      {% endfor %}
+    </table>
+  </div>
+
+  <div style="width: 475px; margin-left: 50px; float: left">
+    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+      <tr>
+        <th>Decon runs:</th>
+      </tr>
+
+      {% for decon in decons %}
+      <tr>
+        <td><a href={% url 'decon_view' decon.id %}>{{ decon.name }}</td>
+      </tr>
+
+      {% endfor %}
+    </table>
+  </div>
+
+  <div style="width: 475px;margin-left: 50px; float: left">
+    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+      <tr>
+        <td><b>Present in :</b>&nbsp;{{ nb_samples }} {% if nb_samples > 1 %}samples{% else %}sample{% endif %}</td>
+      </tr>
+
+      {% for sample in samples %}
+      <tr>
+        <td><a href={% url 'sample_view' sample.name %}>{{ sample.name }}</td>
+      </tr>
+
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+{% endblock %}

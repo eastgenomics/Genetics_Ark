@@ -8,9 +8,6 @@ import re
 import pprint as pp
 
 
-
-
-
 class PanelForm( forms.Form ):
     
     class PanelModelChoiceField( forms.ModelChoiceField ):
@@ -31,3 +28,7 @@ class PanelForm( forms.Form ):
     gene  = GeneModelChoiceField(queryset= Models.Transcript.objects.filter( clinical_transcript = 'Y').order_by('gene__name'), to_field_name='id', label=False, required=False )
     selected_panels = forms.CharField(required=False)
     selected_transcripts  = forms.CharField(required=False)
+
+
+class CommentForm(forms.Form):
+    comment = forms.CharField()

@@ -32,9 +32,20 @@
   <tr><td><a href={% url 'gene_view'  gene.name %}>{{gene.name}}</a></td></tr>
 {% endfor %}
 
-
 </table>
 
+
+<table border=0 cellpadding="1" cellspacing="1" class="table table-condensed">
+  <tr>
+      <th>Decon runs:</th>
+  </tr>
+
+  {% for decon_run in decon_runs %}
+  <tr>
+      <td><a href={% url 'decon_view' decon_run.id %}>{{ decon_run.name }}</td>
+  </tr>
+  {% endfor %}
+</table>
 
 
 {% for analysis in analyses %}

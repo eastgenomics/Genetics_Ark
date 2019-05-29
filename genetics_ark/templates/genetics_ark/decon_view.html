@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% load render_table from django_tables2 %}
+{% block extrastyle %}
+  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
+{% endblock %}
+
+{% block body_block %}
+
+<h2>Decon run: {{ decon.name }}</h2></br>
+
+<div class="col-sm1">
+  <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+    <tr>
+      <th>Name:</th><td>{{ decon.name }}</td>
+    </tr>
+    <tr>
+      <th>Date:</th><td>{{ decon.date }}</td>
+    </tr>
+  </table>
+</div>
+
+<div style="width: 100%; overflow: hidden;">
+  <div style="width: 1000px; float: left;">
+    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+      <tr>
+        <th>CNVs</th>
+        <th>Correlation</th>
+        <th>BF</th>
+        <th>Start_b</th>
+        <th>End_b</th>
+        <th>Number of exons</th>
+        <th>Reads expected</th>
+        <th>Reads observed</th>
+        <th>Reads ratio</th>
+      </tr>
+
+      {% for CNV in CNVs %}
+
+      <tr>
+        <td><a href={% url 'cnv_view' CNV.id %}>chr{{ CNV.chr }}&nbsp;{{ CNV.start }}&nbsp;{{ CNV.end }}&nbsp;type&nbsp;{{ CNV.type }}</td>
+
+        {% for deconCNV in deconCNVs %}
+
+          {% if deconCNV.CNV == CNV %}
+            <td>{{ deconCNV.correlation }}</td>
+            <td>{{ deconCNV.BF }}</td>
+            <td>{{ deconCNV.start_b }}</td>
+            <td>{{ deconCNV.end_b }}</td>
+            <td>{{ deconCNV.nb_exons }}</td>
+            <td>{{ deconCNV.reads_expected }}</td>
+            <td>{{ deconCNV.reads_observed }}</td>
+            <td>{{ deconCNV.reads_ratio }}</td>
+          {% endif %}
+
+        {% endfor %}
+      </tr>
+
+      {% endfor %}
+    </table>
+  </div>
+
+  <div style="margin-left: 1050px;">
+    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+      <tr>
+        <th>Samples:</th>
+      </tr>
+
+      {% for sample in samples %}
+
+      <tr>
+        <td><a href={% url 'sample_view' sample.name %}>{{ sample.name }}</td>
+      </tr>
+
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+{% endblock %}

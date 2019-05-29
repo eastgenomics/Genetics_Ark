@@ -35,5 +35,9 @@ urlpatterns = [
     url(r'^api/search/(?P<query>[a-zA-Z0-9\-\_:]+)/$', views.api_search, name='api_search'),
     url(r'^search/$', views.search, name='search'),
     
-    
-    ]
+    url(r'^cnv/(?P<CNV_id>[0-9]+)/$', views.cnv_view, name='cnv_view'),
+
+    url(r'^decon/(?P<Decon_id>[0-9]+)/$', views.decon_view, name='decon_view'),
+
+    url(r'^decongene/(?P<Decongene_id>[0-9]+)/$', views.decongene_view, name='decongene_view')
+]
