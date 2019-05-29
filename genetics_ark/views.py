@@ -685,23 +685,39 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
     context_dict["comment"] = variant.comment
 
+    # handle the comments in the variant page
     if request.method == "POST":
+        # data is sent
         comment_form = Forms.CommentForm(request.POST)
 
         if comment_form.is_valid():
-            comment = comment_form.cleaned_data['message']
+            # the form is valid
+            comment = comment_form.cleaned_data['comment']
 
+            # if the textarea is empty when the submit button is clicked --> get a None to put a NULL in the db
+            if comment == "":
+                comment = None
+                
+            # save the comment in the database
             variant.comment = comment
             variant.save()
 
+            context_dict["comment"] = variant.comment
+
+            # recreate the form
+            comment_form = Forms.CommentForm()
+            context_dict["form"] = comment_form
+
+            # return the page with the new comment
             return render(request, 'genetics_ark/variant_view.html', context_dict)
 
     else:
+        # if data is not sent, just display the form
         comment_form = Forms.CommentForm()
         
     context_dict["form"] = comment_form
 
-    return (render(request,'genetics_ark/variant_view.html', context_dict))
+    return render(request, 'genetics_ark/variant_view.html', context_dict)
     
 
 def doc_notes( request ):

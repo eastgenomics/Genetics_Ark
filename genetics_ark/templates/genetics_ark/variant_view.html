@@ -23,32 +23,27 @@
 
 
 <div class="row">
- <div class=" col-md-4">
-   <table cellpadding="5" cellspacing="5" class="col-sm-3 table table-condensed table-bordered table-hover" >
-  <tr>
-    <th >Project</th>
-    <th >Hets</th>
-    <th >Homs</th>
-    <th >Samples</th>
-    <th >Frequency</th>
-   </tr>
+  <div class=" col-md-4">
+    <table cellpadding="5" cellspacing="5" class="col-sm-3 table table-condensed table-bordered table-hover" >
+      <tr>
+        <th>Project</th>
+        <th>Hets</th>
+        <th>Homs</th>
+        <th>Samples</th>
+        <th>Frequency</th>
+      </tr>
 
-{% for project in projects %}
-
-
- </tr>
-
-   <td> {{ project.name }} </td>
-   <td> {{ project.hets }}</td>
-   <td> {{ project.homs }}</td>
-   <td> {{ project.total }}</td>
-   <td> {{ project.freq }}</td>
-
-
-    </tr>
-{% endfor %}    
-</table>
-</div>
+      {% for project in projects %}
+      </tr>
+        <td> {{ project.name }}  </td>
+        <td> {{ project.hets }}  </td>
+        <td> {{ project.homs }}  </td>
+        <td> {{ project.total }} </td>
+        <td> {{ project.freq }}  </td>
+      </tr>
+      {% endfor %}    
+    </table>
+  </div>
 </div>
 
 <hr>
@@ -57,48 +52,59 @@
 {% for project in projects %}
 
   {% if project.samples %}
-<h3>Project: {{project.name}} </h3><br>
+    <h3>Project: {{project.name}} </h3><br>
 
-<div class="row">
- <div class=" col-md-5">
-   <table cellpadding="5" cellspacing="5" class="col-sm-5 table table-condensed table-bordered table-hover" >
-  <tr>
-    <th >Sample</th>
-    <th >Depth</th>
-    <th >Quality</th>
-    <th >AAF</th>
-    <th >Genotype</th>
-    <th >Panel(s)</th>
-   </tr>
+    <div class="row">
+      <div class=" col-md-5">
+        <table cellpadding="5" cellspacing="5" class="col-sm-5 table table-condensed table-bordered table-hover" >
+          <tr>
+            <th> Sample   </th>
+            <th> Depth    </th>
+            <th> Quality  </th>
+            <th> AAF      </th>
+            <th> Genotype </th>
+            <th> Panel(s) </th>
+          </tr>
 
-  {% for sample in project.samples %}
+          {% for sample in project.samples %}
 
- </tr>
+          </tr>
+            <td> {{ sample.name }}     </td>
+            <td> {{ sample.depth }}    </td>
+            <td> {{ sample.quality }}  </td>
+            <td> {{ sample.aaf }}      </td>
+            <td> {{ sample.zygosity }} </td>
+            <td> {% for panel in  sample.panels %} 
+              <a href={% url 'panel_view' panel.id %}> {{ panel.name }}</a> &nbsp;
+            </td>
+          </tr>
 
-   <td> {{ sample.name }} </td>
-   <td> {{ sample.depth }}</td>
-   <td> {{ sample.quality }} </td>
-   <td> {{ sample.aaf }}</td>
-   <td> {{ sample.zygosity }} </td>
-   <td> {% for panel in  sample.panels %} 
-     <A href={% url 'panel_view' panel.id %}> {{panel.name}}</a> &nbsp;
-     {% endfor %}
+            {% endfor %}
 
-</td>
-
-    </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  {% endif %}
 {% endfor %}    
-</table>
-</div>
-</div>
-
+  
 <hr>
 <br>
-  {% endif %}
-
-{% endfor %}
 
 {% endif %}
 
-{% endblock %}
+<h4>Comments:</h4>
 
+<div>
+  {% if comment %}
+    <p>{{ comment }}</p></br>
+  {% endif %}
+
+  <form action = "" method = "POST">
+    {% csrf_token %}
+    {{ form.comment }}</br></br>
+    <button name="update" type="submit">Update comment</button>
+  </form>
+</div>
+
+{% endblock %}

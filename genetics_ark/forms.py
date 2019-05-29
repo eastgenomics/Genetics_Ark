@@ -31,4 +31,4 @@ class PanelForm( forms.Form ):
 
 
 class CommentForm(forms.Form):
-    comment = forms.CharField()
+    comment = forms.CharField(required = False, widget = forms.Textarea)
