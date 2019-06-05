@@ -872,26 +872,26 @@ def decon_view(request, Decon_id):
     return render(request, "genetics_ark/decon_view.html", context_dict)
 
 
-def decongene_view(request, Decongene_id):
+def deconexon_view(request, Deconexon_id):
 
     context_dict = {}
 
-    decongene = Models.Decongene.objects.filter(pk = Decongene_id)
+    deconexon = Models.Deconexon.objects.filter(pk = Deconexon_id)
 
-    if (len(decongene) == 0):
+    if (len(deconexon) == 0):
         return render(request, "genetics_ark/decon_not_found.html", context_dict)
 
-    decongene = decongene[0]
+    deconexon = deconexon[0]
 
-    CNVs2decongenes = Models.DecongeneCNV.objects.filter(decongene_id__exact = decongene.id)
+    CNVs2deconexons = Models.DeconexonCNV.objects.filter(deconexon_id__exact = deconexon.id)
 
     context_dict['CNVs'] = []
 
-    for CNV2decongene in CNVs2decongenes:
-        CNV = CNV2decongene.CNV
+    for CNV2deconexon in CNVs2deconexons:
+        CNV = CNV2deconexon.CNV
         context_dict['CNVs'].append(CNV)
 
-    context_dict["decongene"] = decongene
+    context_dict["deconexon"] = deconexon
     context_dict["CNVs"] = sorted(context_dict["CNVs"])
 
-    return render(request, "genetics_ark/decongene_view.html", context_dict)
+    return render(request, "genetics_ark/deconexon_view.html", context_dict)

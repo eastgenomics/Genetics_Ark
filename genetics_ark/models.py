@@ -133,22 +133,22 @@ class DeconCNV(models.Model):
         return "{} <=> {}".format(self.decon, self.CNV)
 
 
-class Decongene(models.Model):
+class Deconexon(models.Model):
     name  = models.CharField(max_length=100)
     chr   = models.CharField(max_length=2)
     start = models.PositiveIntegerField()
     end   = models.PositiveIntegerField()
 
     def __str__(self):
-        return self.name
+        return "{}: chr{}\t{}-{}".format(self.name, self.chr, self.start, self.end)
 
 
-class DecongeneCNV(models.Model):
-    decongene = models.ForeignKey(Decongene, on_delete=models.DO_NOTHING, related_name = "Decongenes2CNVs")
+class DeconexonCNV(models.Model):
+    deconexon = models.ForeignKey(Deconexon, on_delete=models.DO_NOTHING, related_name = "Decongenes2CNVs")
     CNV       = models.ForeignKey(CNV, on_delete=models.DO_NOTHING, related_name = "CNVs2Decongenes")
 
     def __str__(self):
-        return "{} <=> {}".format(self.decongene, self.CNV)
+        return "{} <=> {}".format(self.deconexon, self.CNV)
 
 
 class DeconSample(models.Model):
