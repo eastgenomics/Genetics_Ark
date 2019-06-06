@@ -122,15 +122,16 @@ def sample_view( request, sample_id = None, sample_name = None):
 
     context_dict[ 'analyses' ] = analyses
 
-    deconsSamples = Models.DeconSample.objects.filter(sample_id__exact = sample.id)
+    # get the decon runs associated with the sample
+    deconSamples = Models.DeconCNV.objects.filter(sample_id__exact = sample.id)
 
     context_dict['decon_runs'] = []
 
-    for deconSample in deconsSamples:
+    for deconSample in deconSamples:
         decons = deconSample.decon
         context_dict['decon_runs'].append(decons)
 
-    context_dict['decon_runs'] = sorted(context_dict['decon_runs'])
+    context_dict['decon_runs'] = sorted(set(context_dict['decon_runs']))
 #    pp.pprint( context_dict )
 
     return render( request, "genetics_ark/sample_view.html", context_dict )
@@ -799,9 +800,9 @@ def search(request):
 
 
 def cnv_view(request, CNV_id):
-    # dict of data passed to the template
     context_dict = {}
-    # somehow get the data from url and filter
+
+    # get the data from url and filter
     cnv = Models.CNV.objects.filter(pk=CNV_id)
 
     if (len(cnv) == 0):
@@ -809,28 +810,41 @@ def cnv_view(request, CNV_id):
         
     # filter return a list? so need only value matching the query
     cnv = cnv[0]
-    # weird syntax to filter
-    decongenesCNVs = Models.DecongeneCNV.objects.filter(CNV_id__exact = cnv.id)
+
+    deconexonsCNVs = Models.DeconexonCNV.objects.filter(CNV_id__exact = cnv.id)
 
     deconsCNVs = Models.DeconCNV.objects.filter(CNV_id__exact = cnv.id)
 
-    context_dict['decongenes'] = []
     context_dict['decons'] = []
 
-    # get every gene using the geneCNV table
-    for decongenesCNV in decongenesCNVs:
-        gene = decongenesCNV.decongene
-        context_dict['decongenes'].append(gene)
+    exons = []
+
+    # i get every individual elements to sort them
+    for deconexonsCNV in deconexonsCNVs:
+        exon = deconexonsCNV.deconexon
+
+        exon_id    = exon.id
+        exon_name  = exon.name
+        exon_chr   = exon.chr
+        exon_start = exon.start
+        exon_end   = exon.end
+
+        exons.append("{} {} {} {} {}".format(exon_chr, exon_start, exon_end, exon_name, exon_id))
+
+    sorted_exons = sorted(exons)
+
+    # need a list of lists for element accessing in the template
+    context_dict['deconexons'] = [exon.split() for exon in sorted_exons]
 
     # get every decon using the deconCNV table
     for deconCNV in deconsCNVs:
         decon = deconCNV.decon
         context_dict['decons'].append(decon)
 
+    # call function to get the nb of samples in which the cnv is present
     nb_samples, samples = Models.CNV.calc_nb(cnv)
 
     context_dict['cnv'] = cnv
-    context_dict['decongenes'] = sorted(context_dict['decongenes'])
     context_dict['decons'] = sorted(context_dict['decons'])
     context_dict['nb_samples'] = nb_samples
     context_dict['samples'] = samples
@@ -839,7 +853,6 @@ def cnv_view(request, CNV_id):
 
 
 def decon_view(request, Decon_id):
-    # review cnv_view for info, pretty much the same thing
     context_dict = {}
 
     decon = Models.Decon.objects.filter(pk=Decon_id)
@@ -849,25 +862,58 @@ def decon_view(request, Decon_id):
 
     decon = decon[0]
 
-    samplesDecons = Models.DeconSample.objects.filter(decon_id__exact = decon.id)
-
     deconsCNVs = Models.DeconCNV.objects.filter(decon_id__exact = decon.id)
 
-    context_dict['samples'] = []
     context_dict['CNVs'] = []
 
-    for sampleDecon in samplesDecons:
-        sample = sampleDecon.sample
-        context_dict['samples'].append(sample)
+    CNVs = []
+    stats_deconCNV = []
 
+    # sort the cnv data
+    # id comparison wasn't working in the template so i got the individual data for the deconCNV
     for deconCNV in deconsCNVs:
         CNV = deconCNV.CNV
-        context_dict['CNVs'].append(CNV)
+
+        CNV_chr   = CNV.chr
+        CNV_start = CNV.start
+        CNV_end   = CNV.end
+        CNV_type  = CNV.type
+        CNV_id    = CNV.id
+
+        deconCNV_id             = deconCNV.CNV_id
+        deconCNV_correlation    = deconCNV.correlation
+        deconCNV_start_b        = deconCNV.start_b
+        deconCNV_end_b          = deconCNV.end_b
+        deconCNV_nb_exons       = deconCNV.nb_exons
+        deconCNV_BF             = deconCNV.BF
+        deconCNV_reads_expected = deconCNV.reads_expected
+        deconCNV_reads_observed = deconCNV.reads_observed
+        deconCNV_reads_ratio    = deconCNV.reads_ratio
+        deconCNV_sample         = deconCNV.sample
+        deconCNV_sample_id      = deconCNV.sample_id
+
+        stats_deconCNV.append("{} {} {} {} {} {} {} {} {} {} {}".format(deconCNV_id,
+                                deconCNV_correlation, 
+                                deconCNV_start_b, 
+                                deconCNV_end_b, 
+                                deconCNV_nb_exons, 
+                                deconCNV_BF, 
+                                deconCNV_reads_expected, 
+                                deconCNV_reads_observed, 
+                                deconCNV_reads_ratio,
+                                deconCNV_sample,
+                                deconCNV_sample_id
+        ))
+        
+        CNVs.append("{} {} {} {} {}".format(CNV_chr, CNV_start, CNV_end, CNV_type, CNV_id))
+
+    sorted_CNVs = sorted(CNVs)
+
+    context_dict['CNVs'] = [cnv.split() for cnv in sorted_CNVs]
 
     context_dict['decon'] = decon
-    context_dict['samples'] = sorted(context_dict['samples'])
-    context_dict['CNVs'] = sorted(context_dict['CNVs'])
-    context_dict['deconCNVs'] = deconsCNVs
+
+    context_dict['deconCNVs'] = [stat.split() for stat in stats_deconCNV]
 
     return render(request, "genetics_ark/decon_view.html", context_dict)
 

@@ -86,25 +86,19 @@ class CNV(models.Model):
 
 
     def __str__(self):
-        return "chr{}\t{}-{}\t{}".format(self.chr, self.start, self.end, self.type)
+        return "chr{}: {}-{} {}".format(self.chr, self.start, self.end, self.type)
 
     def calc_nb(self):
         """
             Function to calculate the nb of samples for a given CNV
         """
 
-        decons = []
         samples = []
 
         deconCNVs = DeconCNV.objects.filter(CNV_id__exact = self.id)
 
         for deconCNV in deconCNVs:
-            decons.append(deconCNV.decon)
-
-        for decon in decons:
-            deconSamples = DeconSample.objects.filter(decon_id__exact = decon.id)
-            for deconSample in deconSamples:
-                samples.append(deconSample.sample)
+            samples.append(deconCNV.sample)
 
         return len(samples), samples
 
@@ -118,19 +112,20 @@ class Decon(models.Model):
 
 
 class DeconCNV(models.Model):
-    decon          = models.ForeignKey(Decon, on_delete=models.DO_NOTHING, related_name = "Decon2CNVs")
-    CNV            = models.ForeignKey(CNV, on_delete=models.DO_NOTHING, related_name = "CNV2Decons")
-    correlation    = models.DecimalField(max_digits = 6, decimal_places = 4)
+    decon          = models.ForeignKey(Decon, on_delete=models.DO_NOTHING)
+    CNV            = models.ForeignKey(CNV, on_delete=models.DO_NOTHING)
+    sample         = models.ForeignKey("Sample", on_delete=models.DO_NOTHING)
+    correlation    = models.FloatField()
     start_b        = models.PositiveIntegerField()
     end_b          = models.PositiveIntegerField()
     nb_exons       = models.PositiveIntegerField()
-    BF             = models.PositiveIntegerField()
+    BF             = models.FloatField()
     reads_expected = models.PositiveIntegerField()
     reads_observed = models.PositiveIntegerField()
     reads_ratio    = models.FloatField()
 
     def __str__(self):
-        return "{} <=> {}".format(self.decon, self.CNV)
+        return "{} <=> {} <=> {}".format(self.decon, self.CNV, self.sample)
 
 
 class Deconexon(models.Model):
@@ -140,7 +135,7 @@ class Deconexon(models.Model):
     end   = models.PositiveIntegerField()
 
     def __str__(self):
-        return "{}: chr{}\t{}-{}".format(self.name, self.chr, self.start, self.end)
+        return "{}: chr{} {}-{}".format(self.name, self.chr, self.start, self.end)
 
 
 class DeconexonCNV(models.Model):
@@ -149,14 +144,6 @@ class DeconexonCNV(models.Model):
 
     def __str__(self):
         return "{} <=> {}".format(self.deconexon, self.CNV)
-
-
-class DeconSample(models.Model):
-    decon  = models.ForeignKey(Decon, on_delete=models.DO_NOTHING, related_name = "Decon2Samples")
-    sample = models.ForeignKey('Sample', on_delete=models.DO_NOTHING, related_name = "Sample2Decons")
-
-    def __str__(self):
-        return "{} <=> {}".format(self.decon, self.sample)
 
 
 class Gene(models.Model):

@@ -13,7 +13,7 @@
   <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
   
     <tr>
-      <th>Chr:</t h><td>{{ deconexon.chr }}</td>
+      <th>Chrom:</t h><td>{{ deconexon.chr }}</td>
     </tr>
     <tr>
       <th>Start:</th><td>{{ deconexon.start }}</td>
@@ -33,7 +33,7 @@
 
       {% for CNV in CNVs %}
         <tr>
-          <td><a href={% url 'cnv_view' CNV.id %}>chr{{ CNV.chr }}&nbsp;{{ CNV.start }}-{{ CNV.end }}&nbsp;type&nbsp;{{ CNV.type }}</a></td>
+          <td><a href={% url 'cnv_view' CNV.id %}>chrom{{ CNV.chr }} {{ CNV.start }}-{{ CNV.end }} type {{ CNV.type }}</a></td>
         </tr>
       {% endfor %}
 

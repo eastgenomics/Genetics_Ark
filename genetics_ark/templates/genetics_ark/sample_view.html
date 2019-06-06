@@ -40,11 +40,16 @@
       <th>Decon runs:</th>
   </tr>
 
-  {% for decon_run in decon_runs %}
-  <tr>
-      <td><a href={% url 'decon_view' decon_run.id %}>{{ decon_run.name }}</td>
-  </tr>
-  {% endfor %}
+  {% if decon_runs %}
+    {% for decon_run in decon_runs %}
+    <tr>
+        <td><a href={% url 'decon_view' decon_run.id %}>{{ decon_run.name }}</td>
+    </tr>
+    {% endfor %}
+  {% else %}
+    <p>No decon runs for this sample</p>
+  {% endif %}
+
 </table>
 
 

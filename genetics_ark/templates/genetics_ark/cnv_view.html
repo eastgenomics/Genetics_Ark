@@ -8,13 +8,13 @@
 {% block body_block %}
 
 
-<h2>CNV: chr{{ cnv.chr }}&nbsp;{{ cnv.start }}&nbsp;{{ cnv.end }}</h2></br>
+<h2>CNV: chrom{{ cnv.chr }} {{ cnv.start }}-{{ cnv.end }}</h2></br>
 
 <div class="col-sm1">
   <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
 
     <tr>
-      <th>Chr:</th><td>{{ cnv.chr }}</td>
+      <th>Chrom:</th><td>{{ cnv.chr }}</td>
     </tr>
     <tr>
       <th>Start:</th><td>{{ cnv.start }}</td>
@@ -34,13 +34,13 @@
   <div style="width: 475px; float: left;">
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
       <tr>
-        <th>Genes:</th>
+        <th>Exons:</th>
       </tr>
 
-      {% for decongene in decongenes %}
+      {% for deconexon in deconexons %}
 
       <tr>
-        <td><a href={% url 'decongene_view' decongene.id %}>{{ decongene.name }}</td>
+        <td><a href={% url 'deconexon_view' deconexon.4 %}>{{ deconexon.3 }} exon: chrom{{ deconexon.0 }} {{ deconexon.1 }}-{{ deconexon.2 }}</td>
       </tr>
 
       {% endfor %}
@@ -69,6 +69,7 @@
       </tr>
 
       {% for sample in samples %}
+
       <tr>
         <td><a href={% url 'sample_view' sample.name %}>{{ sample.name }}</td>
       </tr>

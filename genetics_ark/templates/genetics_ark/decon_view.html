@@ -21,7 +21,7 @@
 </div>
 
 <div style="width: 100%; overflow: hidden;">
-  <div style="width: 1000px; float: left;">
+  <div float: left;">
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
       <tr>
         <th>CNVs</th>
@@ -33,43 +33,28 @@
         <th>Reads expected</th>
         <th>Reads observed</th>
         <th>Reads ratio</th>
+        <th>Sample</th>
       </tr>
 
       {% for CNV in CNVs %}
 
       <tr>
-        <td><a href={% url 'cnv_view' CNV.id %}>chr{{ CNV.chr }}&nbsp;{{ CNV.start }}&nbsp;{{ CNV.end }}&nbsp;type&nbsp;{{ CNV.type }}</td>
+        <td><a href={% url 'cnv_view' CNV.4 %}>chrom{{ CNV.0 }} {{ CNV.1 }}-{{ CNV.2 }} type {{ CNV.3 }}</td>
 
         {% for deconCNV in deconCNVs %}
-
-          {% if deconCNV.CNV == CNV %}
-            <td>{{ deconCNV.correlation }}</td>
-            <td>{{ deconCNV.BF }}</td>
-            <td>{{ deconCNV.start_b }}</td>
-            <td>{{ deconCNV.end_b }}</td>
-            <td>{{ deconCNV.nb_exons }}</td>
-            <td>{{ deconCNV.reads_expected }}</td>
-            <td>{{ deconCNV.reads_observed }}</td>
-            <td>{{ deconCNV.reads_ratio }}</td>
+          {% if deconCNV.0 == CNV.4 %}
+            <td>{{ deconCNV.1 }}</td>
+            <td>{{ deconCNV.5 }}</td>
+            <td>{{ deconCNV.2 }}</td>
+            <td>{{ deconCNV.3 }}</td>
+            <td>{{ deconCNV.4 }}</td>
+            <td>{{ deconCNV.6 }}</td>
+            <td>{{ deconCNV.7 }}</td>
+            <td>{{ deconCNV.8 }}</td>
+            <td><a href={% url 'sample_view' deconCNV.10 %}>{{ deconCNV.9 }}</td>
           {% endif %}
 
         {% endfor %}
-      </tr>
-
-      {% endfor %}
-    </table>
-  </div>
-
-  <div style="margin-left: 1050px;">
-    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
-      <tr>
-        <th>Samples:</th>
-      </tr>
-
-      {% for sample in samples %}
-
-      <tr>
-        <td><a href={% url 'sample_view' sample.name %}>{{ sample.name }}</td>
       </tr>
 
       {% endfor %}
