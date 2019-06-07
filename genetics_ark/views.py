@@ -831,10 +831,11 @@ def cnv_view(request, CNV_id):
 
         exons.append("{} {} {} {} {}".format(exon_chr, exon_start, exon_end, exon_name, exon_id))
 
-    sorted_exons = sorted(exons)
-
     # need a list of lists for element accessing in the template
-    context_dict['deconexons'] = [exon.split() for exon in sorted_exons]
+    unsorted_exons = [exon.split() for exon in exons]
+
+    # sorting the deconexons by the chrom, start, end
+    context_dict['deconexons'] = sorted(unsorted_exons, key=lambda x: (x[0], int(x[1]), int(x[2])))
 
     # get every decon using the deconCNV table
     for deconCNV in deconsCNVs:
@@ -880,6 +881,8 @@ def decon_view(request, Decon_id):
         CNV_type  = CNV.type
         CNV_id    = CNV.id
 
+        CNVs.append("{} {} {} {} {}".format(CNV_chr, CNV_start, CNV_end, CNV_type, CNV_id))
+
         deconCNV_id             = deconCNV.CNV_id
         deconCNV_correlation    = deconCNV.correlation
         deconCNV_start_b        = deconCNV.start_b
@@ -904,12 +907,10 @@ def decon_view(request, Decon_id):
                                 deconCNV_sample,
                                 deconCNV_sample_id
         ))
-        
-        CNVs.append("{} {} {} {} {}".format(CNV_chr, CNV_start, CNV_end, CNV_type, CNV_id))
 
-    sorted_CNVs = sorted(CNVs)
+    unsorted_CNVs = [cnv.split() for cnv in CNVs]
 
-    context_dict['CNVs'] = [cnv.split() for cnv in sorted_CNVs]
+    context_dict['CNVs'] = sorted(unsorted_CNVs, key=lambda x: (x[0], int(x[1]), int(x[2])))
 
     context_dict['decon'] = decon
 
