@@ -823,13 +823,7 @@ def cnv_view(request, CNV_id):
     for deconexonsCNV in deconexonsCNVs:
         exon = deconexonsCNV.deconexon
 
-        exon_id    = exon.id
-        exon_name  = exon.name
-        exon_chr   = exon.chr
-        exon_start = exon.start
-        exon_end   = exon.end
-
-        exons.append("{} {} {} {} {}".format(exon_chr, exon_start, exon_end, exon_name, exon_id))
+        exons.append("{} {} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name, exon.id))
 
     # need a list of lists for element accessing in the template
     unsorted_exons = [exon.split() for exon in exons]
@@ -875,37 +869,19 @@ def decon_view(request, Decon_id):
     for deconCNV in deconsCNVs:
         CNV = deconCNV.CNV
 
-        CNV_chr   = CNV.chr
-        CNV_start = CNV.start
-        CNV_end   = CNV.end
-        CNV_type  = CNV.type
-        CNV_id    = CNV.id
+        CNVs.append("{} {} {} {} {}".format(CNV.chr, CNV.start, CNV.end, CNV.type, CNV.id))
 
-        CNVs.append("{} {} {} {} {}".format(CNV_chr, CNV_start, CNV_end, CNV_type, CNV_id))
-
-        deconCNV_id             = deconCNV.CNV_id
-        deconCNV_correlation    = deconCNV.correlation
-        deconCNV_start_b        = deconCNV.start_b
-        deconCNV_end_b          = deconCNV.end_b
-        deconCNV_nb_exons       = deconCNV.nb_exons
-        deconCNV_BF             = deconCNV.BF
-        deconCNV_reads_expected = deconCNV.reads_expected
-        deconCNV_reads_observed = deconCNV.reads_observed
-        deconCNV_reads_ratio    = deconCNV.reads_ratio
-        deconCNV_sample         = deconCNV.sample
-        deconCNV_sample_id      = deconCNV.sample_id
-
-        stats_deconCNV.append("{} {} {} {} {} {} {} {} {} {} {}".format(deconCNV_id,
-                                deconCNV_correlation, 
-                                deconCNV_start_b, 
-                                deconCNV_end_b, 
-                                deconCNV_nb_exons, 
-                                deconCNV_BF, 
-                                deconCNV_reads_expected, 
-                                deconCNV_reads_observed, 
-                                deconCNV_reads_ratio,
-                                deconCNV_sample,
-                                deconCNV_sample_id
+        stats_deconCNV.append("{} {} {} {} {} {} {} {} {} {} {}".format(deconCNV.CNV_id,
+                                deconCNV.correlation, 
+                                deconCNV.start_b, 
+                                deconCNV.end_b, 
+                                deconCNV.nb_exons, 
+                                deconCNV.BF, 
+                                deconCNV.reads_expected, 
+                                deconCNV.reads_observed, 
+                                deconCNV.reads_ratio,
+                                deconCNV.sample,
+                                deconCNV.sample_id
         ))
 
     unsorted_CNVs = [cnv.split() for cnv in CNVs]
