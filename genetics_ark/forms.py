@@ -32,3 +32,19 @@ class PanelForm( forms.Form ):
 
 class CommentForm(forms.Form):
     comment = forms.CharField(required = False, widget = forms.Textarea)
+
+
+class SearchDeconGeneForm(forms.Form):
+    decongene = forms.CharField(widget = forms.TextInput)
+
+    def clean_decongene(self): 
+        name = self.cleaned_data['decongene']
+
+        if re.match("^[a-zA-Z0-9]*$", name):
+            name = name.strip().upper()
+
+        else: 
+            raise forms.ValidationError("Invalid gene name, should not contain special characters!")
+
+        return name
+

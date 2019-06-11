@@ -865,7 +865,7 @@ def decon_view(request, Decon_id):
     stats_deconCNV = []
 
     # sort the cnv data
-    # id comparison wasn't working in the template so i got the individual data for the deconCNV
+    # id comparison wasn't working in the template because i was comparing a string to an object
     for deconCNV in deconsCNVs:
         CNV = deconCNV.CNV
 
@@ -892,10 +892,36 @@ def decon_view(request, Decon_id):
 
     context_dict['deconCNVs'] = [stat.split() for stat in stats_deconCNV]
 
+    # form to search for decongenes from the decon run page
+    # first check if the submit button is clicked
+    if request.method == 'POST':
+        decongene_form = Forms.SearchDeconGeneForm( request.POST )
+
+        # check if there's stuff in the field
+        if  decongene_form.is_valid():
+            # check if the data is clean e.g. no special characters etc
+            decongene = decongene_form.clean_decongene()
+            # call the page displaying the result of the search
+            return decongene_search(request, decon.id, decon.name, decongene)
+            
+        else:
+            # data not clean: recall the page with the error message
+            context_dict['decongene'] = decongene_form
+            return render(request, "genetics_ark/decon_view.html", context_dict)
+        
+    else:
+        # if not button not clicked just display the form
+        decongene_form = Forms.SearchDeconGeneForm()
+    
+    context_dict['decongene'] = decongene_form
+
     return render(request, "genetics_ark/decon_view.html", context_dict)
 
 
 def deconexon_view(request, Deconexon_id):
+    """ display decon exons
+
+    """
 
     context_dict = {}
 
@@ -918,3 +944,68 @@ def deconexon_view(request, Deconexon_id):
     context_dict["CNVs"] = sorted(context_dict["CNVs"])
 
     return render(request, "genetics_ark/deconexon_view.html", context_dict)
+
+def decongene_view(request, parameter): 
+
+    context_dict = {}
+    exons_display = []
+    exons = Models.Deconexon.objects.filter(name__exact = parameter)
+
+    # needed to have good sorting
+    for exon in exons:
+        exons_display.append("{} {} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name, exon.id))
+
+    unsorted_exons = [exon.split() for exon in exons_display]
+
+    context_dict['decongene'] = parameter
+    context_dict['exons'] = sorted(unsorted_exons, key=lambda x: (x[0], int(x[1]), int(x[2])))
+
+    return render(request, 'genetics_ark/decongene_view.html', context_dict)
+
+
+def decongene_search(request, decon_id, decon_name, decongene_name):
+
+    context_dict = {}
+
+    exons = Models.Deconexon.objects.filter(name__exact = decongene_name)
+
+    exons_display = []
+    CNVs_data = []
+    rest_sample = []
+    decon_sample = []
+
+    # need to display exons and samples
+    # so i get CNV to link exons to the samples
+    # i also get the exons
+    for exon in exons:
+        deconexonCNVs = Models.DeconexonCNV.objects.filter(deconexon__exact = exon)
+        
+        for deconexonCNV in deconexonCNVs:
+            CNV = deconexonCNV.CNV
+            exon = deconexonCNV.deconexon
+
+            CNVs_data.append(CNV)
+            exons_display.append("{} {} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name, exon.id))
+
+    # separate samples in the decon run and those who are not
+    for CNV_data in CNVs_data:
+        rest_deconCNVSamples = Models.DeconCNV.objects.filter(CNV__exact = CNV_data).exclude(decon_id__exact = decon_id)
+        decon_deconCNVSamples = Models.DeconCNV.objects.filter(CNV__exact = CNV_data).filter(decon_id__exact = decon_id)
+
+        for rest_deconCNVSample in rest_deconCNVSamples:
+            rest_sample.append(rest_deconCNVSample.sample)
+
+        for decon_deconCNVSample in decon_deconCNVSamples:
+            decon_sample.append(decon_deconCNVSample.sample)
+
+    unsorted_exons = [exon.split() for exon in exons_display]
+
+    context_dict['decon_sample'] = set(decon_sample)
+    context_dict['rest_sample'] = set(rest_sample)
+    context_dict['decongene'] = decongene_name
+    context_dict['decon_name'] = decon_name
+    context_dict['decon_id'] = decon_id
+    # allows sorting according to chrom, start, end
+    context_dict['exons'] = sorted(unsorted_exons, key=lambda x: (x[0], int(x[1]), int(x[2])))
+
+    return render(request, "genetics_ark/decongene_search.html", context_dict)

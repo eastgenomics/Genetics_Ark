@@ -10,18 +10,29 @@
 <h2>Decon run: {{ decon.name }}</h2></br>
 
 <div class="col-sm1">
-  <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
-    <tr>
-      <th>Name:</th><td>{{ decon.name }}</td>
-    </tr>
-    <tr>
-      <th>Date:</th><td>{{ decon.date }}</td>
-    </tr>
-  </table>
+  <div float: left;">
+    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+      <tr>
+        <th>Name:</th><td>{{ decon.name }}</td>
+      </tr>
+      <tr>
+        <th>Date:</th><td>{{ decon.date }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div>
+    <form action = "" method = "POST">
+    {% csrf_token %}
+    {{ decongene }} <button type="submit">Search</button>
+    </form>
+  </div>
 </div>
 
+<br>
+
 <div style="width: 100%; overflow: hidden;">
-  <div float: left;">
+  <div float: left;>
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
       <tr>
         <th>CNVs</th>
