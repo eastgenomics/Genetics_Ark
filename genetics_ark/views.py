@@ -915,7 +915,30 @@ def decon_view(request, Decon_id):
 
     context_dict['deconCNVs'] = [stat.split() for stat in stats_deconCNV]
 
+    if request.method == 'POST':
+        decongene_form = Forms.SearchDeconGeneForm( request.POST )
+
+
+        if  decongene_form.is_valid():
+            decongene = decongene_form.clean_decongene()
+            print(decongene)
+            decongene_view(request, decon.id, decongene)
+            
+
+        else:
+            context_dict['decongene'] = decongene_form
+            context_dict['error'] = 'invlaid gene name'
+            return render(request, "genetics_ark/decon_view.html", context_dict)
+        
+    else:
+        decongene_form = Forms.SearchDeconGeneForm()
+
+    context_dict['decongene'] = decongene_form
+
+
     return render(request, "genetics_ark/decon_view.html", context_dict)
+
+
 
 
 def deconexon_view(request, Deconexon_id):
@@ -941,3 +964,22 @@ def deconexon_view(request, Deconexon_id):
     context_dict["CNVs"] = sorted(context_dict["CNVs"])
 
     return render(request, "genetics_ark/deconexon_view.html", context_dict)
+
+
+def decongene_view(request, ):
+    
+    if request.method == 'POST':
+        decongene_form = Forms.SearchDeconGeneForm( request.POST )
+
+
+        if  decongene_form.is_valid():
+            print"Passing data along"
+            
+
+        else:
+            print( decongene.errors)
+
+            return render( request, "primer_designer/index.html", {'regions_form': regions_form})
+        
+    else:
+        return render( request, "primer_designer/index.html", {'regions_form': Forms.RegionsForm()})
