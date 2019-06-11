@@ -958,6 +958,14 @@ def deconexon_view(request, Deconexon_id):
 
     return render(request, "genetics_ark/deconexon_view.html", context_dict)
 
+def decongene_search(request, parameter): 
+
+    context_dict = {}
+    exon = Models.Deconexon.objects.filter(name__exact = parameter)
+    context_dict['exons'] = exon
+
+    return render(request, 'genetics_ark/test.html', context_dict)
+
 
 def decongene_view(request, decon_id, decon_name, decongene_name):
 

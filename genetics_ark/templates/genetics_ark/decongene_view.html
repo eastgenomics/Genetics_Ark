@@ -8,7 +8,7 @@
 {% block body_block %}
 
 
-<h2>Decongene: <a href = "/decongene/?decongene={{ decongene }}">{{ decongene }}</h2>
+<h2>Decongene: <a href="{% url 'decongene_search' parameter=decongene %}">{{ decongene }}</a></h2>
 
 <br>
 
