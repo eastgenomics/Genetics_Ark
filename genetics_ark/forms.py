@@ -33,8 +33,9 @@ class PanelForm( forms.Form ):
 class CommentForm(forms.Form):
     comment = forms.CharField(required = False, widget = forms.Textarea)
 
+
 class SearchDeconGeneForm(forms.Form):
-    decongene = forms.CharField(help_text = "Enter a gene name", widget = forms.TextInput)
+    decongene = forms.CharField(widget = forms.TextInput)
 
     def clean_decongene(self): 
         name = self.cleaned_data['decongene']

@@ -39,7 +39,5 @@ urlpatterns = [
 
     url(r'^decon/(?P<Decon_id>[0-9]+)/$', views.decon_view, name='decon_view'),
 
-    url(r'^deconexon/(?P<Deconexon_id>[0-9]+)/$', views.deconexon_view, name='deconexon_view')
-
-    url(r'^decongene/(?<Decongene>))[A-Za-z0-9\-]+)/$', views.decongene_view, name='decongene_view')
+    url(r'^deconexon/(?P<Deconexon_id>[0-9]+)/$', views.deconexon_view, name='deconexon_view'),
 ]

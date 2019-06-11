@@ -26,16 +26,13 @@
     {% csrf_token %}
     {{ decongene }} <button type="submit">Search</button>
     </form>
-    {% if error %}
-    {{error}}
-    {% endif %}
   </div>
 </div>
 
-
+<br>
 
 <div style="width: 100%; overflow: hidden;">
-  <div float: left;">
+  <div float: left;>
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
       <tr>
         <th>CNVs</th>

@@ -918,27 +918,20 @@ def decon_view(request, Decon_id):
     if request.method == 'POST':
         decongene_form = Forms.SearchDeconGeneForm( request.POST )
 
-
         if  decongene_form.is_valid():
             decongene = decongene_form.clean_decongene()
-            print(decongene)
-            decongene_view(request, decon.id, decongene)
+            return decongene_view(request, decon.id, decon.name, decongene)
             
-
         else:
             context_dict['decongene'] = decongene_form
-            context_dict['error'] = 'invlaid gene name'
             return render(request, "genetics_ark/decon_view.html", context_dict)
         
     else:
         decongene_form = Forms.SearchDeconGeneForm()
-
+    
     context_dict['decongene'] = decongene_form
 
-
     return render(request, "genetics_ark/decon_view.html", context_dict)
-
-
 
 
 def deconexon_view(request, Deconexon_id):
@@ -966,20 +959,46 @@ def deconexon_view(request, Deconexon_id):
     return render(request, "genetics_ark/deconexon_view.html", context_dict)
 
 
-def decongene_view(request, ):
-    
-    if request.method == 'POST':
-        decongene_form = Forms.SearchDeconGeneForm( request.POST )
+def decongene_view(request, decon_id, decon_name, decongene_name):
 
+    context_dict = {}
 
-        if  decongene_form.is_valid():
-            print"Passing data along"
-            
+    exons = Models.Deconexon.objects.filter(name__exact = decongene_name)
 
-        else:
-            print( decongene.errors)
+    exons_display = []
+    CNVs_display = []
+    CNVs_data = []
+    rest_sample = []
+    decon_sample = []
 
-            return render( request, "primer_designer/index.html", {'regions_form': regions_form})
+    for exon in exons:
+        deconexonCNVs = Models.DeconexonCNV.objects.filter(deconexon__exact = exon)
         
-    else:
-        return render( request, "primer_designer/index.html", {'regions_form': Forms.RegionsForm()})
+        for deconexonCNV in deconexonCNVs:
+            CNV = deconexonCNV.CNV
+            exon = deconexonCNV.deconexon
+
+            CNVs_data.append(CNV)
+            exons_display.append("{} {} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name, exon.id))
+
+    for CNV_data in CNVs_data:
+        rest_deconCNVSamples = Models.DeconCNV.objects.filter(CNV__exact = CNV_data).exclude(decon_id__exact = decon_id)
+        decon_deconCNVSamples = Models.DeconCNV.objects.filter(CNV__exact = CNV_data).filter(decon_id__exact = decon_id)
+
+        for rest_deconCNVSample in rest_deconCNVSamples:
+            rest_sample.append(rest_deconCNVSample.sample)
+
+        for decon_deconCNVSample in decon_deconCNVSamples:
+            decon_sample.append(decon_deconCNVSample.sample)
+
+    unsorted_CNV = [CNV.split() for CNV in set(CNVs_display)]
+    unsorted_exons = [exon.split() for exon in exons_display]
+
+    context_dict['decon_sample'] = set(decon_sample)
+    context_dict['rest_sample'] = set(rest_sample)
+    context_dict['decongene'] = decongene_name
+    context_dict['decon_name'] = decon_name
+    context_dict['decon_id'] = decon_id
+    context_dict['exons'] = sorted(unsorted_exons, key=lambda x: (x[0], int(x[1]), int(x[2])))
+
+    return render(request, "genetics_ark/decongene_view.html", context_dict)
