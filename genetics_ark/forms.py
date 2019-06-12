@@ -30,8 +30,12 @@ class PanelForm( forms.Form ):
     selected_transcripts  = forms.CharField(required=False)
 
 
+class UserForm(forms.Form):
+    user = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'Enter your name'}))
+
+
 class CommentForm(forms.Form):
-    comment = forms.CharField(required = False, widget = forms.Textarea)
+    comment = forms.CharField(widget = forms.Textarea(attrs={'placeholder':'Enter your comment'}))
 
 
 class SearchDeconGeneForm(forms.Form):

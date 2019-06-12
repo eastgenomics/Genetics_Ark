@@ -103,6 +103,17 @@ class CNV(models.Model):
         return len(samples), samples
 
 
+class Comment(models.Model):
+    variant = models.ForeignKey("Variant", models.DO_NOTHING)
+    user = models.CharField(max_length = 80)
+    date = models.DateTimeField()
+    comment = models.CharField(max_length = 200)
+
+    def __str__(self):
+        return "{}\t{}: {}".format(self.date, self.user, self.comment)
+
+
+
 class Decon(models.Model):
     name = models.CharField(max_length=100)
     date = models.DateField('date of the run')
@@ -404,7 +415,6 @@ class Variant(models.Model):
     pos       = models.IntegerField()
     ref       = models.CharField(max_length=100)
     alt       = models.CharField(max_length=100)
-    comment   = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return "{}\t{}\t{}".format(self.chrom, self.pos, self.ref)

@@ -8,7 +8,10 @@ import subprocess
 import shlex
 import shutil
 import string 
-import random 
+import random
+import datetime
+import pytz
+
 
 import pprint as pp
 
@@ -684,39 +687,61 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
         context_dict[ 'projects' ].append( project_dict )
 
-    context_dict["comment"] = variant.comment
+    comments = Models.Comment.objects.filter(variant_id__exact = variant.id)
+
+    comment_list = []
+
+    for comment in comments:
+        comment_list.append((comment.date, comment.user, comment.comment))
+
+    context_dict["comments"] = sorted(comment_list)
+
+    utc    = pytz.utc
+    london = pytz.timezone('Europe/London')
+    utc_dt = datetime.datetime.now(tz=utc)
+    loc_dt = utc_dt.astimezone(london)
+    time   = loc_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     # handle the comments in the variant page
     if request.method == "POST":
         # data is sent
+        user_form = Forms.UserForm(request.POST)
         comment_form = Forms.CommentForm(request.POST)
 
-        if comment_form.is_valid():
+        if user_form.is_valid() and comment_form.is_valid():
             # the form is valid
+            user = user_form.cleaned_data["user"]
             comment = comment_form.cleaned_data['comment']
-
-            # if the textarea is empty when the submit button is clicked --> get a None to put a NULL in the db
-            if comment == "":
-                comment = None
                 
             # save the comment in the database
-            variant.comment = comment
-            variant.save()
+            new_comment = Models.Comment.objects.create(user = user, date = time, comment = comment, variant = variant)
 
-            context_dict["comment"] = variant.comment
+            comments = Models.Comment.objects.filter(variant_id__exact = variant.id)
+
+            comment_list = []
+
+            for comment in comments:                
+                comment_list.append((comment.date, comment.user, comment.comment))
+
+            context_dict["comments"] = sorted(comment_list)
 
             # recreate the form
+            user_form = Forms.UserForm()
             comment_form = Forms.CommentForm()
-            context_dict["form"] = comment_form
+
+            context_dict["user_form"] = user_form
+            context_dict["comment_form"] = comment_form
 
             # return the page with the new comment
             return render(request, 'genetics_ark/variant_view.html', context_dict)
 
     else:
         # if data is not sent, just display the form
+        user_form = Forms.UserForm()
         comment_form = Forms.CommentForm()
         
-    context_dict["form"] = comment_form
+    context_dict["user_form"] = user_form
+    context_dict["comment_form"] = comment_form
 
     return render(request, 'genetics_ark/variant_view.html', context_dict)
     
