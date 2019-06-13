@@ -89,8 +89,9 @@ class CNV(models.Model):
         return "chr{}: {}-{} {}".format(self.chr, self.start, self.end, self.type)
 
     def calc_nb(self):
-        """
-            Function to calculate the nb of samples for a given CNV
+        """ Function to calculate the nb of samples for a given CNV
+
+        - go to the DeconCNV to get samples
         """
 
         samples = []
