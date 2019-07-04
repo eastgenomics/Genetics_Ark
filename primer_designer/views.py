@@ -21,33 +21,96 @@ import primer_designer.forms  as Forms
 
 
 #@login_required(login_url='/login/')
-def index(request):
-    return render( request, "base.html")
+# def index(request):
+#     return render( request, "base.html")
 
 
 # company related urls
 def index( request ):
+    """Funcrion is called when primer_designer page is called 
+    Outputs a form to give 3 choices to make primers (Position, Range, Fusion)
+    Redirects to an appropriate page when submit is pressed
 
+    """
+    
     if request.method == 'POST':
-        regions_form = Forms.RegionsForm( request.POST )
+        form = Forms.TypeForm(request.POST)
+        
 
-#        pp.pprint( request.POST )
-#        pp.pprint( company_form['name'] )
+        if form.is_valid() :
+                
+            if form.cleaned_data['position'] == "Position":
+                return redirect("position") #redirects to a url with name "position" - look up urls.py 
 
-        # One or more valid regions where entered.
-        if  regions_form.is_valid():
-            print"Passing data along"
-            pp.pprint( regions_form.data['regions'] )
+            elif form.cleaned_data['position'] == "Range": 
+                return redirect("range")
 
-            return create( request, regions_form.data['regions'] )
+            elif form.cleaned_data['position'] == "Fusion": 
+                return redirect("fusion")
+        else:
+            return render( request, "primer_designer/index.html", {'form': form})
+
+    else:
+        form = Forms.TypeForm()
+
+    return render( request, "primer_designer/index.html", {'form': form})
+
+
+def render_position(request):
+    """Renders position page and outputs a report for position primer design"""
+
+    if request.method == 'POST': 
+        position_form = Forms.PositionForm(request.POST)
+        print("POST")
+        
+
+        if position_form.is_valid(): 
+            print(position_form.cleaned_data)
+            # return render(request, "primer_designer/index.html", {'form': position_form})
+
+            return create(request, position_form.cleaned_data)
+        else:
+            return render(request, "primer_designer/index.html", {'form': position_form})
+
+    else:
+        position_form = Forms.PositionForm() 
+
+    print("something")
+    return render(request, "primer_designer/index.html", {'form': position_form})
+
+def render_range(request): 
+    """Renders range page and outputs a report for range primer design"""
+
+    if request.method == 'POST': 
+        range_form = Forms.RangeForm(request.POST)
+
+        if range_form.is_valid():
+            return render(request, "primer_designer/index.html", {'form': range_form})
+        else:
+            return render(request, "primer_designer/index.html", {'form': range_form})
+
+    else: 
+        range_form = Forms.RangeForm()
+
+    return render(request, "primer_designer/index.html", {'form': range_form})
+
+def render_fusion(request): 
+    """Renders fusion page and outputs a report for fusion primer design"""
+
+    if request.method == 'POST': 
+        fusion_form = Forms.FusionForm(request.POST)
+
+        if fusion_form.is_valid():
+            print(fusion_form.cleaned_data)
+            return render(request, "primer_designer/index.html", {'form': fusion_form})
 
         else:
-            pp.pprint( regions_form.errors)
+            return render(request, "primer_designer/index.html", {'form': fusion_form})
 
-            return render( request, "primer_designer/index.html", {'regions_form': regions_form})
-        
-    else:
-        return render( request, "primer_designer/index.html", {'regions_form': Forms.RegionsForm()})
+    else: 
+        fusion_form = Forms.FusionForm()
+
+    return render(request, "primer_designer/index.html", {'form': fusion_form})
 
 
 def random_string(length=10):
@@ -91,21 +154,31 @@ def create( request, regions, infile=None ):
 
     path = "static/tmp/"
 
-    random_tmp = random_string()
+    random_tmp = random_string() #random string of 10 characters 
 
     infile = "{}.txt".format( time_stamp() )
 
     pp.pprint( regions )
 
-    if infile is None:
-        infile = random_tmp
+    with open( "{path}{infile}".format( path=path, infile=infile), "w") as outfh: 
+        
+        if len(regions) == 3:
+            regions = "-c {chrom} -p {pos} --{ref}".format(chrom = regions['chromosome_choice'], pos = regions['coordinate'], ref = regions['reference_choice'])
+            outfh.write(regions) 
+            outfh.close()
 
-    outfh = open( "{path}{infile}".format( path=path, infile=infile), "w")
-    outfh.write( regions )
-    outfh.close()
+        elif len(regions) == 4: 
+            regions = "-c {chrom} -r {pos} {pos2} --{ref}".format(chrom = regions['chromosome_choice'], pos = regions['coordinate'], pos2 = regions['coordinate2'], ref = regions['reference_choice'])
+            outfh.write(regions) 
+            outfh.close()
 
-    cmd = "/software/packages/primer_designer/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
-    cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
+        elif len(regions) == 7: 
+            regions = "-b {chrom1}:{pos1}:{strand1}_{chrom2}:{pos2}:{strand2} --{ref}".format(chrom1 = regions['chromosome_choice'], pos1 = regions['coordinate'], strand1 = regions['strand'], chrom2 = regions['chromosome_choice2'], pos2 = regions['coordinate2'], strand2 = regions['strand2'], ref = regions['reference_choice'])
+            outfh.write(regions) 
+            outfh.close()
+
+
+    cmd = "/mnt/storage/home/povarnin/projects/Primer_designer/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
 
     context_dict =  { 'key': random_string }
     context_dict[ 'infile' ] = infile
@@ -122,19 +195,23 @@ def create( request, regions, infile=None ):
 
     p = subprocess.Popen( cmd , shell=False, stderr = stderr_file , stdout = stdout_file)
 
+    file_path = infile.strip(".txt")+".zip"
+
+
     return render( request, "primer_designer/create.html", context_dict )
 
 
 def primers_done_ajax( request, tmp_key ):
     
-    path = 'static/tmp/'
+    path = "static/tmp/"
 
     stdout_name = "{}{}.stdout".format( path, tmp_key)
     print stdout_name
 
     result_dict = {'status': 'running' }
-
+    print(os.path.abspath( stdout_name ))
     if ( os.path.isfile( stdout_name )):
+        print("Hello")
         fh = open( stdout_name, 'rU')
         lines = ""
 
