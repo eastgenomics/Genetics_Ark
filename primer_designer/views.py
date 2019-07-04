@@ -85,7 +85,7 @@ def render_range(request):
         range_form = Forms.RangeForm(request.POST)
 
         if range_form.is_valid():
-            return render(request, "primer_designer/index.html", {'form': range_form})
+            return create(request, range_form.cleaned_data)
         else:
             return render(request, "primer_designer/index.html", {'form': range_form})
 
@@ -102,7 +102,7 @@ def render_fusion(request):
 
         if fusion_form.is_valid():
             print(fusion_form.cleaned_data)
-            return render(request, "primer_designer/index.html", {'form': fusion_form})
+            return create(request, fusion_form.cleaned_data)
 
         else:
             return render(request, "primer_designer/index.html", {'form': fusion_form})
@@ -172,8 +172,24 @@ def create( request, regions, infile=None ):
             outfh.write(regions) 
             outfh.close()
 
-        elif len(regions) == 7: 
-            regions = "-b {chrom1}:{pos1}:{strand1}_{chrom2}:{pos2}:{strand2} --{ref}".format(chrom1 = regions['chromosome_choice'], pos1 = regions['coordinate'], strand1 = regions['strand'], chrom2 = regions['chromosome_choice2'], pos2 = regions['coordinate2'], strand2 = regions['strand2'], ref = regions['reference_choice'])
+        elif len(regions) == 9:
+
+            if regions['side'] == "Before": 
+                regions['side'] = "b"
+
+            if regions['side2'] == "Before": 
+                regions['side2'] = "b"
+
+            if regions['side'] == "After": 
+                regions['side'] = "a"
+
+            if regions['side2'] == "After": 
+                regions['side2'] = "a"
+
+            print("###########")
+            print(regions)
+
+            regions = "-b {chrom1}:{pos1}:{side}:{strand1}_{chrom2}:{pos2}:{side2}:{strand2} --{ref}".format(chrom1 = regions['chromosome_choice'], pos1 = regions['coordinate'], side =regions['side'], strand1 = regions['strand'], chrom2 = regions['chromosome_choice2'], pos2 = regions['coordinate2'], side2 = regions['side2'], strand2 = regions['strand2'], ref = regions['reference_choice'])
             outfh.write(regions) 
             outfh.close()
 

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
 
 ]
 
@@ -70,6 +71,8 @@ MIDDLEWARE_CLASSES = [
 ]
 
 ROOT_URLCONF = 'django_example.urls'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 TEMPLATES = [
     {
@@ -157,9 +160,10 @@ USE_TZ = True
 
 
 STATIC_PATH = os.path.join(BASE_DIR,'static')
-STATIC_ROOT      = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT      = os.path.join(BASE_DIR, 'static')
 # This is for the dev static files
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_dev')]
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_dev')]
+STATICFILES_DIRS = ('/mnt/storage/projects/Nikita/GA_django/genetics_ark_django/static',)
 
 
 

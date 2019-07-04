@@ -52,34 +52,17 @@ class RegionsForm( forms.Form ):
                     raise forms.ValidationError("{} positions is not an integer".format( pos ) )
 
 
-class UserForm(forms.Form):
-    chromosome_choice = forms.ChoiceField(choices=chromosomes)
 
-class ReferenceForm(forms.Form):
-    reference_choice = forms.ChoiceField(choices=references)
-
-# class PositionForm(forms.Form): 
-#     positions = forms.IntegerField(widget=forms.Textarea)
 
 class TypeForm(forms.Form):
     position = forms.ChoiceField(choices = [("Position", "Position"),("Range", "Range"), ("Fusion", "Fusion"), ], widget = forms.RadioSelect, label = "Primer for:") 
-
-
-
+    
 
 class PositionForm(forms.Form): 
     # position = forms.ChoiceField(choices = [("Position", "Position")], widget = forms.CheckboxSelectMultiple)
     chromosome_choice = forms.ChoiceField(choices=chromosomes)
     coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
-    reference_choice = forms.ChoiceField(choices=references)
-
-    # def clean_release_number(self):
-    #   chromosome_choice = self.cleaned_data.get["chromosome_choice"]
-    #   coordinate = int(self.cleaned_data["coordinate"])
-    #   reference_choice = self.cleaned_data["reference_choice"]
-
-      # return chromosome_choice, coordinate, reference_choice
-          
+    reference_choice = forms.ChoiceField(choices=references)       
 
 class RangeForm(forms.Form): 
     # position = forms.ChoiceField(choices = [("Range", "Range")], widget = forms.CheckboxSelectMultiple)
@@ -93,9 +76,11 @@ class FusionForm(forms.Form):
     chromosome_choice = forms.ChoiceField(choices=chromosomes)
     coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
     strand = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")])
+    side = forms.ChoiceField(choices = [("Before","Before"),("After","After")],label = "Breakpoint side")
     chromosome_choice2 = forms.ChoiceField(choices=chromosomes)
     coordinate2 = forms.IntegerField(min_value = 0, widget=forms.TextInput, label = "2nd coordinate")
     strand2 = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")])
+    side2 = forms.ChoiceField(choices = [("Before","Before"),("After","After")],label = "Breakpoint side")
     reference_choice = forms.ChoiceField(choices=references)
 
 
