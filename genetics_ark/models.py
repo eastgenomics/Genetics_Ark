@@ -88,33 +88,69 @@ class CNV(models.Model):
     def __str__(self):
         return "chr{}: {}-{} {}".format(self.chr, self.start, self.end, self.type)
 
-    def calc_nb(self):
+    def get_samples(self):
+        """ Function to get samples and their number for a given CNV
+
+        - go to the DeconCNV to get decons
+        - use the decon instances to get the samples
         """
-            Function to calculate the nb of samples for a given CNV
-        """
 
-        samples = []
+        total_samples = []
 
-        deconCNVs = DeconCNV.objects.filter(CNV_id__exact = self.id)
+        CNV2samples = DeconAnalysis.objects.filter(CNV_id__exact = self.id)
 
-        for deconCNV in deconCNVs:
-            samples.append(deconCNV.sample)
+        for CNV2sample in CNV2samples:
+            total_samples.append(CNV2sample.sample.name)
 
-        return len(samples), samples
+        total_samples = set(total_samples)
+
+        return len(total_samples), total_samples
+
+    class Meta:
+        db_table = 'cnv'
+
+
+class CNV_target(models.Model):
+    ref   = models.ForeignKey("Reference", on_delete=models.DO_NOTHING)
+    decon = models.ForeignKey("Decon", on_delete=models.DO_NOTHING)
+    file  = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.file
+
+    class Meta:
+        db_table = 'cnv_target'
+    
+
+class Comment(models.Model):
+    variant = models.ForeignKey("Variant", models.DO_NOTHING)
+    user    = models.CharField(max_length = 80)
+    date    = models.DateTimeField()
+    comment = models.CharField(max_length = 200)
+
+    def __str__(self):
+        return "{}\t{}: {}".format(self.date, self.user, self.comment)
+
+    class Meta:
+        db_table = 'comment'
 
 
 class Decon(models.Model):
-    name = models.CharField(max_length=100)
-    date = models.DateField('date of the run')
+    name      = models.CharField(max_length=100)
+    date      = models.DateField('date of the run')
+    runfolder = models.ForeignKey('Runfolder', on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        db_table = 'decon'
 
-class DeconCNV(models.Model):
+
+class DeconAnalysis(models.Model):
     decon          = models.ForeignKey(Decon, on_delete=models.DO_NOTHING)
     CNV            = models.ForeignKey(CNV, on_delete=models.DO_NOTHING)
-    sample         = models.ForeignKey("Sample", on_delete=models.DO_NOTHING)
+    sample         = models.ForeignKey('Sample', on_delete=models.DO_NOTHING)
     correlation    = models.FloatField()
     start_b        = models.PositiveIntegerField()
     end_b          = models.PositiveIntegerField()
@@ -127,8 +163,18 @@ class DeconCNV(models.Model):
     def __str__(self):
         return "{} <=> {} <=> {}".format(self.decon, self.CNV, self.sample)
 
+    class Meta:
+        db_table = 'decon_analysis'
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['decon',]),
+            models.Index(fields=['CNV',]),
+        ]
+
 
 class Deconexon(models.Model):
+    ref   = models.ForeignKey("Reference", on_delete=models.DO_NOTHING)
     name  = models.CharField(max_length=100)
     chr   = models.CharField(max_length=2)
     start = models.PositiveIntegerField()
@@ -137,6 +183,14 @@ class Deconexon(models.Model):
     def __str__(self):
         return "{}: chr{} {}-{}".format(self.name, self.chr, self.start, self.end)
 
+    class Meta:
+        db_table = 'deconexon'
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name',])
+        ]
+
 
 class DeconexonCNV(models.Model):
     deconexon = models.ForeignKey(Deconexon, on_delete=models.DO_NOTHING, related_name = "Decongenes2CNVs")
@@ -144,6 +198,15 @@ class DeconexonCNV(models.Model):
 
     def __str__(self):
         return "{} <=> {}".format(self.deconexon, self.CNV)
+
+    class Meta:
+        db_table = 'deconexon_cnv'
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['deconexon',]),
+            models.Index(fields=['CNV'],)
+        ]
 
 
 class Gene(models.Model):
@@ -404,7 +467,6 @@ class Variant(models.Model):
     pos       = models.IntegerField()
     ref       = models.CharField(max_length=100)
     alt       = models.CharField(max_length=100)
-    comment   = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return "{}\t{}\t{}".format(self.chrom, self.pos, self.ref)

@@ -96,15 +96,19 @@
 <h4>Comments:</h4>
 
 <div>
-  {% if comment %}
-    <p>{{ comment }}</p></br>
+  {% if comments %}
+    {% for comment in comments %}
+      <h5>{{ comment.0 }} <b>{{ comment.1 }}:</b></h5><p>{{ comment.2 }}</p></br>
+    {% endfor %}
   {% endif %}
 
   <form action = "" method = "POST">
     {% csrf_token %}
-    {{ form.comment }}</br></br>
-    <button name="update" type="submit">Update comment</button>
+    {{ user_form.user }}</br></br>
+    {{ comment_form.comment }}</br></br>
+    <button name="add" type="submit">Add comment</button>
   </form>
 </div>
+
 
 {% endblock %}

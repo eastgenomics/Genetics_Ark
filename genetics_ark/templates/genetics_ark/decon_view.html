@@ -32,46 +32,72 @@
 <br>
 
 <div style="width: 100%; overflow: hidden;">
-  <div float: left;>
-    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
-      <tr>
-        <th>CNVs</th>
-        <th>Correlation</th>
-        <th>BF</th>
-        <th>Start_b</th>
-        <th>End_b</th>
-        <th>Number of exons</th>
-        <th>Reads expected</th>
-        <th>Reads observed</th>
-        <th>Reads ratio</th>
-        <th>Sample</th>
-      </tr>
+  <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+    <tr>
+      <th>CNVs</th>
+      <th>Correlation</th>
+      <th>BF</th>
+      <th>Start_b</th>
+      <th>End_b</th>
+      <th>Number of exons</th>
+      <th>Reads expected</th>
+      <th>Reads observed</th>
+      <th>Reads ratio</th>
+      <th>Sample</th>
+    </tr>
 
-      {% for CNV in CNVs %}
+    {% for CNV in CNVs %}
 
-      <tr>
-        <td><a href={% url 'cnv_view' CNV.4 %}>chrom{{ CNV.0 }} {{ CNV.1 }}-{{ CNV.2 }} type {{ CNV.3 }}</td>
+    <tr>
+      <td><a href={% url 'cnv_view' CNV.4 %}>chrom{{ CNV.0 }} {{ CNV.1 }}-{{ CNV.2 }} type {{ CNV.3 }}</td>
+      <td>{{ CNV.5 }}</td>
+      <td>{{ CNV.6 }}</td>
+      <td>{{ CNV.7 }}</td>
+      <td>{{ CNV.8 }}</td>
+      <td>{{ CNV.9 }}</td>
+      <td>{{ CNV.10 }}</td>
+      <td>{{ CNV.11 }}</td>
+      <td>{{ CNV.12 }}</td>
+      <td><a href={% url 'sample_view' CNV.13 %}>{{ CNV.13 }}</td>
+    </tr>
 
-        {% for deconCNV in deconCNVs %}
-          {% if deconCNV.0 == CNV.4 %}
-            <td>{{ deconCNV.1 }}</td>
-            <td>{{ deconCNV.5 }}</td>
-            <td>{{ deconCNV.2 }}</td>
-            <td>{{ deconCNV.3 }}</td>
-            <td>{{ deconCNV.4 }}</td>
-            <td>{{ deconCNV.6 }}</td>
-            <td>{{ deconCNV.7 }}</td>
-            <td>{{ deconCNV.8 }}</td>
-            <td><a href={% url 'sample_view' deconCNV.10 %}>{{ deconCNV.9 }}</td>
-          {% endif %}
-
-        {% endfor %}
-      </tr>
-
-      {% endfor %}
-    </table>
-  </div>
+    {% endfor %}
+  </table>
 </div>
+
+
+
+<ul class="pagination">
+
+  {% if CNVs.has_previous %}
+      <li><a href="?page={{ CNVs.previous_page_number }}"><i class="fa fa-chevron-left" aria-hidden="true"></i></a></li>
+  {% else %}
+      <li class="disabled"><span><i class="fa fa-chevron-left" aria-hidden="true"></i></span></li>
+  {% endif %}
+  
+  {% if CNVs.number|add:'-4' > 1 %}
+      <li><a href="?page={{ CNVs.number|add:'-5' }}">&hellip;</a></li>
+  {% endif %}
+  
+  {% for i in CNVs.paginator.page_range %}
+      {% if CNVs.number == i %}
+          <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+      {% elif i > CNVs.number|add:'-5' and i < CNVs.number|add:'5' %}
+          <li><a href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+  {% endfor %}
+  
+  {% if CNVs.paginator.num_pages > CNVs.number|add:'4' %}
+      <li><a href="?page={{ CNVs.number|add:'5' }}">&hellip;</a></li>
+  {% endif %}
+  
+  {% if CNVs.has_next %}
+      <li><a href="?page={{ CNVs.next_page_number }}"><i class="fa fa-chevron-right" aria-hidden="true"></i></a></li>
+  {% else %}
+      <li class="disabled"><span><i class="fa fa-chevron-right" aria-hidden="true"></i></span></li>
+  {% endif %}
+  
+  </ul>
 
 {% endblock %}
 

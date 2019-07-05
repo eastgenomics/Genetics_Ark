@@ -7,46 +7,21 @@
 
 {% block body_block %}
 
-
-<h2>Decongene: <a href="{% url 'decongene_search' parameter=decongene %}">{{ decongene }}</a></h2>
+<h2>Decon gene: {{ decongene }}</h2>
 
 <br>
 
 <div>
-  <div style = "float: left; width: 50%">
-    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
-      <tr>
-        <th>Exons with a CNV:</th>
-      </tr>
-      
-      {% for exon in exons %}
-        <tr><td><a href={% url 'deconexon_view' exon.4 %}>chrom{{ exon.0 }}: {{ exon.1 }}-{{ exon.2 }} </td></tr>
-      {% endfor %}
-      
-    </table>
-  </div>
-
-  <div style = "float: left; width: 50%">
-    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
-      <tr>
-        <th>Sample present in the decon run <a href={% url 'decon_view' decon_id %}>{{ decon_name }}:</th>
-      </tr>
-      
-      {% for sample in decon_sample %}
-        <tr><td><a href={% url 'sample_view' sample %}>{{ sample }}</td></tr>
-      {% endfor %}
-      
-
-      <tr>
-        <th>Sample not present in the decon run:</th>
-      </tr>
-
-      
-      {% for sample in rest_sample %}
-        <tr><td><a href={% url 'sample_view' sample %}>{{ sample }}</td></tr>
-      {% endfor %}
-    </table>
-  </div>
+  <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+    <tr>
+      <th>Exons:</th>
+    </tr>
+    
+    {% for exon in exons %}
+      <tr><td><a href={% url 'deconexon_view' exon.4 %}>chrom{{ exon.0 }}: {{ exon.1 }}-{{ exon.2 }} </td></tr>
+    {% endfor %}
+    
+  </table>
 </div>
 
 
