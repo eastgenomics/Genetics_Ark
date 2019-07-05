@@ -105,12 +105,12 @@ def render_fusion(request):
             return create(request, fusion_form.cleaned_data)
 
         else:
-            return render(request, "primer_designer/index.html", {'form': fusion_form})
+            return render(request, "primer_designer/fusion.html", {'form': fusion_form})
 
     else: 
         fusion_form = Forms.FusionForm()
 
-    return render(request, "primer_designer/index.html", {'form': fusion_form})
+    return render(request, "primer_designer/fusion.html", {'form': fusion_form})
 
 
 def random_string(length=10):
@@ -185,9 +185,6 @@ def create( request, regions, infile=None ):
 
             if regions['side2'] == "After": 
                 regions['side2'] = "a"
-
-            print("###########")
-            print(regions)
 
             regions = "-b {chrom1}:{pos1}:{side}:{strand1}_{chrom2}:{pos2}:{side2}:{strand2} --{ref}".format(chrom1 = regions['chromosome_choice'], pos1 = regions['coordinate'], side =regions['side'], strand1 = regions['strand'], chrom2 = regions['chromosome_choice2'], pos2 = regions['coordinate2'], side2 = regions['side2'], strand2 = regions['strand2'], ref = regions['reference_choice'])
             outfh.write(regions) 

@@ -8,48 +8,48 @@ import pprint as pp
 chromosomes = [('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9'),('10','10'), ('11','11'), ('12','12') ,('13','13'),('14','14'), ('15', '15'), ('16','16'), ('17','17'), ('18','18'), ('19', '19'),('20','20'), ('21','21'), ('22','22'), ('X','X'), ('Y', 'Y'),]
 references = [('grch37', 'grch37'),('grch38', 'grch38')]
 
-class RegionsForm( forms.Form ):
-    """
-    Form for adding a new company to the database. 
+# class RegionsForm( forms.Form ):
+#     """
+#     Form for adding a new company to the database. 
 
-    """
+#     """
     
-    regions = forms.CharField(widget=forms.Textarea)
+#     regions = forms.CharField(widget=forms.Textarea)
 
-    def clean_regions( self ):
+#     def clean_regions( self ):
 
-        cleaned_data = self.cleaned_data
+#         cleaned_data = self.cleaned_data
 
-        for line in cleaned_data['regions'].split("\n"):
-            print "'{}'".format( line )
-            line = line.rstrip("\r") 
-            fields = re.split(r'[\t ]+', line)
+#         for line in cleaned_data['regions'].split("\n"):
+#             print "'{}'".format( line )
+#             line = line.rstrip("\r") 
+#             fields = re.split(r'[\t ]+', line)
                 
-            # each line should have 3 pieces of information
-            if (len(fields) != 3):
-                raise forms.ValidationError("{} does not contain the required 3 fields".format( line ) )
+#             # each line should have 3 pieces of information
+#             if (len(fields) != 3):
+#                 raise forms.ValidationError("{} does not contain the required 3 fields".format( line ) )
 
-            # Check on valid reference names
-            if fields[2].lower() not in ['grch37', 'grch38' ]:
-                raise forms.ValidationError("{} invalid reference name".format( fields[2] ) )
+#             # Check on valid reference names
+#             if fields[2].lower() not in ['grch37', 'grch38' ]:
+#                 raise forms.ValidationError("{} invalid reference name".format( fields[2] ) )
 
-            pos_fields = re.split("[:-]", fields[ 1 ])
+#             pos_fields = re.split("[:-]", fields[ 1 ])
 
-            print ("Fields:", "--".join(pos_fields))
+#             print ("Fields:", "--".join(pos_fields))
 
-            if len( pos_fields ) < 2:
-                raise forms.ValidationError("Region needs a : between chromosome and position ({})".format( fields[ 1] ) )
+#             if len( pos_fields ) < 2:
+#                 raise forms.ValidationError("Region needs a : between chromosome and position ({})".format( fields[ 1] ) )
                 
-            # Check on valid chromosome names
-            if pos_fields[0].upper() not in ['1','2','3','4','5','6','7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', 'X', 'Y', 'MT' ]:
-                raise forms.ValidationError("{} is not a valid chromosome name".format( pos_fields[0] ) )
+#             # Check on valid chromosome names
+#             if pos_fields[0].upper() not in ['1','2','3','4','5','6','7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', 'X', 'Y', 'MT' ]:
+#                 raise forms.ValidationError("{} is not a valid chromosome name".format( pos_fields[0] ) )
 
-            for pos in pos_fields[1:]:
-                try: 
-                    int(pos)
+#             for pos in pos_fields[1:]:
+#                 try: 
+#                     int(pos)
 
-                except ValueError:
-                    raise forms.ValidationError("{} positions is not an integer".format( pos ) )
+#                 except ValueError:
+#                     raise forms.ValidationError("{} positions is not an integer".format( pos ) )
 
 
 
@@ -59,31 +59,52 @@ class TypeForm(forms.Form):
     
 
 class PositionForm(forms.Form): 
-    # position = forms.ChoiceField(choices = [("Position", "Position")], widget = forms.CheckboxSelectMultiple)
     chromosome_choice = forms.ChoiceField(choices=chromosomes)
     coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
-    reference_choice = forms.ChoiceField(choices=references)       
+    reference_choice = forms.ChoiceField(choices=references, label = "Reference genome")
+
+    def __init__(self, *args, **kwargs):
+            super(PositionForm, self).__init__(*args, **kwargs)
+            self.fields['chromosome_choice'].widget.attrs.update(style='max-width: 4em')
+            self.fields['coordinate'].widget.attrs.update(style='max-width: 15em')
+            self.fields['reference_choice'].widget.attrs.update(style='max-width: 7em')
+
 
 class RangeForm(forms.Form): 
-    # position = forms.ChoiceField(choices = [("Range", "Range")], widget = forms.CheckboxSelectMultiple)
     chromosome_choice = forms.ChoiceField(choices=chromosomes)
     coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
     coordinate2 = forms.IntegerField(min_value = 0, widget=forms.TextInput, label = "2nd coordinate")
-    reference_choice = forms.ChoiceField(choices=references)
+    reference_choice = forms.ChoiceField(choices=references, label = "Reference genome")
+
+    def __init__(self, *args, **kwargs):
+            super(RangeForm, self).__init__(*args, **kwargs)
+            self.fields['chromosome_choice'].widget.attrs.update(style='max-width: 4em')
+            self.fields['coordinate'].widget.attrs.update(style='max-width: 15em')
+            self.fields['coordinate2'].widget.attrs.update(style='max-width: 15em')
+            self.fields['reference_choice'].widget.attrs.update(style='max-width: 7em')
 
 class FusionForm(forms.Form): 
-    # position = forms.ChoiceField(choices = [("Fusion", "Fusion")], widget = forms.CheckboxSelectMultiple)
     chromosome_choice = forms.ChoiceField(choices=chromosomes)
     coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
     strand = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")])
     side = forms.ChoiceField(choices = [("Before","Before"),("After","After")],label = "Breakpoint side")
     chromosome_choice2 = forms.ChoiceField(choices=chromosomes)
     coordinate2 = forms.IntegerField(min_value = 0, widget=forms.TextInput, label = "2nd coordinate")
-    strand2 = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")])
+    strand2 = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")], label = 'Strand')
     side2 = forms.ChoiceField(choices = [("Before","Before"),("After","After")],label = "Breakpoint side")
-    reference_choice = forms.ChoiceField(choices=references)
+    reference_choice = forms.ChoiceField(choices=references, label = "Reference genome")
 
-
+    def __init__(self, *args, **kwargs):
+            super(FusionForm, self).__init__(*args, **kwargs)
+            self.fields['chromosome_choice'].widget.attrs.update(style='max-width: 4em')
+            self.fields['coordinate'].widget.attrs.update(style='max-width: 15em')
+            self.fields['strand'].widget.attrs.update(style='max-width: 4em')
+            self.fields['side'].widget.attrs.update(style='max-width: 15em')
+            self.fields['chromosome_choice2'].widget.attrs.update(style='max-width: 4em')
+            self.fields['coordinate2'].widget.attrs.update(style='max-width: 15em')
+            self.fields['strand2'].widget.attrs.update(style='max-width: 4em')
+            self.fields['side2'].widget.attrs.update(style='max-width: 15em')
+            self.fields['reference_choice'].widget.attrs.update(style='max-width: 7em')
             
 
         
