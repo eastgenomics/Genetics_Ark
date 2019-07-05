@@ -160,10 +160,10 @@ USE_TZ = True
 
 
 STATIC_PATH = os.path.join(BASE_DIR,'static')
-# STATIC_ROOT      = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT      = os.path.join(BASE_DIR, 'static') #decomment these lines to go online
 # This is for the dev static files
 # STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_dev')]
-STATICFILES_DIRS = ('/mnt/storage/projects/Nikita/GA_django/genetics_ark_django/static',)
+STATICFILES_DIRS = ('/mnt/storage/projects/Nikita/GA_django/genetics_ark_django/static',) # needs to be removed when goes online 
 
 
 

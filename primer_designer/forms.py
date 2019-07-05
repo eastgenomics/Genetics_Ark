@@ -52,7 +52,8 @@ references = [('grch37', 'grch37'),('grch38', 'grch38')]
 #                     raise forms.ValidationError("{} positions is not an integer".format( pos ) )
 
 
-
+#The forms below do not need to be validated as the form fields validate the input
+#def __init__ is used to provide widget attributes such as max width, so that the fields do not occupy the whole page 
 
 class TypeForm(forms.Form):
     position = forms.ChoiceField(choices = [("Position", "Position"),("Range", "Range"), ("Fusion", "Fusion"), ], widget = forms.RadioSelect, label = "Primer for:") 
@@ -71,8 +72,8 @@ class PositionForm(forms.Form):
 
 
 class RangeForm(forms.Form): 
-    chromosome_choice = forms.ChoiceField(choices=chromosomes)
-    coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
+    chromosome_choice = forms.ChoiceField(choices=chromosomes, label = "Chromosome")
+    coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput,  label = "1st coordinate")
     coordinate2 = forms.IntegerField(min_value = 0, widget=forms.TextInput, label = "2nd coordinate")
     reference_choice = forms.ChoiceField(choices=references, label = "Reference genome")
 
@@ -84,12 +85,12 @@ class RangeForm(forms.Form):
             self.fields['reference_choice'].widget.attrs.update(style='max-width: 7em')
 
 class FusionForm(forms.Form): 
-    chromosome_choice = forms.ChoiceField(choices=chromosomes)
-    coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput)
+    chromosome_choice = forms.ChoiceField(choices=chromosomes, label = "Chromosome")
+    coordinate = forms.IntegerField(min_value = 0, widget=forms.TextInput,  label = "Coordinate")
     strand = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")])
     side = forms.ChoiceField(choices = [("Before","Before"),("After","After")],label = "Breakpoint side")
-    chromosome_choice2 = forms.ChoiceField(choices=chromosomes)
-    coordinate2 = forms.IntegerField(min_value = 0, widget=forms.TextInput, label = "2nd coordinate")
+    chromosome_choice2 = forms.ChoiceField(choices=chromosomes, label = "Chromosome")
+    coordinate2 = forms.IntegerField(min_value = 0, widget=forms.TextInput, label = "Coordinate")
     strand2 = forms.ChoiceField(choices = [("1" , "1"), ("-1", "-1")], label = 'Strand')
     side2 = forms.ChoiceField(choices = [("Before","Before"),("After","After")],label = "Breakpoint side")
     reference_choice = forms.ChoiceField(choices=references, label = "Reference genome")
@@ -105,6 +106,3 @@ class FusionForm(forms.Form):
             self.fields['strand2'].widget.attrs.update(style='max-width: 4em')
             self.fields['side2'].widget.attrs.update(style='max-width: 15em')
             self.fields['reference_choice'].widget.attrs.update(style='max-width: 7em')
-            
-
-        
