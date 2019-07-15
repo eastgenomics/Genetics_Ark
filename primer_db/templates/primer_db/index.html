@@ -1,0 +1,47 @@
+
+{% extends 'base.html' %}
+#{% load widget_tweaks %}
+
+
+
+{% block body_block %}
+  <h1>Primer Database</h1>
+{% endblock %}
+
+
+
+{% block script %}
+
+$(function() {
+
+   // This is quite hacky, here I am using the template language to generate js,
+
+  {% for field in regions_form %}
+
+     // If a field have an error alert the user
+     {% if field.errors %}
+
+      console.log("error on:", '{{field.id_for_label}}');
+      console.log("error on:", '{{field.errors|striptags}}');
+
+
+
+      // change the colour of the input/select to red
+      $("textarea#{{field.id_for_label}}").addClass('alert-danger');
+
+      // Add a data-toogle parameter to the input/select field
+      $("textarea#{{field.id_for_label}}").attr('data-toggle', 'tooltip');
+
+      // Set title to the error message, striptags remove all html formatting
+      $("textarea#{{field.id_for_label}}").attr('title', '{{field.errors|striptags}}');
+
+  {% endif %}
+{% endfor %}
+
+
+ 
+
+})
+
+
+{% endblock %}
