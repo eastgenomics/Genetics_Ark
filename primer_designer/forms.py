@@ -20,17 +20,10 @@ references = [('grch37', 'grch37'),('grch38', 'grch38')]
 
 #         cleaned_data = self.cleaned_data
 
-<<<<<<< HEAD
-        for line in cleaned_data['regions'].split("\n"):
-            print("'{}'".format( line ))
-            line = line.rstrip("\r") 
-            fields = re.split(r'[\t ]+', line)
-=======
 #         for line in cleaned_data['regions'].split("\n"):
 #             print "'{}'".format( line )
 #             line = line.rstrip("\r") 
 #             fields = re.split(r'[\t ]+', line)
->>>>>>> 4e59fc65d9bfcf9bb591a87c2c6501cd265bbdd8
                 
 #             # each line should have 3 pieces of information
 #             if (len(fields) != 3):

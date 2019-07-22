@@ -37,17 +37,10 @@ def index( request ):
         form = Forms.TypeForm(request.POST)
         
 
-<<<<<<< HEAD
-        # One or more valid regions where entered.
-        if  regions_form.is_valid():
-            print("Passing data along")
-            pp.pprint( regions_form.data['regions'] )
-=======
         if form.is_valid() :
                 
             if form.cleaned_data['position'] == "Position":
                 return redirect("position") #redirects to a url with name "position" - look up urls.py 
->>>>>>> 4e59fc65d9bfcf9bb591a87c2c6501cd265bbdd8
 
             elif form.cleaned_data['position'] == "Range": 
                 return redirect("range")
