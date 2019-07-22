@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+
+
+{% block body_block %}
+
+<form method="post">
+  {% csrf_token %}
+
+<style>
+	.demo {
+		border:1px solid #C0C0C0;
+		border-collapse:collapse;
+		padding:5px;
+	}
+	.demo th {
+		border:1px solid #C0C0C0;
+		padding:5px;
+		background:#F0F0F0;
+	}
+	.demo td {
+		border:1px solid #C0C0C0;
+		padding:5px;
+	}
+</style>
+<table class="demo">
+	<caption>Primer design for fusion:</caption>
+	<thead>
+	<tr>
+		<th>Gene 1</th>
+		<th>Gene 2</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr>
+		<td>{{form.chromosome_choice|as_crispy_field}}</td>
+		<td>{{form.chromosome_choice2|as_crispy_field}}</td>
+	</tr>
+	<tr>
+		<td>{{form.coordinate|as_crispy_field}}</td>
+		<td>{{form.coordinate2|as_crispy_field}}</td>
+	</tr>
+	<tr>
+		<td>{{form.strand|as_crispy_field}}</td>
+		<td>{{form.strand2|as_crispy_field}}</td>
+	</tr>
+	<tr>
+		<td>{{form.side|as_crispy_field}}</td>
+		<td>{{form.side2|as_crispy_field}}</td>
+	</tr>
+	<tr>
+    <td colspan="2"> {{form.reference_choice| as_crispy_field}}</td>
+  </tr>
+	</tbody>
+</table>
+<br>
+<button type="submit" class="btn btn-success">Submit</button>
+</form>
+
+
+
+{% endblock %}
