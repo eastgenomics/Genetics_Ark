@@ -36,7 +36,7 @@ def index( request ):
 
         # One or more valid regions where entered.
         if  regions_form.is_valid():
-            print"Passing data along"
+            print("Passing data along")
             pp.pprint( regions_form.data['regions'] )
 
             return create( request, regions_form.data['regions'] )
@@ -130,7 +130,7 @@ def primers_done_ajax( request, tmp_key ):
     path = 'static/tmp/'
 
     stdout_name = "{}{}.stdout".format( path, tmp_key)
-    print stdout_name
+    print(stdout_name)
 
     result_dict = {'status': 'running' }
 
@@ -140,7 +140,7 @@ def primers_done_ajax( request, tmp_key ):
 
         for line in fh.readlines():
             line = line.rstrip( "\n" )
-            print line
+            print(line)
             lines += line +"<br>"
 
             if line == 'SUCCESS':

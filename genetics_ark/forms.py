@@ -38,17 +38,74 @@ class CommentForm(forms.Form):
     comment = forms.CharField(widget = forms.Textarea(attrs={'placeholder':'Enter your comment'}))
 
 
-class SearchDeconGeneForm(forms.Form):
-    decongene = forms.CharField(widget = forms.TextInput)
+class SearchGeneForm(forms.Form):
+    gene = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. BRCA1'}), required = False)
 
-    def clean_decongene(self): 
-        name = self.cleaned_data['decongene']
+    def clean(self):
+        name = self.cleaned_data['gene']
 
-        if re.match("^[a-zA-Z0-9]*$", name):
-            name = name.strip().upper()
+        if name:
+            if re.match("^[a-zA-Z0-9]*$", name):
+                name = name.strip().upper()
 
-        else: 
-            raise forms.ValidationError("Invalid gene name, should not contain special characters!")
+            else:
+                raise forms.ValidationError("Invalid gene name, should not contain special characters!")
 
         return name
 
+
+class SearchSampleForm(forms.Form):
+    sample = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. X007321'}), required = False)
+
+    def clean(self):
+        sample_name = self.cleaned_data['sample']
+
+        if sample_name:
+            if re.match("^[a-zA-Z0-9]*$", sample_name):
+                sample_name = sample_name.strip().upper()
+
+            else:
+                raise forms.ValidationError("Invalid gene name, should not contain special characters!")
+
+        return sample_name
+
+    
+class SearchPositionForm(forms.Form):
+    position = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'e.g. chrom:start-stop'}), required = False)
+
+    def clean(self):
+        position = self.cleaned_data['position']
+
+        if position:
+            if (":" in position and "-" not in position) or (":" not in position and "-" in position):
+                raise forms.ValidationError("Invalid input: not respecting the right format for entering genomic coordinates e.g. chrom:start-stop")
+
+            elif " " in position:
+                position = position.split()
+                chrom = position[0]
+                start = position[1]
+                stop  = position[2]
+
+            elif ":" in position and "-" in position:
+                chrom = position.split(":")[0]
+                start = position.split(":")[1].split("-")[0]
+                stop = position.split(":")[1].split("-")[1]
+
+            else:
+                raise forms.ValidationError('Invalid input: not respecting the right format for entering genomic coordinates e.g. chrom:start-stop')
+
+            try:
+                start = int(start)
+                stop = int(stop)
+            except:
+                raise forms.ValidationError("Invalid input: start \"{}\" or stop \"{}\" not numbers".format(start, stop))
+
+            if start > stop:
+                raise forms.ValidationError('Invalid value: start \"{}\" > stop \"{}\"'.format(start, stop))
+
+            return (chrom, start, stop)
+
+        else:
+            position = ""
+            return position
+        

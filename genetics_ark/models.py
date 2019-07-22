@@ -79,14 +79,14 @@ class Annotation(models.Model):
 
 
 class CNV(models.Model):
-    chr   = models.CharField(max_length=2)
+    chrom = models.CharField(max_length=2)
     start = models.PositiveIntegerField()
     end   = models.PositiveIntegerField()
     type  = models.CharField(max_length=15)
 
 
     def __str__(self):
-        return "chr{}: {}-{} {}".format(self.chr, self.start, self.end, self.type)
+        return "chrom{}: {}-{} {}".format(self.chrom, self.start, self.end, self.type)
 
     def get_samples(self):
         """ Function to get samples and their number for a given CNV
@@ -108,15 +108,26 @@ class CNV(models.Model):
 
     class Meta:
         db_table = 'cnv'
+        ordering = ['chrom', 'start', 'end', 'type']
+
+
+class CNV_region(models.Model):
+    CNV    = models.ForeignKey(CNV, on_delete=models.DO_NOTHING)
+    region = models.ForeignKey("Region", on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return "{} <=> {}".format(self.CNV, self.region)
+
+    class Meta:
+        db_table = "cnv_region"
 
 
 class CNV_target(models.Model):
-    ref   = models.ForeignKey("Reference", on_delete=models.DO_NOTHING)
-    decon = models.ForeignKey("Decon", on_delete=models.DO_NOTHING)
-    file  = models.CharField(max_length=50)
+    ref          = models.ForeignKey("Reference", on_delete=models.DO_NOTHING)
+    target_file  = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.file
+        return self.target_file
 
     class Meta:
         db_table = 'cnv_target'
@@ -133,18 +144,21 @@ class Comment(models.Model):
 
     class Meta:
         db_table = 'comment'
+        ordering = ['date', 'user']
 
 
 class Decon(models.Model):
-    name      = models.CharField(max_length=100)
-    date      = models.DateField('date of the run')
-    runfolder = models.ForeignKey('Runfolder', on_delete=models.DO_NOTHING)
+    cnv_target = models.ForeignKey(CNV_target, on_delete=models.DO_NOTHING)
+    runfolder  = models.ForeignKey('Runfolder', on_delete=models.DO_NOTHING)
+    name       = models.CharField(max_length=100)
+    date       = models.DateField('date of the run')
 
     def __str__(self):
         return self.name
 
     class Meta:
         db_table = 'decon'
+        ordering = ['date', 'name']
 
 
 class DeconAnalysis(models.Model):
@@ -165,48 +179,11 @@ class DeconAnalysis(models.Model):
 
     class Meta:
         db_table = 'decon_analysis'
-
-    class Meta:
         indexes = [
             models.Index(fields=['decon',]),
             models.Index(fields=['CNV',]),
         ]
-
-
-class Deconexon(models.Model):
-    ref   = models.ForeignKey("Reference", on_delete=models.DO_NOTHING)
-    name  = models.CharField(max_length=100)
-    chr   = models.CharField(max_length=2)
-    start = models.PositiveIntegerField()
-    end   = models.PositiveIntegerField()
-
-    def __str__(self):
-        return "{}: chr{} {}-{}".format(self.name, self.chr, self.start, self.end)
-
-    class Meta:
-        db_table = 'deconexon'
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['name',])
-        ]
-
-
-class DeconexonCNV(models.Model):
-    deconexon = models.ForeignKey(Deconexon, on_delete=models.DO_NOTHING, related_name = "Decongenes2CNVs")
-    CNV       = models.ForeignKey(CNV, on_delete=models.DO_NOTHING, related_name = "CNVs2Decongenes")
-
-    def __str__(self):
-        return "{} <=> {}".format(self.deconexon, self.CNV)
-
-    class Meta:
-        db_table = 'deconexon_cnv'
-    
-    class Meta:
-        indexes = [
-            models.Index(fields=['deconexon',]),
-            models.Index(fields=['CNV'],)
-        ]
+        ordering = ['CNV', 'sample']
 
 
 class Gene(models.Model):
@@ -402,7 +379,7 @@ class Runfolder(models.Model):
 
         self.save()
 
-        print self.name
+        print(self.name)
 
 #        pp.pprint( self )
         return self

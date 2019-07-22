@@ -7,32 +7,132 @@
 
 {% block body_block %}
 
-<h2>Decon run: {{ decon.name }}</h2></br>
+<h2>Decon run: <a href = {% url 'decon_view' decon.id %}>{{ decon.name }}</a></h2></br>
 
 <div class="col-sm1">
   <div float: left;">
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
       <tr>
         <th>Name:</th><td>{{ decon.name }}</td>
       </tr>
       <tr>
         <th>Date:</th><td>{{ decon.date }}</td>
       </tr>
+      <tr>
+        <th>Target file and ref</th><td>"{{ bedfile }}" from {{ ref }}</td>
+      </tr>
+
     </table>
   </div>
 
   <div>
     <form action = "" method = "POST">
-    {% csrf_token %}
-    {{ decongene }} <button type="submit">Search</button>
+
+      {% csrf_token %}
+      <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
+      <tr>
+        <th>
+          Filter per gene: {{ search_gene.gene }}
+          {% if search_gene.non_field_errors %}
+            {{ search_gene.non_field_errors.0 }}
+          {% endif %}
+        </th>
+      </tr>
+        <th>
+          Filter per sample: {{ search_sample.sample }}
+          {% if search_sample.non_field_errors %}
+            {{ search_sample.non_field_errors.0 }}
+          {% endif %}
+        </th>
+      </tr>
+        <th>
+          Filter per position: {{ search_position.position }}
+          {% if search_position.non_field_errors %}
+            {{ search_position.non_field_errors.0 }}
+          {% endif %}          
+        </th>
+      </tr>
+
+      </table>
+
+      <button type="submit">Filter</button>
+
     </form>
   </div>
 </div>
 
 <br>
 
+{% if filter_gene or filter_sample or filter_position %}
+  {% if results %}
+    <h4>Filtering for:</h4>
+  {% else %}
+    <h4>No results for the filtering of </h4>
+  {% endif %}
+  <ul>
+      {% if filter_gene %}
+        <li>{{ filter_gene }}</li>
+      {% endif %}
+
+      {% if filter_sample %}
+        <li>{{ filter_sample }}</li>
+      {% endif %}
+
+      {% if filter_position %}
+        <li>chrom{{ filter_position.0 }}:{{ filter_position.1 }}-{{ filter_position.2 }}</li>
+      {% endif %}
+    </ul>
+{% endif %}
+
+{% if results %}
+<ul class="pagination">
+
+{% if decon_analysis.has_previous %}
+  <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.previous_page_number }}">« Previous page</a>
+
+  {% if decon_analysis.number > 3 %}
+    <a class="btn btn-outline-info mb-4" href="?page=1">1</a>
+
+    {% if decon_analysis.number > 4 %}
+      <button class="btn btn-outline-info mb-4" disabled="">...</button>
+
+    {% endif %}
+
+  {% endif %}
+
+{% endif %}
+
+{% for num in decon_analysis.paginator.page_range %}
+  {% if decon_analysis.number == num %}
+    <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+
+  {% elif num > decon_analysis.number|add:'-8' and num < decon_analysis.number|add:'8' %}
+    <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+
+  {% endif %}
+
+{% endfor %}
+
+{% if decon_analysis.has_next %}
+  {% if decon_analysis.number < decon_analysis.paginator.num_pages|add:'-8' %}
+    <button class="btn btn-outline-info mb-4" disabled="">...</button>
+    <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.paginator.num_pages }}">{{ decon_analysis.paginator.num_pages }}</a>
+
+  {% elif decon_analysis.number < decon_analysis.paginator.num_pages|add:'-7' %}
+    <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.paginator.num_pages }}">{{ decon_analysis.paginator.num_pages }}</a>
+
+  {% endif %}
+  <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.next_page_number }}">Next page »</a>
+
+{% endif %}
+
+</ul>
+
 <div style="width: 100%; overflow: hidden;">
   <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
     <tr>
       <th>CNVs</th>
       <th>Correlation</th>
@@ -46,19 +146,19 @@
       <th>Sample</th>
     </tr>
 
-    {% for CNV in CNVs %}
+    {% for cnv in decon_analysis %}
 
     <tr>
-      <td><a href={% url 'cnv_view' CNV.4 %}>chrom{{ CNV.0 }} {{ CNV.1 }}-{{ CNV.2 }} type {{ CNV.3 }}</td>
-      <td>{{ CNV.5 }}</td>
-      <td>{{ CNV.6 }}</td>
-      <td>{{ CNV.7 }}</td>
-      <td>{{ CNV.8 }}</td>
-      <td>{{ CNV.9 }}</td>
-      <td>{{ CNV.10 }}</td>
-      <td>{{ CNV.11 }}</td>
-      <td>{{ CNV.12 }}</td>
-      <td><a href={% url 'sample_view' CNV.13 %}>{{ CNV.13 }}</td>
+      <td><a href={% url 'cnv_view' cnv.CNV.id %}>{{ cnv.CNV }}</td>
+      <td>{{ cnv.correlation }}</td>
+      <td>{{ cnv.BF }}</td>
+      <td>{{ cnv.start_b }}</td>
+      <td>{{ cnv.end_b }}</td>
+      <td>{{ cnv.nb_exons }}</td>
+      <td>{{ cnv.reads_expected }}</td>
+      <td>{{ cnv.reads_observed }}</td>
+      <td>{{ cnv.reads_ratio }}</td>
+      <td><a href={% url 'sample_view' cnv.sample %}>{{ cnv.sample }}</td>
     </tr>
 
     {% endfor %}
@@ -66,38 +166,50 @@
 </div>
 
 
-
 <ul class="pagination">
 
-  {% if CNVs.has_previous %}
-      <li><a href="?page={{ CNVs.previous_page_number }}"><i class="fa fa-chevron-left" aria-hidden="true"></i></a></li>
-  {% else %}
-      <li class="disabled"><span><i class="fa fa-chevron-left" aria-hidden="true"></i></span></li>
+{% if decon_analysis.has_previous %}
+  <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.previous_page_number }}">« Previous page</a>
+
+  {% if decon_analysis.number > 3 %}
+    <a class="btn btn-outline-info mb-4" href="?page=1">1</a>
+
+    {% if decon_analysis.number > 4 %}
+      <button class="btn btn-outline-info mb-4" disabled="">...</button>
+
+    {% endif %}
+
   {% endif %}
-  
-  {% if CNVs.number|add:'-4' > 1 %}
-      <li><a href="?page={{ CNVs.number|add:'-5' }}">&hellip;</a></li>
+
+{% endif %}
+
+{% for num in decon_analysis.paginator.page_range %}
+  {% if decon_analysis.number == num %}
+    <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+
+  {% elif num > decon_analysis.number|add:'-8' and num < decon_analysis.number|add:'8' %}
+    <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+
   {% endif %}
-  
-  {% for i in CNVs.paginator.page_range %}
-      {% if CNVs.number == i %}
-          <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
-      {% elif i > CNVs.number|add:'-5' and i < CNVs.number|add:'5' %}
-          <li><a href="?page={{ i }}">{{ i }}</a></li>
-      {% endif %}
-  {% endfor %}
-  
-  {% if CNVs.paginator.num_pages > CNVs.number|add:'4' %}
-      <li><a href="?page={{ CNVs.number|add:'5' }}">&hellip;</a></li>
+
+{% endfor %}
+
+{% if decon_analysis.has_next %}
+  {% if decon_analysis.number < decon_analysis.paginator.num_pages|add:'-8' %}
+    <button class="btn btn-outline-info mb-4" disabled="">...</button>
+    <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.paginator.num_pages }}">{{ decon_analysis.paginator.num_pages }}</a>
+
+  {% elif decon_analysis.number < decon_analysis.paginator.num_pages|add:'-7' %}
+    <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.paginator.num_pages }}">{{ decon_analysis.paginator.num_pages }}</a>
+
   {% endif %}
+  <a class="btn btn-outline-info mb-4" href="?page={{ decon_analysis.next_page_number }}">Next page »</a>
+
+{% endif %}
   
-  {% if CNVs.has_next %}
-      <li><a href="?page={{ CNVs.next_page_number }}"><i class="fa fa-chevron-right" aria-hidden="true"></i></a></li>
-  {% else %}
-      <li class="disabled"><span><i class="fa fa-chevron-right" aria-hidden="true"></i></span></li>
-  {% endif %}
-  
-  </ul>
+</ul>
+
+{% endif %}
 
 {% endblock %}
 

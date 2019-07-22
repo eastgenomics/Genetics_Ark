@@ -98,7 +98,7 @@
 <div>
   {% if comments %}
     {% for comment in comments %}
-      <h5>{{ comment.0 }} <b>{{ comment.1 }}:</b></h5><p>{{ comment.2 }}</p></br>
+      <h5>{{ comment.date }} <b>{{ comment.user }}:</b></h5><p>{{ comment.comment }}</p></br>
     {% endfor %}
   {% endif %}
 

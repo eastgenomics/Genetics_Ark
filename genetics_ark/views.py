@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django import forms
 
 import os
 import re
@@ -15,7 +16,7 @@ import pytz
 
 import pprint as pp
 
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -48,7 +49,7 @@ def projects_list( request ):
     
     for project in projects:
         project.samples = Models.Sample.objects.filter( project_id__exact = project.id).count()
-        print "samples in project {}: {}".format(project.name,project.samples)
+        print("samples in project {}: {}".format(project.name,project.samples))
 
     projects_table = Tables.ProjectTable( projects )
     projects_table.order_by = "Name"
@@ -101,9 +102,9 @@ def sample_view( request, sample_id = None, sample_name = None):
 
     for sample_panel in sample_panels:
         panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
-
-	if (panels.count() > 0):
-	    context_dict[ 'panels' ].append( panels[0] )
+        
+        if (panels.count > 0):
+            context_dict[ 'panels' ].append( panels[0] )
 #    sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
 #    sample.panels = sample_panels
 
@@ -185,7 +186,7 @@ def report_create( request, analysis_id, tmp_key=None ):
     panels = ", ".join( panel_list )
 
     cmd = "/mnt/storage/apps/software/ccbg_toolbox/1.2.1/bin/vcf2xls_nirvana.pl -p \"{panels}\" -v /mnt/storage/data/NGS/{runfolder}/vcfs/{sample}.refseq_nirvana_203.annotated.vcf -R /mnt/storage/data/NGS/{runfolder}/stats/{runfolder}.refseq_nirvana_5bp.gz".format(runfolder=analysis.runfolder.name, sample=analysis.sample.name, panels=panels)
-    print( cmd )
+    print(cmd)
 
     context_dict['cmd'] = cmd 
 
@@ -213,7 +214,7 @@ def report_done_ajax( request, tmp_key ):
     stdout_name = "{}{}.stdout".format( path, tmp_key)
     stderr_name = "{}{}.stderr".format(path, tmp_key)
 
-    print stdout_name
+    print(stdout_name)
 
     result_dict = {'status': 'running' }
 
@@ -244,7 +245,7 @@ def report_done_ajax( request, tmp_key ):
 
         for line in fh.readlines():
             line = line.rstrip( "\n" )
-            print line
+            print(line)
             lines += line +"<br>"
 
     result_dict['progress'] += lines
@@ -485,7 +486,7 @@ def qc_project( request, project_id ):
         if ( ccbg_misc.is_a_number( runfolder[ 'duplicate_reads' ] ) and ccbg_misc.is_a_number(runfolder[ 'mapped_reads' ])):
             runfolder[ 'perc_dups' ] = runfolder[ 'duplicate_reads' ]*100.0/runfolder['mapped_reads']
             perc_dups_boxplot = ccbg_misc.svg_boxplot( perc_dups, runfolder['perc_dups'])
-            print "perc dups: {}".format( runfolder['perc_dups'] )
+            print("perc dups: {}".format( runfolder['perc_dups']))
             runfolder['perc_dups'] = django.utils.safestring.mark_safe( "%.2f%% %s " % (runfolder['perc_dups'],  perc_dups_boxplot ))
 
         if ( ccbg_misc.is_a_number( runfolder[ 'mapped_reads' ] ) and ccbg_misc.is_a_number(runfolder[ 'total_reads' ])):
@@ -605,14 +606,14 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
     variants = Models.Variant.objects.filter( chrom__exact = chrom ).filter( pos__exact = pos )
 
-    if variants > 1:
+    if len(variants) > 1:
         context_dict['multi_allelic'] = variants
 
     if ref is not None and alt is not None:
         variants = variants.filter( ref__exact = ref ).filter( alt__exact = alt )
 
     if ( not variants ):
-	context_dict['nothing_found'] = 1
+        context_dict['nothing_found'] = 1
         return  render(request,'genetics_ark/variant_view.html', context_dict)
         
     if ( len( variants ) > 1 ):
@@ -690,12 +691,7 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
     comments = Models.Comment.objects.filter(variant_id__exact = variant.id)
 
-    comment_list = []
-
-    for comment in comments:
-        comment_list.append((comment.date, comment.user, comment.comment))
-
-    context_dict["comments"] = sorted(comment_list)
+    context_dict["comments"] = comments
 
     utc    = pytz.utc
     london = pytz.timezone('Europe/London')
@@ -719,12 +715,7 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 
             comments = Models.Comment.objects.filter(variant_id__exact = variant.id)
 
-            comment_list = []
-
-            for comment in comments:                
-                comment_list.append((comment.date, comment.user, comment.comment))
-
-            context_dict["comments"] = sorted(comment_list)
+            context_dict["comments"] = comments
 
             # recreate the form
             user_form = Forms.UserForm()
@@ -772,7 +763,7 @@ def _awesome_search(max_results=0, starts_with=''):
 
 def api_search( request, query ):
 
-    print "api-search..."
+    print("api-search...")
 
     search_list = []
     starts_with = ''
@@ -828,7 +819,7 @@ def search(request):
 def cnv_view(request, CNV_id):
     """ Display the cnv view
 
-    - Get the exons affected by the CNV
+    - Get the genes affected by the CNV
     - Get the decon run associated
     - Get the samples and call function to get the nb of samples affected by this CNV
     """
@@ -838,38 +829,27 @@ def cnv_view(request, CNV_id):
     cnv = Models.CNV.objects.filter(pk=CNV_id)
 
     if (len(cnv) == 0):
-        return render(request, "genetics_ark/cnv_not_found.html", context_dict)
-        
+        return HttpResponseNotFound("<h1>CNV not found in Genetics Ark</h1>")
+
     cnv = cnv[0]
+    context_dict["cnv"] = cnv
 
-    deconexonsCNVs = Models.DeconexonCNV.objects.filter(CNV_id__exact = cnv.id)
-    deconsCNVs = Models.DeconAnalysis.objects.filter(CNV_id__exact = cnv.id)
+    decons = Models.Decon.objects.filter(deconanalysis__CNV_id__exact = cnv.id).distinct()
 
-    context_dict['decons'] = []
+    context_dict["decons"] = decons
 
-    exons = []
+    region_ids = Models.CNV_region.objects.filter(CNV_id__exact = cnv.id).values_list("region_id", flat = True)
+    transcript_ids = Models.Transcript.objects.filter(transcriptregion__region_id__in = list(region_ids)).values_list("id", flat = True)
+    genes = Models.Gene.objects.filter(transcript__id__in = list(transcript_ids)).distinct()
 
-    # i get every individual elements to sort them
-    for deconexonsCNV in deconexonsCNVs:
-        exon = deconexonsCNV.deconexon
+    context_dict["genes"] = genes
 
-        exons.append("{} {} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name, exon.id))
-
-    # sorting the deconexons by the chrom, start, end
-    context_dict['deconexons'] = sorted([exon.split() for exon in exons], key=lambda x: (x[0], int(x[1]), int(x[2])))
-
-    # get every decon using the deconCNV table
-    for deconCNV in deconsCNVs:
-        decon = deconCNV.decon
-        context_dict['decons'].append(decon)
 
     # call function to get the samples in which the cnv is present
     nb_samples, samples = Models.CNV.get_samples(cnv)
 
-    context_dict['cnv'] = cnv
-    context_dict['decons'] = sorted(context_dict['decons'])
-    context_dict['nb_samples'] = nb_samples
-    context_dict['samples'] = samples
+    context_dict["nb_samples"] = nb_samples
+    context_dict["samples"] = sorted(samples)
 
     return render(request, "genetics_ark/cnv_view.html", context_dict)
 
@@ -877,8 +857,8 @@ def cnv_view(request, CNV_id):
 def decon_view(request, Decon_id):
     """ Display the decon run view
     
-    - Get the cnv from the run with sample associated
-    - Search bar for a decongene
+    - Get the cnvs from the run with sample associated
+    - Search bars for a gene, sample, position
     - Set up the pagination
     - get the cnv target file
     - get the runfolder
@@ -888,196 +868,153 @@ def decon_view(request, Decon_id):
     decon = Models.Decon.objects.filter(pk=Decon_id)
 
     if (len(decon) == 0):
-        return render(request, "genetics_ark/decon_not_found.html", context_dict)
+        return HttpResponseNotFound("<h1>Decon run not found in Genetics Ark</h1>")
+    else:
+        context_dict["results"] = True
 
     decon = decon[0]
-    context_dict['decon'] = decon
-    deconsCNVs = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id)
+    context_dict["decon"] = decon
+    context_dict["runfolder"] = decon.runfolder
 
-    CNVs = []
-    stats_deconCNV = []
-
-    # sort the cnv data
-    # id comparison wasn't working in the template because i was comparing a string to an object
-    for deconCNV in deconsCNVs:
-        CNV = deconCNV.CNV
-
-        CNVs.append("{} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(
-                                CNV.chr,
-                                CNV.start,
-                                CNV.end,
-                                CNV.type,
-                                CNV.id,
-                                deconCNV.correlation,
-                                deconCNV.BF,
-                                deconCNV.start_b, 
-                                deconCNV.end_b, 
-                                deconCNV.nb_exons, 
-                                deconCNV.reads_expected, 
-                                deconCNV.reads_observed, 
-                                deconCNV.reads_ratio,
-                                deconCNV.sample))
+    decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id)
 
     cnv_target = Models.CNV_target.objects.filter(decon__exact = decon)
-    context_dict['bedfile'] = cnv_target[0]
+    cnv_target = cnv_target[0]
+    context_dict["bedfile"] = cnv_target
 
     ref = Models.Reference.objects.filter(name__exact = cnv_target.ref)
-    context_dict['ref'] = ref[0]
+    context_dict["ref"] = ref[0]
 
-    context_dict['runfolder'] = decon.ref
-
-    # form to search for decongenes from the decon run page
+    # form to search for genes, samples, positions from the decon run page
     # first check if the submit button is clicked
-    if request.method == 'POST':
-        decongene_form = Forms.SearchDeconGeneForm( request.POST )
+    if request.method == "POST":
+        gene_form = Forms.SearchGeneForm(request.POST)
+        sample_form = Forms.SearchSampleForm(request.POST)
+        position_form = Forms.SearchPositionForm(request.POST)
 
-        # check if there's stuff in the field
-        if  decongene_form.is_valid():
-            # check if the data is clean e.g. no special characters etc
-            decongene = decongene_form.clean_decongene()
-            # call the page displaying the result of the search
-            return decongene_search(request, decon.id, decon.name, decongene)
-            
-        else:
-            # data not clean: recall the page with the error message
-            context_dict['decongene'] = decongene_form
-            return render(request, "genetics_ark/decon_view.html", context_dict)
+        # check if the data is clean e.g. no special characters etc
+        # or matches a genomic position
+        if gene_form.is_valid():
+            gene = gene_form.cleaned_data
+    
+        if sample_form.is_valid():
+            sample = sample_form.cleaned_data
+    
+        if position_form.is_valid():
+            position = position_form.cleaned_data
+
+        # one of the forms is valid
+        if gene or sample or position:
+            # search cnvs with genes/sample/position
+            decon_analysis = filter_cnvs(request, decon, gene, sample, position)
+
+            if gene:
+                context_dict["filter_gene"] = gene
+
+            if sample:
+                context_dict["filter_sample"] = sample
+
+            if position:
+                context_dict["filter_position"] = position
+
+            # the search doesn't give any results 
+            if not decon_analysis:
+                context_dict["results"] = False
+                context_dict["search_gene"] = Forms.SearchGeneForm()
+                context_dict["search_sample"] = Forms.SearchSampleForm()
+                context_dict["search_position"] = Forms.SearchPositionForm()
+                return render(request, "genetics_ark/decon_view.html", context_dict)
         
     else:
         # if not button not clicked just display the form
-        decongene_form = Forms.SearchDeconGeneForm()
+        gene_form = Forms.SearchGeneForm()
+        sample_form = Forms.SearchSampleForm()
+        position_form = Forms.SearchPositionForm()
     
-    context_dict['decongene'] = decongene_form
+    context_dict["search_gene"] = gene_form
+    context_dict["search_sample"] = sample_form
+    context_dict["search_position"] = position_form
 
     # pagination set up
-    # - display 100 cnvs per page
-    paginator = Paginator(sorted([cnv.split() for cnv in CNVs], key=lambda x: (x[0], int(x[1]), int(x[2]))), 100)
-    page = request.GET.get('page')
+    # - display 100 CNVs analysis per page
+    paginator = Paginator(decon_analysis, 50)
+    page = request.GET.get("page")
 
     try:
-        context_dict['CNVs'] = paginator.page(page)
+        context_dict["decon_analysis"] = paginator.page(page)
 
     except PageNotAnInteger:
         # If page is not an integer, deliver first page.
-        context_dict['CNVs'] = paginator.page(1)
+        context_dict["decon_analysis"] = paginator.page(1)
 
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
-        context_dict['CNVs'] = paginator.page(paginator.num_pages)
+        context_dict["decon_analysis"] = paginator.page(paginator.num_pages)
 
     return render(request, "genetics_ark/decon_view.html", context_dict)
 
 
-def deconexon_view(request, Deconexon_id):
-    """ Display decon exons
+def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
+    """ filter cnvs
 
-    - Get the CNVs associated with the exon
+    - get the cnvs depending on gene, sample, position
+    - intersect the results from every search
+    - return in adequate format for decon_view
+
+    P.S. (queryset | queryset) combines the 2 querysets (union)
+         (queryset | queryset) takes the intersection of querysets
     """
 
-    context_dict = {}
+    # looking for cnvs with gene from form
+    if gene:
+        gene_object = Models.Gene.objects.filter(name__exact = gene)
 
-    deconexon = Models.Deconexon.objects.filter(pk = Deconexon_id)
+        if gene_object:
+            regions_ids = Models.TranscriptRegion.objects.filter(transcript__gene_id__exact = gene_object[0].id).values_list("region_id", flat = True)
+            cnv_ids = Models.CNV_region.objects.filter(region__id__in = list(regions_ids)).values_list("CNV_id", flat = True)
+            cnvs_gene = Models.CNV.objects.filter(id__in = list(cnv_ids))
 
-    if (len(deconexon) == 0):
-        return render(request, "genetics_ark/decon_not_found.html", context_dict)
+    else:
+        cnvs_gene = Models.CNV.objects.none()
 
-    deconexon = deconexon[0]
+    # looking for cnvs with sample from form
+    if sample:
+        # check if the sample exists
+        sample_object = Models.Sample.objects.filter(name__exact = sample)
 
-    CNVs2deconexons = Models.DeconexonCNV.objects.filter(deconexon_id__exact = deconexon.id)
+        if sample_object:
+            cnvs_sample = Models.CNV.objects.filter(deconanalysis__decon_id__exact = decon.id, deconanalysis__sample_id__exact = sample_object[0].id)
 
-    context_dict['CNVs'] = []
+    else:
+        sample_object = None
+        cnvs_sample = Models.CNV.objects.none()
 
-    for CNV2deconexon in CNVs2deconexons:
-        # get unique CNVs
-        if CNV2deconexon.CNV not in context_dict['CNVs']:
-            context_dict['CNVs'].append(CNV2deconexon.CNV)
+    # looking for cnvs at that position
+    if position != "":
+        chrom = position[0]
+        start = position[1]
+        stop = position[2]
 
-    context_dict["deconexon"] = deconexon
-    context_dict["CNVs"] = sorted(context_dict["CNVs"])
-    context_dict["ref"] = deconexon.ref
+        cnvs_position = Models.CNV.objects.filter(chrom__exact = chrom, start__lte = stop, end__gte = start, deconanalysis__decon_id__exact = decon)
 
-    return render(request, "genetics_ark/deconexon_view.html", context_dict)
+    else:
+        cnvs_position = Models.CNV.objects.none()
 
+    # need to intersect the queries
+    if cnvs_gene and cnvs_sample:
+        if cnvs_position:
+            cnvs_ids = (cnvs_gene & cnvs_sample & cnvs_position).values_list("id", flat = True)
+        else:
+            cnvs_ids = (cnvs_gene & cnvs_sample).values_list("id", flat = True)
+    
+    elif cnvs_sample and cnvs_position:
+        cnvs_ids = (cnvs_sample & cnvs_position).values_list("id", flat = True)
 
-def decongene_view(request, parameter): 
-    """ Display the exons of the gene
+    # if only one of the fields used
+    else:
+        cnvs_ids = (cnvs_gene | cnvs_sample | cnvs_position).values_list("id", flat = True)
 
-    - Get the exons that have the decongene name passed in the parameter
-    """
+    # use the cnv ids to get the decon analysis row we finally want
+    decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, CNV_id__in = list(cnvs_ids))
 
-    context_dict = {}
-    exons_display = []
-    exons = Models.Deconexon.objects.filter(name__exact = parameter)
-
-    # needed to have good sorting
-    for exon in exons:
-        exons_display.append("{} {} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name, exon.id))
-
-    context_dict['decongene'] = parameter
-    context_dict['exons'] = sorted([exon.split() for exon in exons_display], key=lambda x: (x[0], int(x[1]), int(x[2])))
-
-    return render(request, 'genetics_ark/decongene_view.html', context_dict)
-
-
-def decongene_search(request, decon_id, decon_name, decongene_name):
-    """ Display results of the decongene search
-
-    - Get the exons that have a CNV in the decon run
-    - Get the samples that are associated with the CNVs of the decon run or not
-    """
-
-    context_dict = {}
-
-    exons = Models.Deconexon.objects.filter(name__exact = decongene_name)
-
-    exons_display = {}
-    CNVs_data = []
-    rest_samples = []
-    decon_samples = []
-
-    # need to display exons and samples
-    # so i get CNV to link exons to the samples
-    # i also get the exons
-    for exon in exons:
-        deconexonCNVs = Models.DeconexonCNV.objects.filter(deconexon__exact = exon)
-        
-        for deconexonCNV in deconexonCNVs:
-            CNV = deconexonCNV.CNV
-            exon = deconexonCNV.deconexon
-
-            CNVs_data.append(CNV)
-
-            # get unique exons using the id
-            if exon.id not in exons_display.keys():
-                exons_display[exon.id] = "{} {} {} {}".format(exon.chr, exon.start, exon.end, exon.name).split()
-
-    # add the exon id to the data to link data and id before sorting
-    for exon_id, exon_data in exons_display.items():
-        exon_data.append(exon_id)
-
-    exons_display = None
-
-    # separate samples in the decon run and those who are not
-    for CNV_data in CNVs_data:
-        other_CNV2samples = Models.DeconAnalysis.objects.filter(CNV__exact = CNV_data).exclude(decon_id__exact = decon_id)
-        decon_CNV2samples = Models.DeconAnalysis.objects.filter(CNV__exact = CNV_data).filter(decon_id__exact = decon_id)
-
-        # get the name and id of the samples for sorting
-        for other_CNV2sample in other_CNV2samples:
-            if other_CNV2sample.sample.name not in rest_samples:
-                rest_samples.append("{}".format(other_CNV2sample.sample.name))
-
-        for decon_CNV2sample in decon_CNV2samples:
-            if decon_CNV2sample.sample.name not in decon_samples:
-                decon_samples.append("{}".format(decon_CNV2sample.sample.name))
-
-    # sort samples using only the digits
-    context_dict['decon_sample'] = sorted(decon_samples)
-    context_dict['rest_sample'] = sorted(rest_samples)
-    context_dict['decongene'] = decongene_name
-    context_dict['decon_name'] = decon_name
-    context_dict['decon_id'] = decon_id
-    # allows sorting according to chrom, start, end
-    context_dict['exons'] = sorted(exons_display.values(), key=lambda x: (x[0], int(x[1]), int(x[2])))
-
-    return render(request, "genetics_ark/decongene_search.html", context_dict)
+    return decon_analysis

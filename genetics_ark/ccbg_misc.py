@@ -46,9 +46,9 @@ def svg_perc_coverage(perc):
     colour_value = 0
     MIN_VALUE = 79
     if ( perc >= MIN_VALUE ):
-        print perc
+        print(perc)
         colour_value = ( (100 - MIN_VALUE) - ( 100.0-perc ) ) /(100 - MIN_VALUE)*100
-        print colour_value
+        print(colour_value)
         
 
     hue = colour_value*0.35/100

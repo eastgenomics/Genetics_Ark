@@ -8,7 +8,7 @@
 {% block body_block %}
 
 
-<h2>CNV: chrom{{ cnv.chr }}: {{ cnv.start }}-{{ cnv.end }}</h2></br>
+<h2>CNV: chrom{{ cnv.chrom }}: {{ cnv.start }}-{{ cnv.end }}</h2></br>
 
 <div class="col-sm1">
   <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
@@ -33,22 +33,25 @@
 <div style="width: 100%; overflow: hidden;">
   <div style="width: 475px; float: left;">
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
       <tr>
-        <th>Exons:</th>
+        <th>Genes:</th>
       </tr>
 
-      {% for deconexon in deconexons %}
+      {% for gene in genes %}
 
       <tr>
-        <td><a href={% url 'deconexon_view' deconexon.4 %}>{{ deconexon.3 }} exon: chrom{{ deconexon.0 }} {{ deconexon.1 }}-{{ deconexon.2 }}</td>
+        <td><a href={% url 'gene_view' gene.name %}>{{ gene.name }}</td>
       </tr>
 
       {% endfor %}
+      
     </table>
   </div>
 
   <div style="width: 475px; margin-left: 50px; float: left">
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
       <tr>
         <th>Decon runs:</th>
       </tr>
@@ -59,11 +62,13 @@
       </tr>
 
       {% endfor %}
+
     </table>
   </div>
 
   <div style="width: 475px;margin-left: 50px; float: left">
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
+
       <tr>
         <td><b>Present in :</b>&nbsp;{{ nb_samples }} {% if nb_samples > 1 %}samples{% else %}sample{% endif %}</td>
       </tr>
@@ -71,10 +76,11 @@
       {% for sample in samples %}
 
       <tr>
-        <td><a href={% url 'sample_view' sample.name %}>{{ sample.name }}</td>
+        <td><a href={% url 'sample_view' sample %}>{{ sample }}</td>
       </tr>
 
       {% endfor %}
+
     </table>
   </div>
 </div>

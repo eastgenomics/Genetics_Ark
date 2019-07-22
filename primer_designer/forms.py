@@ -18,7 +18,7 @@ class RegionsForm( forms.Form ):
         cleaned_data = self.cleaned_data
 
         for line in cleaned_data['regions'].split("\n"):
-            print "'{}'".format( line )
+            print("'{}'".format( line ))
             line = line.rstrip("\r") 
             fields = re.split(r'[\t ]+', line)
                 
