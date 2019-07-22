@@ -5,43 +5,43 @@
 
 
 {% block body_block %}
-  <h1>Primer Database</h1>
-{% endblock %}
+
+
+<h1>Primer Database</h1>
 
 
 
-{% block script %}
+<div class="row center-block">
 
-$(function() {
+<h4>Submit new primers:</h4>
 
-   // This is quite hacky, here I am using the template language to generate js,
+</div>
+  <form action = "" method = "POST">
+    {% csrf_token %}
+    {{ arrival_date_form.arrival_date }}</br></br>
+    {{ primer_name_form.primer_name }}
+    {{ sequence_form.sequence }}
+    {{ gcpercent_form.gcpercent }}</br></br>
+    {{ tm_form.tm }}
+    {{ length_form.length }}
+    {{ comments_form.comments }}</br></br>
+    {{ buffer_form.buffer }} 
+    {{ pcr_form.pcr_program }}
+    {{ forename_form.forename }}</br></br>
+    {{ surname_form.surname }}
+    {{ reference_form.reference }}
+    {{ chrom_no_form.chrom_no }}</br></br>
+    {{ start_coordinate_form.start_coordinate }}
+    {{ end_coordinate_form.end_coordinate }}
+    {{ status_form.status }}</br></br>
 
-  {% for field in regions_form %}
-
-     // If a field have an error alert the user
-     {% if field.errors %}
-
-      console.log("error on:", '{{field.id_for_label}}');
-      console.log("error on:", '{{field.errors|striptags}}');
-
-
-
-      // change the colour of the input/select to red
-      $("textarea#{{field.id_for_label}}").addClass('alert-danger');
-
-      // Add a data-toogle parameter to the input/select field
-      $("textarea#{{field.id_for_label}}").attr('data-toggle', 'tooltip');
-
-      // Set title to the error message, striptags remove all html formatting
-      $("textarea#{{field.id_for_label}}").attr('title', '{{field.errors|striptags}}');
-
-  {% endif %}
-{% endfor %}
-
-
- 
-
-})
+    
+    <button name="add" type="submit">Submit primers</button>
+  </form>
+</div>
 
 
 {% endblock %}
+
+
+

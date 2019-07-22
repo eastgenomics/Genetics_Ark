@@ -2,100 +2,85 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import datetime
 
 # Create your models here.
 
+# set all to null=True for testing forms
+
 class PrimerDetails(models.Model):
-	primer_ID = models.AutoField(primary_key=True)
 	primer_name = models.CharField(unique=True, max_length=50)
 	sequence = models.CharField(max_length=100)
-	gc_percent = models.FloatField()
+	gc_percent = models.IntegerField()
 	tm = models.FloatField()
 	length = models.IntegerField()
-	comments = models.CharField(max_length=200, blank=True)
-	arrival_date = models.DateField(auto_now_add=True)
-	status_ID = models.ForeignKey("Status")
-	scientist_ID = models.ForeignKey("Scientist")
-	pcr_ID = models.ForeignKey("PCRProgram")
-	buffer_ID = models.ForeignKey("Buffer")
+	comments = models.CharField(max_length=200)
+	arrival_date = models.DateField()
+	status = models.ForeignKey("Status")
+	scientist = models.ForeignKey("Scientist")
+	pcr_program = models.ForeignKey("PCRProgram")
+	buffer = models.ForeignKey("Buffer")
+	coordinates = models.ForeignKey("Coordinates")
 
         def __str__(self):
                 """String for representing the Model object."""
-                return str(self.primer_ID)
+                return ('{} {} {} {} {} {} {} {} {} {} {} {}'.format(
+                self.primer_name, self.sequence, self.gc_percent, self.tm,
+                self.length, self.comments, self.arrival_date, self.status, 
+                self.scientist, self.pcr, self.buffer, self.coordinates)
 
-
+                )
 
 class Coordinates(models.Model):
-	coordinate_ID = models.AutoField(primary_key=True)
-	primer_ID = models.ForeignKey(PrimerDetails)
-	ref_ID = models.ForeignKey("Reference")
-	coordiantes = models.CharField(max_length=200)
+	reference = models.CharField(max_length=6)
 	chrom_no = models.CharField(max_length=2)
+	start_coordinate = models.CharField(max_length=20)
+	end_coordinate = models.CharField(max_length=20)
+	
 
         def __str__(self):
                 """String for representing the Model object."""
-                return self.coordinate_ID
+                return '{} {} {} {}'.format(self.reference, self.chrom_no, 
+                	self.start_coordinate, self.end_coordinate)
 
-
-
-class Reference(models.Model):
-	ref_ID = models.CharField(primary_key=True, max_length=200)
-	grch37 = models.CharField(max_length=10)
-	grch38 = models.CharField(max_length=10)
-
-        def __str__(self):
-                """String for representing the Model object."""
-                return str(self.ref_ID)
 
 
 class Status(models.Model):
-	STATUS_OPTIONS = (
-		('o', 'On order'),
-		('i', 'In bank'),
-		('a', 'Archived'),
-	)		
 
-	status_ID = models.CharField(
-		primary_key=True, 
-		max_length=200, 
-		choices=STATUS_OPTIONS
-	)
-
+	status = models.CharField(max_length=200)	
 
         def __str__(self):
                 """String for representing the Model object."""
-                return str(self.status_ID)
+                return str(self.status)
 
 	
 
 class Scientist(models.Model):
-        scientist_ID = models.CharField(primary_key=True, max_length=200)
+        forename = models.CharField(max_length=200)
+        surname = models.CharField(max_length=200)
+
 
         def __str__(self):
                 """String for representing the Model object."""
-                return str(self.scientist_ID)
+                return '{} {}'.format(self.forename, self.surname)
 
 
 
 class PCRProgram(models.Model):
-        pcr_ID = models.CharField(primary_key=True, max_length=200)
+        pcr_program = models.CharField(max_length=200)
 
         def __str__(self):
                 """String for representing the Model object."""
-                return str(self.pcr_ID)
+                return str(self.pcr_program)
 
 
 
 class Buffer(models.Model):
-        buffer_ID = models.CharField(
-		primary_key=True, 
-		max_length=200,
-		default='Buffer D',
-	)
+        buffer = models.CharField(max_length=200)
 
 
         def __str__(self):
                 """String for representing the Model object."""
-                return str(self.buffer_ID)
+                return str(self.buffer)
 
 

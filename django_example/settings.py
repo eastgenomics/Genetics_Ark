@@ -26,7 +26,7 @@ SECRET_KEY = '%w1)bj+9ehivnvqjv=sal*y(wiwwz5y!m@v1zeracm&5)e%xp%'
 DEBUG = True
 
 # Brugger: Uncomment for production use, and the setting will change below 
-DEBUG = False
+# DEBUG = False
 
 
 
@@ -35,15 +35,17 @@ ALLOWED_HOSTS = []
 if ( DEBUG == False):
     ALLOWED_HOSTS = ['ga.ctrulab.uk']
 else:
-    ALLOWED_HOSTSi= ['10.212.75.240']
+    ALLOWED_HOSTS= ['10.212.75.240']
     ALLOWED_HOSTS = ['login01']
     ALLOWED_HOSTS = ['ga.ctrulab.uk']
+    ALLOWED_HOSTS = ['127.0.0.1']
 
 # Application definition
 
 INSTALLED_APPS = [
     'genetics_ark',          # The apps we are developing
     'primer_designer',
+    'primer_db.apps.PrimerDbConfig',
     'widget_tweaks', # Makes rendering forms a lot easier
 #    'debug_toolbar', # Awesome for debugging django sites
     'django_tables2',# make nice tables
@@ -92,62 +94,112 @@ WSGI_APPLICATION = 'django_example.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_django',
+#         'USER': 'easih_admin',
+#         'PASSWORD': 'easih',
+#         'HOST': 'mgsrv01',
+#         },
+
+#     'genetics_ark_db': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_1_1_0_django',
+#         'USER': 'easih_admin',
+#         'PASSWORD': 'easih',
+#         'HOST': 'mgsrv01',
+#         },
+#     }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_django',
+#         'USER': 'ccbg_admin',
+#         'PASSWORD': 'ccbg',
+#         'HOST': 'sql01',
+#         },
+
+#     'genetics_ark_db': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_1_1_0',
+#         'USER': 'ccbg_admin',
+#         'PASSWORD': 'ccbg',
+#         'HOST': 'sql01',
+#         },
+#     }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'genetics_ark_1_1_0',
+#        'USER': 'ga_ro',
+#        'PASSWORD': 'readonly',
+#        'HOST': 'sql01',
+#        },
+
+#    'genetics_ark_db': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'genetics_ark_1_1_0',
+#        'USER': 'ga_ro',
+#        'PASSWORD': 'readonly',
+#        'HOST': 'sql01',
+#        },
+#   }
+
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_django',
-        'USER': 'easih_admin',
-        'PASSWORD': 'easih',
-        'HOST': 'mgsrv01',
-        },
+     'default': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'primer_django',
+         'USER': 'rainfoj',
+         'PASSWORD': 'primer',
+         'HOST': 'sql01',
+         },
 
-    'genetics_ark_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_1_1_0_django',
-        'USER': 'easih_admin',
-        'PASSWORD': 'easih',
-        'HOST': 'mgsrv01',
-        },
-    }
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_django',
-        'USER': 'ccbg_admin',
-        'PASSWORD': 'ccbg',
-        'HOST': 'sql01',
-        },
-
-    'genetics_ark_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_1_1_0',
-        'USER': 'ccbg_admin',
-        'PASSWORD': 'ccbg',
-        'HOST': 'sql01',
-        },
-    }
+     'genetics_ark_db': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'primer_django',
+         'USER': 'rainfoj',
+         'PASSWORD': 'primer',
+         'HOST': 'sql01',
+         },
+     }
 
 
-if ( DEBUG == False ):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark_django',
-            'user': 'ccbg_admin',
-            'PASSWORD': 'ccbg',
-            'HOST': 'sql01',
-            },
 
-        'genetics_ark_db': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark_1_1_0',
-            'USER': 'ccbg_admin',
-            'PASSWORD': 'ccbg',
-            'HOST': 'sql01',
-            },
-        }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': '/mnt/storage/home/rainfoj/Projects/genetics_ark_django/primer_db/primer_db.sqlite',
+#        },
+#   }
+
+
+
+
+# if ( DEBUG == False ):
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': 'genetics_ark_django',
+#             'user': 'ccbg_admin',
+#             'PASSWORD': 'ccbg',
+#             'HOST': 'sql01',
+#             },
+
+#         'genetics_ark_db': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': 'genetics_ark_1_1_0',
+#             'USER': 'ccbg_admin',
+#             'PASSWORD': 'ccbg',
+#             'HOST': 'sql01',
+#             },
+#         }
 
 DATABASE_ROUTERS = ['django_example.router.Router']
 
