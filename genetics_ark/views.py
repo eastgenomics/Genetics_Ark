@@ -42,6 +42,15 @@ def index(request):
 
 
 def projects_list( request ):
+    """ displays the project list
+
+    Models:
+    - Project
+    - Sample
+
+    Template:
+    - projects_list.html
+    """
 
     context_dict = {}
 
@@ -61,6 +70,12 @@ def projects_list( request ):
 
 def igv( request, analysis_id=None, sample_name=None, runfolder_name=None, chrom=None, pos=None):
     """ create a page with the js IGV viewer for the sample
+
+    Models:
+    - Analysis
+
+    Template:
+    - igv.html
 
     """
 
@@ -84,6 +99,19 @@ def igv( request, analysis_id=None, sample_name=None, runfolder_name=None, chrom
 
 
 def sample_view( request, sample_id = None, sample_name = None):
+    """ displays the sample view
+
+    Models:
+    - Sample
+    - SamplePanel
+    - Panel
+    - Analysis
+    - Decon
+
+    Template:
+    - sample_view.html
+
+    """
 
     context_dict = {}
 
@@ -155,6 +183,16 @@ def random_string(length=10):
 
 
 def report_create( request, analysis_id, tmp_key=None ):
+    """ 
+
+    Models:
+    - Analysis
+    - Panel
+    - Transcript
+
+    Template:
+    - report_create.html
+    """
     
     analysis = Models.Analysis.objects.get( pk = analysis_id)
     context_dict = {'analysis': analysis }
@@ -246,6 +284,20 @@ def report_done_ajax( request, tmp_key ):
     
     
 def analysis_report( request, analysis_id):
+    """
+
+    Models:
+    - Analysis
+    - Panel
+    - Transcript
+    
+    Forms:
+    - PanelForm
+
+    Template:
+    - analysis_report.html
+
+    """
     
     context = {}
     analysis = Models.Analysis.objects.get( pk = analysis_id)
@@ -327,14 +379,13 @@ def analysis_report( request, analysis_id):
 def genes_in_panel( panel_id ):
     """ Get genes, and their clincial transcripts for genes in a panel 
 
-    Args:
-       panel_id (int): primary key of the panel
+    Models:
+    - Gene
+    - Transcript
 
-    Returns:
-      dict of genes of transcripts
+    Args: panel_id
 
-    Raises:
-       None
+    Returns: dict{gene_queryset: transcripts_queryset}
 
     """
 
@@ -349,6 +400,15 @@ def genes_in_panel( panel_id ):
 
 
 def panel_view( request, panel_id):
+    """ displays the panel view
+
+    Models:
+    - Panel
+    - Sample
+
+    Template:
+    - panel_view.html
+    """
 
     context_dict = {}
     
@@ -367,6 +427,16 @@ def panel_view( request, panel_id):
 
 
 def gene_view( request, gene_name):
+    """ displays the gene view
+
+    Models:
+    - Gene
+    - Transcript
+    - Panel
+
+    Template:
+    - gene_view.html
+    """
 
     context_dict = {}
     context_dict[ 'gene_name' ] = gene_name
@@ -394,7 +464,7 @@ def gene_view( request, gene_name):
 
 def qc_project( request, project_id ):
     
-    project =  Models.Project.objects.get( pk = project_id )
+    project = Models.Project.objects.get( pk = project_id )
 
     if ( project is None):
         # render a page telling the user that the project does not exsist
@@ -563,6 +633,24 @@ def qc_runfolder( request, runfolder_id):
 
 
 def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
+    """ displays variant view
+
+    Models:
+    - Variant
+    - Comment
+    - Project
+    - Sample
+    - AnalysisVariant
+    - SamplePanel
+    - Panel
+
+    Forms:
+    - UserForm
+    - CommentForm
+
+    Template:
+    - variant_view.html
+    """
 
     context_dict = {}
     context_dict['chrom'] = chrom
@@ -673,7 +761,7 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
         if user_form.is_valid() and comment_form.is_valid():
             # the form is valid
             user = user_form.cleaned_data["user"]
-            comment = comment_form.cleaned_data['comment']
+            comment = comment_form.cleaned_data["comment"]
                 
             # save the comment in the database
             new_comment = Models.Comment.objects.create(user = user, date = time, comment = comment, variant = variant)
@@ -784,6 +872,16 @@ def search(request):
 def cnv_view(request, CNV_id):
     """ Display the cnv view
 
+    Models:
+    - CNV
+    - Decon
+    - CNV_region
+    - Transcript
+    - Gene
+
+    Template:
+    - cnv_view.html
+
     - Get the genes affected by the CNV
     - Get the decon run associated
     - Get the samples and call function to get the nb of samples affected by this CNV
@@ -821,6 +919,20 @@ def cnv_view(request, CNV_id):
 
 def decon_view(request, Decon_id):
     """ Display the decon run view
+
+    Models:
+    - Decon
+    - DeconAnalysis
+    - CNV_target
+    - Reference
+
+    Forms:
+    - SearchGeneForm
+    - SearchSampleForm
+    - SearchPositionForm
+
+    Template:
+    - decon_view.html
     
     - Get the cnvs from the run with sample associated
     - Search bars for a gene, sample, position
@@ -853,6 +965,10 @@ def decon_view(request, Decon_id):
     # form to search for genes, samples, positions from the decon run page
     # first check if the submit button is clicked
     if request.method == "POST":
+        gene = None
+        sample = None
+        position = None
+        
         gene_form = Forms.SearchGeneForm(request.POST)
         sample_form = Forms.SearchSampleForm(request.POST)
         position_form = Forms.SearchPositionForm(request.POST)
@@ -923,6 +1039,14 @@ def decon_view(request, Decon_id):
 
 def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
     """ filter cnvs
+
+    Models:
+    - Gene
+    - TranscriptRegion
+    - CNV_region
+    - CNV
+    - Sample
+    - DeconAnalysis 
 
     - get the cnvs depending on gene, sample, position
     - intersect the results from every search
