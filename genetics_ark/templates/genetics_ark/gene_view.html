@@ -36,9 +36,9 @@
 <table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
 
 
-  {% for panel_name, panel_id in panels %}
+  {% for panel in panels %}
     <tr>
-      <td><a href={% url 'panel_view' panel_id %}>{{panel_name}}</a></td>
+      <td><a href={% url 'panel_view' panel.id %}>{{panel.name}}</a></td>
     </tr>
   {% endfor %}
 

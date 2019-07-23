@@ -98,13 +98,10 @@ def sample_view( request, sample_id = None, sample_name = None):
 
     context_dict = { 'sample': sample }
     context_dict[ 'panels' ] = []
-    sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = sample.id )
+    sample_panels_names = Models.SamplePanel.objects.filter(sample_id__exact = sample.id).values_list("panel_name")
+    panels = Models.Panel.objects.filter(name__in = sample_panels_names, active = "Y").distinct()
+    context_dict["panels"] = panels
 
-    for sample_panel in sample_panels:
-        panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
-        
-        if (panels.count > 0):
-            context_dict[ 'panels' ].append( panels[0] )
 #    sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
 #    sample.panels = sample_panels
 
@@ -128,15 +125,8 @@ def sample_view( request, sample_id = None, sample_name = None):
     context_dict[ 'analyses' ] = analyses
 
     # get the decon runs associated with the sample
-    deconSamples = Models.DeconAnalysis.objects.filter(sample_id__exact = sample.id)
-
-    context_dict['decon_runs'] = []
-
-    for deconSample in deconSamples:
-        decons = deconSample.decon
-        context_dict['decon_runs'].append(decons)
-
-    context_dict['decon_runs'] = sorted(set(context_dict['decon_runs']))
+    decons = Models.Decon.objects.filter(deconanalysis__sample_id__exact = sample.id).distinct()
+    context_dict["decon_runs"] = decons
 #    pp.pprint( context_dict )
 
     return render( request, "genetics_ark/sample_view.html", context_dict )
@@ -348,29 +338,14 @@ def genes_in_panel( panel_id ):
 
     """
 
-    gene_panels = Models.GenePanel.objects.filter( panel_id__exact = panel_id )
+    genes = Models.Gene.objects.filter(genepanel__panel_id__exact = panel_id).distinct()
     genes_dict = {}
 
-    for gene_panel in gene_panels:
-        transcripts = Models.Transcript.objects.filter( gene_id__exact = gene_panel.gene_id).filter( clinical_transcript__exact = 'Y')
+    for gene in genes:
+        transcripts = Models.Transcript.objects.filter(gene_id__exact = gene.id, clinical_transcript__exact = "Y").values_list("refseq", flat = True).distinct()
+        genes_dict[gene] = transcripts
 
-        for transcript in transcripts:
-            gene_name = transcript.gene.name
-
-            if ( gene_name not in genes_dict ):
-                genes_dict[ gene_name ] = {}
-                genes_dict[ gene_name ]['transcripts'] = []
-            
-            genes_dict[ gene_name ]['transcripts'].append( transcript.refseq )
-
-#    pp.pprint( genes_dict )
-
-    genes_list = []
-
-    for gene in sorted(genes_dict):
-        genes_list.append([ gene, ", ".join(genes_dict[ gene ]['transcripts'])])
-
-    return genes_list
+    return genes_dict
 
 
 def panel_view( request, panel_id):
@@ -380,11 +355,7 @@ def panel_view( request, panel_id):
     panel = Models.Panel.objects.get( pk = panel_id )
     context_dict[ 'panel' ] = panel
 
-    sample_panels = Models.SamplePanel.objects.filter( panel_name__exact = panel.name )
-    samples = []
-
-    for sample_panel in sample_panels:
-        samples.append( sample_panel.sample.name )
+    samples = Models.Sample.objects.filter(samplepanel__panel_name__exact = panel.name)
 
     context_dict[ 'samples' ] = samples
 
@@ -411,19 +382,12 @@ def gene_view( request, gene_name):
 
     context_dict[ 'gene_id' ] = gene.id
     
-    transcripts = Models.Transcript.objects.filter( gene_id__exact = gene.id )
+    transcripts = Models.Transcript.objects.filter( gene_id__exact = gene.id ).values("refseq", "clinical_transcript").distinct()
 
     context_dict[ 'transcripts' ] = transcripts
-    
-    gene_panels = Models.GenePanel.objects.filter( gene_id__exact = gene.id )
 
-    context_dict[ 'panels' ] = []
-
-    for gene_panel in gene_panels:
-        panel = gene_panel.panel
-        context_dict[ 'panels' ].append( [panel.name, panel.id])
-
-    context_dict[ 'panels' ] = sorted( context_dict[ 'panels' ] )
+    panels = Models.Panel.objects.filter(genepanel__gene_id__exact = gene.id)
+    context_dict["panels"] = panels
 
     return render( request, "genetics_ark/gene_view.html", context_dict )
 
@@ -569,7 +533,7 @@ def qc_runfolder( request, runfolder_id):
         runfolder_stat ['bases_on_target'] = runfolder_stat ['bases_on_target']*100
 
         for item in runfolder_stat:
-            if ( type(runfolder_stat[ item ]) is not float and  type(runfolder_stat[ item ]) is not int and type(runfolder_stat[ item ]) is not long ):
+            if ( type(runfolder_stat[ item ]) is not float and type(runfolder_stat[ item ]) is not int ):
                 continue
 
             if item not in average:
@@ -655,6 +619,7 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
 #            print "analysis id {}".format( analysis_variant.analysis_id )
 #            sample_panels = ", ".join([sample_panel.panel_name for sample_panel in sample_panels])
 #            analysis_variant.panels = sample_panels
+
             sample_panels = Models.SamplePanel.objects.filter( sample_id__exact = analysis_variant.analysis.sample.id )
             analysis_variant.panels = []
 
@@ -838,18 +803,18 @@ def cnv_view(request, CNV_id):
 
     context_dict["decons"] = decons
 
+    # get the genes from the cnv coordinates aka region id
     region_ids = Models.CNV_region.objects.filter(CNV_id__exact = cnv.id).values_list("region_id", flat = True)
     transcript_ids = Models.Transcript.objects.filter(transcriptregion__region_id__in = list(region_ids)).values_list("id", flat = True)
     genes = Models.Gene.objects.filter(transcript__id__in = list(transcript_ids)).distinct()
 
     context_dict["genes"] = genes
 
-
     # call function to get the samples in which the cnv is present
     nb_samples, samples = Models.CNV.get_samples(cnv)
 
     context_dict["nb_samples"] = nb_samples
-    context_dict["samples"] = sorted(samples)
+    context_dict["samples"] = samples
 
     return render(request, "genetics_ark/cnv_view.html", context_dict)
 
@@ -894,6 +859,7 @@ def decon_view(request, Decon_id):
 
         # check if the data is clean e.g. no special characters etc
         # or matches a genomic position
+        # need individual check to have forms working individually
         if gene_form.is_valid():
             gene = gene_form.cleaned_data
     
@@ -908,6 +874,7 @@ def decon_view(request, Decon_id):
             # search cnvs with genes/sample/position
             decon_analysis = filter_cnvs(request, decon, gene, sample, position)
 
+            # needed to display what the user is filtering for
             if gene:
                 context_dict["filter_gene"] = gene
 
@@ -936,7 +903,7 @@ def decon_view(request, Decon_id):
     context_dict["search_position"] = position_form
 
     # pagination set up
-    # - display 100 CNVs analysis per page
+    # - display 50 CNVs analysis per page
     paginator = Paginator(decon_analysis, 50)
     page = request.GET.get("page")
 
@@ -970,6 +937,7 @@ def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
         gene_object = Models.Gene.objects.filter(name__exact = gene)
 
         if gene_object:
+            # look for cnvs from gene to cnvs
             regions_ids = Models.TranscriptRegion.objects.filter(transcript__gene_id__exact = gene_object[0].id).values_list("region_id", flat = True)
             cnv_ids = Models.CNV_region.objects.filter(region__id__in = list(regions_ids)).values_list("CNV_id", flat = True)
             cnvs_gene = Models.CNV.objects.filter(id__in = list(cnv_ids))
@@ -1010,11 +978,17 @@ def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
     elif cnvs_sample and cnvs_position:
         cnvs_ids = (cnvs_sample & cnvs_position).values_list("id", flat = True)
 
+    elif cnvs_gene and cnvs_position:
+        cnvs_ids = (cnvs_gene & cnvs_position).values_list("id", flat = True)
+
     # if only one of the fields used
     else:
         cnvs_ids = (cnvs_gene | cnvs_sample | cnvs_position).values_list("id", flat = True)
 
     # use the cnv ids to get the decon analysis row we finally want
-    decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, CNV_id__in = list(cnvs_ids))
+    if sample_object:
+        decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, CNV_id__in = list(cnvs_ids), sample_id__exact = sample_object[0].id)
+    else:
+        decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, CNV_id__in = list(cnvs_ids))
 
     return decon_analysis

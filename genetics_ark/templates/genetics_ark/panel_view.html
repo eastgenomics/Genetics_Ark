@@ -20,12 +20,15 @@
    </tr>
   </tr>
 
-  {% for gene, transcripts in genes %}
+  {% for gene, transcripts in genes.items %}
     <tr>
-    <td> <a href={% url 'gene_view' gene %}>{{gene}}</a></td><td>{{transcripts}}</td>
+      <td> <a href={% url 'gene_view' gene %}>{{gene}}</a></td>
+      <td>
+      {% for transcript in transcripts %}
+        {{transcript}}&nbsp;&nbsp;&nbsp;&nbsp;
+      {% endfor %}
+      </td>
     </tr>
-
-
   {% endfor %}
 
 </table>

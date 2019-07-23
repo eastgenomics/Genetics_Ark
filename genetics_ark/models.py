@@ -97,14 +97,9 @@ class CNV(models.Model):
 
         total_samples = []
 
-        CNV2samples = DeconAnalysis.objects.filter(CNV_id__exact = self.id)
-
-        for CNV2sample in CNV2samples:
-            total_samples.append(CNV2sample.sample.name)
-
-        total_samples = set(total_samples)
-
-        return len(total_samples), total_samples
+        samples = Sample.objects.filter(deconanalysis__CNV_id__exact = self.id).values_list("name", flat = True).distinct()
+        
+        return len(samples), samples
 
     class Meta:
         db_table = 'cnv'
@@ -398,6 +393,7 @@ class Sample(models.Model):
 
     class Meta:
         db_table = 'sample'
+        ordering = ["name"]
 
 
 class SamplePanel(models.Model):
@@ -424,6 +420,7 @@ class Transcript(models.Model):
 
     class Meta:
         db_table = 'transcript'
+        ordering = ["refseq"]
 
 
 class TranscriptRegion(models.Model):

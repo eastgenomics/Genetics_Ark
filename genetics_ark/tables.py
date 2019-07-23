@@ -227,9 +227,6 @@ class SampleTable(tables.Table):
     def render_perc_dups(self, value):
         return '%.2f %%' % (value)
 
-    def render_perc_dups(self, value):
-        return '%.2f %%' % (value)
-
     def render_bases_on_target(self, value):
         return '%.2f %%' % (value)
 
@@ -243,7 +240,7 @@ class SampleTable(tables.Table):
 
 def readable_number( value ):    
 
-    if ( type( value ) is not int and type( value ) is not long and type( value ) is not float):
+    if ( type( value ) is not int and type( value ) is not float):
         return value
 
     if (value > 1000000000):
