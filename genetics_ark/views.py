@@ -922,15 +922,17 @@ def cnv_view(request, CNV_id):
     context_dict["cnv"] = cnv
 
     decons = Models.Decon.objects.filter(deconanalysis__CNV_id__exact = cnv.id).distinct()
-
     context_dict["decons"] = decons
 
     # get the genes from the cnv coordinates aka region id
     region_ids = Models.CNV_region.objects.filter(CNV_id__exact = cnv.id).values_list("region_id", flat = True)
     transcript_ids = Models.Transcript.objects.filter(transcriptregion__region_id__in = list(region_ids)).values_list("id", flat = True)
     genes = Models.Gene.objects.filter(transcript__id__in = list(transcript_ids)).distinct()
-
     context_dict["genes"] = genes
+
+    region_ids = Models.Region.objects.filter(cnv_region__CNV_id__exact = cnv.id).values_list("id", flat = True)
+    reference = Models.Reference.objects.filter(region__id__in = list(region_ids))
+    context_dict["ref"] = reference[0].name
 
     # call function to get the samples in which the cnv is present
     nb_samples, samples = Models.CNV.get_samples(cnv)
@@ -1089,6 +1091,9 @@ def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
             regions_ids = Models.TranscriptRegion.objects.filter(transcript__gene_id__exact = gene_object[0].id).values_list("region_id", flat = True)
             cnv_ids = Models.CNV_region.objects.filter(region__id__in = list(regions_ids)).values_list("CNV_id", flat = True)
             cnvs_gene = Models.CNV.objects.filter(id__in = list(cnv_ids))
+        
+        else:
+            cnvs_gene = Models.CNV.objects.none()
 
     else:
         cnvs_gene = Models.CNV.objects.none()
@@ -1100,6 +1105,9 @@ def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
 
         if sample_object:
             cnvs_sample = Models.CNV.objects.filter(deconanalysis__decon_id__exact = decon.id, deconanalysis__sample_id__exact = sample_object[0].id)
+        
+        else:
+            cnvs_sample = Models.CNV.objects.none()
 
     else:
         sample_object = None

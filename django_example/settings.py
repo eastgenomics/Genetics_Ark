@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 #    'debug_toolbar', # Awesome for debugging django sites
     'django_tables2',# make nice tables
     # Standard stuff
+    'django.contrib.humanize',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

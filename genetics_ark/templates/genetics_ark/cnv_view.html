@@ -1,29 +1,29 @@
 {% extends 'base.html' %}
 
-{% load render_table from django_tables2 %}
-{% block extrastyle %}
-  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
-{% endblock %}
+{% load humanize %}
 
 {% block body_block %}
 
 
-<h2>CNV: chrom{{ cnv.chrom }}: {{ cnv.start }}-{{ cnv.end }}</h2></br>
+<h2>CNV: chrom{{ cnv.chrom }}&nbsp;:&nbsp;{{ cnv.start|intcomma }}&nbsp;-&nbsp;{{ cnv.end|intcomma }}</h2></br>
 
 <div class="col-sm1">
   <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
 
     <tr>
-      <th>Chrom:</th><td>{{ cnv.chr }}</td>
+      <th>Chrom:</th><td>{{ cnv.chrom }}</td>
     </tr>
     <tr>
-      <th>Start:</th><td>{{ cnv.start }}</td>
+      <th>Start:</th><td>{{ cnv.start|intcomma }}</td>
     </tr>
     <tr>
-      <th>End:</th><td>{{ cnv.end }}</td>
+      <th>End:</th><td>{{ cnv.end|intcomma }}</td>
     </tr>
     <tr>
       <th>Type:</th><td>{{ cnv.type }}</td>
+    </tr>
+    <tr>
+      <th>Reference:</th><td>{{ ref }}</td>
     </tr>
 
   </table>

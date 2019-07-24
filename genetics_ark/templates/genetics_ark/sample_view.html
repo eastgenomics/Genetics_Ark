@@ -2,6 +2,7 @@
 
 
 {% block body_block %}
+{% load humanize %}
 {% load render_table from django_tables2 %}
 {% block extrastyle %}
   <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
@@ -80,11 +81,11 @@
 
     <tr>
       <td>Total reads:</td>
-      <td>{{ analysis.total_reads}}</td>
+      <td>{{ analysis.total_reads|intcomma }}</td>
       <td>Mapped reads:</td>
-      <td>{{ analysis.total_reads}}</td>
+      <td>{{ analysis.total_reads|intcomma }}</td>
       <td>Duplicate reads:</td>
-      <td>{{ analysis.duplicate_reads}}</td>
+      <td>{{ analysis.duplicate_reads|intcomma }}</td>
     </tr>
 
     <tr>

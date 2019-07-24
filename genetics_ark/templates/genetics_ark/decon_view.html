@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 
-{% load render_table from django_tables2 %}
-{% block extrastyle %}
-  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
-{% endblock %}
+{% load humanize %}
+{% load order_cnv %}
 
 {% block body_block %}
 
@@ -149,7 +147,7 @@
     {% for cnv in decon_analysis %}
 
     <tr>
-      <td><a href={% url 'cnv_view' cnv.CNV.id %}>{{ cnv.CNV }}</td>
+      <td><a href={% url 'cnv_view' cnv.CNV.id %}>chrom{{ cnv.CNV.chrom }}&nbsp;:&nbsp;{{ cnv.CNV.start|intcomma }}&nbsp;-&nbsp;{{ cnv.CNV.end|intcomma }} -> {{ cnv.CNV.type }}</td>
       <td>{{ cnv.correlation }}</td>
       <td>{{ cnv.BF }}</td>
       <td>{{ cnv.start_b }}</td>
