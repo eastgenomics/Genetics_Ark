@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% load humanize %}
-{% load order_cnv %}
 
 {% block body_block %}
 
@@ -63,7 +62,7 @@
 
 <br>
 
-{% if filter_gene or filter_sample or filter_position %}
+{% if filter_gene or filter_sample or filter_position or filter_chrom %}
   {% if results %}
     <h4>Filtering for:</h4>
   {% else %}
@@ -80,6 +79,10 @@
 
       {% if filter_position %}
         <li>chrom{{ filter_position.0 }}:{{ filter_position.1 }}-{{ filter_position.2 }}</li>
+      {% endif %}
+
+      {% if filter_chrom %}
+        <li>chrom{{ filter_chrom }}</li>
       {% endif %}
     </ul>
 {% endif %}

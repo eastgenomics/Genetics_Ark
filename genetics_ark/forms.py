@@ -39,7 +39,7 @@ class CommentForm(forms.Form):
 
 
 class SearchGeneForm(forms.Form):
-    gene = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. BRCA1'}), required = False)
+    gene = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. BRCA1', 'style': 'width:271px'}), required = False)
 
     def clean(self):
         name = self.cleaned_data['gene']
@@ -55,7 +55,7 @@ class SearchGeneForm(forms.Form):
 
 
 class SearchSampleForm(forms.Form):
-    sample = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. X007321'}), required = False)
+    sample = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. X007321', 'style': 'width:258px'}), required = False)
 
     def clean(self):
         sample_name = self.cleaned_data['sample']
@@ -71,20 +71,23 @@ class SearchSampleForm(forms.Form):
 
     
 class SearchPositionForm(forms.Form):
-    position = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'e.g. chrom:start-stop'}), required = False)
+    position = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'e.g. chrom or chrom:start-stop', 'style': 'width:250px'}), required = False)
 
     def clean(self):
         position = self.cleaned_data['position']
 
         if position:
-            if (":" in position and "-" not in position) or (":" not in position and "-" in position):
-                raise forms.ValidationError("Invalid input: not respecting the right format for entering genomic coordinates e.g. chrom:start-stop")
-
-            elif " " in position:
-                position = position.split()
-                chrom = position[0]
-                start = position[1]
-                stop  = position[2]
+            if position.isdigit():
+                chrom = position
+                if int(chrom) >= 1 and int(chrom) <= 22:
+                    return chrom
+                
+                else:
+                    raise forms.ValidationError("Invalid input: not between 1-22")
+            
+            elif position.upper() == "X" or position.upper() == "Y":
+                chrom = position
+                return chrom
 
             elif ":" in position and "-" in position:
                 chrom = position.split(":")[0]
@@ -92,7 +95,7 @@ class SearchPositionForm(forms.Form):
                 stop = position.split(":")[1].split("-")[1]
 
             else:
-                raise forms.ValidationError('Invalid input: not respecting the right format for entering genomic coordinates e.g. chrom:start-stop')
+                raise forms.ValidationError('Invalid input: not respecting the right format e.g. chrom or chrom:start-stop')
 
             try:
                 start = int(start)

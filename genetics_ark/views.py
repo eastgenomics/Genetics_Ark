@@ -1024,7 +1024,11 @@ def decon_view(request, Decon_id):
                 context_dict["filter_sample"] = sample
 
             if position:
-                context_dict["filter_position"] = position
+                if isinstance(position, tuple):
+                    context_dict["filter_position"] = position
+
+                else:
+                    context_dict["filter_chrom"] = position.upper()
 
             # the search doesn't give any results 
             if not decon_analysis:
@@ -1063,7 +1067,7 @@ def decon_view(request, Decon_id):
     return render(request, "genetics_ark/decon_view.html", context_dict)
 
 
-def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
+def filter_cnvs(request, decon, gene = None, sample = None, position = None):
     """ filter cnvs
 
     Models:
@@ -1114,12 +1118,16 @@ def filter_cnvs(request, decon, gene = "", sample = "", position = ""):
         cnvs_sample = Models.CNV.objects.none()
 
     # looking for cnvs at that position
-    if position != "":
-        chrom = position[0]
-        start = position[1]
-        stop = position[2]
-
-        cnvs_position = Models.CNV.objects.filter(chrom__exact = chrom, start__lte = stop, end__gte = start, deconanalysis__decon_id__exact = decon)
+    if position:
+        if isinstance(position, tuple):
+            chrom = position[0]
+            start = position[1]
+            stop = position[2]
+            
+            cnvs_position = Models.CNV.objects.filter(chrom__exact = chrom, start__lte = stop, end__gte = start, deconanalysis__decon_id__exact = decon)
+        
+        else:
+            cnvs_position = Models.CNV.objects.filter(chrom__exact = position, deconanalysis__decon_id__exact = decon)
 
     else:
         cnvs_position = Models.CNV.objects.none()
