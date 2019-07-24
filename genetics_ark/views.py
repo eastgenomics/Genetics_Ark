@@ -415,11 +415,35 @@ def panel_view( request, panel_id):
     panel = Models.Panel.objects.get( pk = panel_id )
     context_dict[ 'panel' ] = panel
 
+    genes = tuple(genes_in_panel( panel_id).items())
+    paginator = Paginator(genes, 25)
+    page = request.GET.get("page1")
+
+    try:
+        context_dict["genes"] = paginator.page(page)
+
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        context_dict["genes"] = paginator.page(1)
+
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        context_dict["genes"] = paginator.page(paginator.num_pages)
+
     samples = Models.Sample.objects.filter(samplepanel__panel_name__exact = panel.name)
+    paginator = Paginator(samples, 25)
+    page = request.GET.get("page2")
 
-    context_dict[ 'samples' ] = samples
+    try:
+        context_dict["samples"] = paginator.page(page)
 
-    context_dict[ 'genes' ] = genes_in_panel( panel_id )
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        context_dict["samples"] = paginator.page(1)
+
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        context_dict["samples"] = paginator.page(paginator.num_pages)
 
 #    pp.pprint( context_dict )
 

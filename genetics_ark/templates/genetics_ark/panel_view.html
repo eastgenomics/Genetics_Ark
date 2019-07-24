@@ -12,40 +12,130 @@
 
 
 <div class="col-sm1">
-<table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
-  <tr>
 
-    <th >Gene</th>
-    <th >Transcript(s)</th>
-   </tr>
-  </tr>
-
-  {% for gene, transcripts in genes.items %}
+  <table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
     <tr>
-      <td> <a href={% url 'gene_view' gene %}>{{gene}}</a></td>
-      <td>
-      {% for transcript in transcripts %}
-        {{transcript}}&nbsp;&nbsp;&nbsp;&nbsp;
-      {% endfor %}
-      </td>
-    </tr>
-  {% endfor %}
 
-</table>
+      <th >Gene</th>
+      <th >Transcript(s)</th>
+    </tr>
+    </tr>
+
+    {% for gene in genes.object_list %}
+      <tr>
+        <td> <a href={% url 'gene_view' gene.0 %}>{{ gene.0 }}</a></td>
+        <td>
+        {% for transcript in gene.1 %}
+            {{ transcript }}&nbsp;&nbsp;&nbsp;&nbsp;
+        {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+
+  </table>
+
+  <ul class="pagination">
+
+    {% if genes.has_previous %}
+      <a class="btn btn-outline-info mb-4" href="?page1={{ genes.previous_page_number }}">« Previous page</a>
+    
+      {% if genes.number > 3 %}
+        <a class="btn btn-outline-info mb-4" href="?page=1">1</a>
+    
+        {% if genes.number > 4 %}
+          <button class="btn btn-outline-info mb-4" disabled="">...</button>
+    
+        {% endif %}
+    
+      {% endif %}
+    
+    {% endif %}
+    
+    {% for num in genes.paginator.page_range %}
+      {% if genes.number == num %}
+        <a class="btn btn-info mb-4" href="?page1={{ num }}">{{ num }}</a>
+    
+      {% elif num > genes.number|add:'-8' and num < genes.number|add:'8' %}
+        <a class="btn btn-outline-info mb-4" href="?page1={{ num }}">{{ num }}</a>
+    
+      {% endif %}
+    
+    {% endfor %}
+    
+    {% if genes.has_next %}
+      {% if genes.number < genes.paginator.num_pages|add:'-8' %}
+        <button class="btn btn-outline-info mb-4" disabled="">...</button>
+        <a class="btn btn-outline-info mb-4" href="?page1={{ genes.paginator.num_pages }}">{{ genes.paginator.num_pages }}</a>
+    
+      {% elif genes.number < genes.paginator.num_pages|add:'-7' %}
+        <a class="btn btn-outline-info mb-4" href="?page1={{ genes.paginator.num_pages }}">{{ genes.paginator.num_pages }}</a>
+    
+      {% endif %}
+      <a class="btn btn-outline-info mb-4" href="?page1={{ genes.next_page_number }}">Next page »</a>
+    
+    {% endif %}
+      
+  </ul>
+
 </div>
 
 <h4> Samples referred for panel </h4>
 
 <div class="col-sm1">
-<table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
 
-  {% for sample in samples %}
-    <tr>
-    <td> <a href={% url 'sample_view' sample %}>{{sample}}</a></td>
-    </tr>
-  {% endfor %}
+  <table border=0 cellpadding="5" cellspacing="5" class="table table-condensed">
 
-</table>
+    {% for sample in samples %}
+      <tr>
+      <td> <a href={% url 'sample_view' sample %}>{{ sample }}</a></td>
+      </tr>
+    {% endfor %}
+
+  </table>
+
+  <ul class="pagination">
+
+    {% if samples.has_previous %}
+      <a class="btn btn-outline-info mb-4" href="?page2={{ samples.previous_page_number }}">« Previous page</a>
+    
+      {% if samples.number > 3 %}
+        <a class="btn btn-outline-info mb-4" href="?page=1">1</a>
+    
+        {% if samples.number > 4 %}
+          <button class="btn btn-outline-info mb-4" disabled="">...</button>
+    
+        {% endif %}
+    
+      {% endif %}
+    
+    {% endif %}
+    
+    {% for num in samples.paginator.page_range %}
+      {% if samples.number == num %}
+        <a class="btn btn-info mb-4" href="?page2={{ num }}">{{ num }}</a>
+    
+      {% elif num > samples.number|add:'-8' and num < samples.number|add:'8' %}
+        <a class="btn btn-outline-info mb-4" href="?page2={{ num }}">{{ num }}</a>
+    
+      {% endif %}
+    
+    {% endfor %}
+    
+    {% if samples.has_next %}
+      {% if samples.number < samples.paginator.num_pages|add:'-8' %}
+        <button class="btn btn-outline-info mb-4" disabled="">...</button>
+        <a class="btn btn-outline-info mb-4" href="?page2={{ samples.paginator.num_pages }}">{{ samples.paginator.num_pages }}</a>
+    
+      {% elif samples.number < samples.paginator.num_pages|add:'-7' %}
+        <a class="btn btn-outline-info mb-4" href="?page2={{ samples.paginator.num_pages }}">{{ samples.paginator.num_pages }}</a>
+    
+      {% endif %}
+      <a class="btn btn-outline-info mb-4" href="?page2={{ samples.next_page_number }}">Next page »</a>
+    
+    {% endif %}
+    
+  </ul>
+
 </div>
 
 
