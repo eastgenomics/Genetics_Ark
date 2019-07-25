@@ -38,7 +38,11 @@ class CommentForm(forms.Form):
     comment = forms.CharField(widget = forms.Textarea(attrs={'placeholder':'Enter your comment'}))
 
 
-class SearchGeneForm(forms.Form):
+class FilterGeneForm(forms.Form):
+    """
+    To filter decon results per gene
+    - clean: don't want special characters
+    """
     gene = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. BRCA1', 'style': 'width:271px'}), required = False)
 
     def clean(self):
@@ -54,7 +58,11 @@ class SearchGeneForm(forms.Form):
         return name
 
 
-class SearchSampleForm(forms.Form):
+class FilterSampleForm(forms.Form):
+    """
+    To filter decon results per sample
+    - clean: don't want special characters
+    """
     sample = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'e.g. X007321', 'style': 'width:258px'}), required = False)
 
     def clean(self):
@@ -70,13 +78,21 @@ class SearchSampleForm(forms.Form):
         return sample_name
 
     
-class SearchPositionForm(forms.Form):
+class FilterPositionForm(forms.Form):
+    """
+    To filter decon results per position: range or chromosome
+    - clean: check if chrom or full position
+        - chrom: 1-22 or X/Y
+        - position: chrom:start-end (start, end = numbers)
+    """
     position = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'e.g. chrom or chrom:start-stop', 'style': 'width:250px'}), required = False)
 
     def clean(self):
         position = self.cleaned_data['position']
 
         if position:
+            # first check: if only numbers in input
+            # check if it's chrom number i.e. 1-22
             if position.isdigit():
                 chrom = position
                 if int(chrom) >= 1 and int(chrom) <= 22:
@@ -85,10 +101,12 @@ class SearchPositionForm(forms.Form):
                 else:
                     raise forms.ValidationError("Invalid input: not between 1-22")
             
+            # if not only number check if it's letter x or y
             elif position.upper() == "X" or position.upper() == "Y":
                 chrom = position
                 return chrom
 
+            # only possibility left --> genomic position
             elif ":" in position and "-" in position:
                 chrom = position.split(":")[0]
                 start = position.split(":")[1].split("-")[0]
@@ -97,14 +115,20 @@ class SearchPositionForm(forms.Form):
             else:
                 raise forms.ValidationError('Invalid input: not respecting the right format e.g. chrom or chrom:start-stop')
 
-            try:
-                start = int(start)
-                stop = int(stop)
-            except:
-                raise forms.ValidationError("Invalid input: start \"{}\" or stop \"{}\" not numbers".format(start, stop))
+            # check whether the start and stop are numbers and if the stop is higher than the start
+            if chrom:
+                try:
+                    start = int(start)
+                    stop = int(stop)
+                except:
+                    raise forms.ValidationError("Invalid input: start \"{}\" or stop \"{}\" not numbers".format(start, stop))
 
-            if start > stop:
-                raise forms.ValidationError('Invalid value: start \"{}\" > stop \"{}\"'.format(start, stop))
+                if start > stop:
+                    raise forms.ValidationError('Invalid value: start \"{}\" > stop \"{}\"'.format(start, stop))
+
+            # i.e. -1:2 (chrom not given)
+            else:
+                raise forms.ValidationError("Invalid value: no chrom given \"{}\"".format(chrom))
 
             return (chrom, start, stop)
 

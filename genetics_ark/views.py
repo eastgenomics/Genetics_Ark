@@ -953,9 +953,9 @@ def decon_view(request, Decon_id):
     - Reference
 
     Forms:
-    - SearchGeneForm
-    - SearchSampleForm
-    - SearchPositionForm
+    - FilterGeneForm
+    - FilterSampleForm
+    - FilterPositionForm
 
     Template:
     - decon_view.html
@@ -995,9 +995,9 @@ def decon_view(request, Decon_id):
         sample = None
         position = None
         
-        gene_form = Forms.SearchGeneForm(request.POST)
-        sample_form = Forms.SearchSampleForm(request.POST)
-        position_form = Forms.SearchPositionForm(request.POST)
+        gene_form = Forms.FilterGeneForm(request.POST)
+        sample_form = Forms.FilterSampleForm(request.POST)
+        position_form = Forms.FilterPositionForm(request.POST)
 
         # check if the data is clean e.g. no special characters etc
         # or matches a genomic position
@@ -1024,29 +1024,31 @@ def decon_view(request, Decon_id):
                 context_dict["filter_sample"] = sample
 
             if position:
+                # tuple = genomic position
                 if isinstance(position, tuple):
                     context_dict["filter_position"] = position
 
+                # else just chromosome
                 else:
                     context_dict["filter_chrom"] = position.upper()
 
             # the search doesn't give any results 
             if not decon_analysis:
                 context_dict["results"] = False
-                context_dict["search_gene"] = Forms.SearchGeneForm()
-                context_dict["search_sample"] = Forms.SearchSampleForm()
-                context_dict["search_position"] = Forms.SearchPositionForm()
+                context_dict["gene_form"] = Forms.FilterGeneForm()
+                context_dict["sample_form"] = Forms.FilterSampleForm()
+                context_dict["position_form"] = Forms.FilterPositionForm()
                 return render(request, "genetics_ark/decon_view.html", context_dict)
         
     else:
         # if not button not clicked just display the form
-        gene_form = Forms.SearchGeneForm()
-        sample_form = Forms.SearchSampleForm()
-        position_form = Forms.SearchPositionForm()
+        gene_form = Forms.FilterGeneForm()
+        sample_form = Forms.FilterSampleForm()
+        position_form = Forms.FilterPositionForm()
     
-    context_dict["search_gene"] = gene_form
-    context_dict["search_sample"] = sample_form
-    context_dict["search_position"] = position_form
+    context_dict["gene_form"] = gene_form
+    context_dict["sample_form"] = sample_form
+    context_dict["position_form"] = position_form
 
     # pagination set up
     # - display 50 CNVs analysis per page
@@ -1094,13 +1096,13 @@ def filter_cnvs(request, decon, gene = None, sample = None, position = None):
             # look for cnvs from gene to cnvs
             regions_ids = Models.TranscriptRegion.objects.filter(transcript__gene_id__exact = gene_object[0].id).values_list("region_id", flat = True)
             cnv_ids = Models.CNV_region.objects.filter(region__id__in = list(regions_ids)).values_list("CNV_id", flat = True)
-            cnvs_gene = Models.CNV.objects.filter(id__in = list(cnv_ids))
+            decon_gene = Models.DeconAnalysis.objects.filter(CNV__id__in = list(cnv_ids))
         
         else:
-            cnvs_gene = Models.CNV.objects.none()
+            decon_gene = Models.DeconAnalysis.objects.none()
 
     else:
-        cnvs_gene = Models.CNV.objects.none()
+        decon_gene = Models.DeconAnalysis.objects.none()
 
     # looking for cnvs with sample from form
     if sample:
@@ -1108,51 +1110,47 @@ def filter_cnvs(request, decon, gene = None, sample = None, position = None):
         sample_object = Models.Sample.objects.filter(name__exact = sample)
 
         if sample_object:
-            cnvs_sample = Models.CNV.objects.filter(deconanalysis__decon_id__exact = decon.id, deconanalysis__sample_id__exact = sample_object[0].id)
+            decon_sample = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, sample_id__exact = sample_object[0].id)
         
         else:
-            cnvs_sample = Models.CNV.objects.none()
+            decon_sample = Models.DeconAnalysis.objects.none()
 
     else:
         sample_object = None
-        cnvs_sample = Models.CNV.objects.none()
+        decon_sample = Models.DeconAnalysis.objects.none()
 
     # looking for cnvs at that position
     if position:
+        # full genomic position
         if isinstance(position, tuple):
             chrom = position[0]
             start = position[1]
             stop = position[2]
             
-            cnvs_position = Models.CNV.objects.filter(chrom__exact = chrom, start__lte = stop, end__gte = start, deconanalysis__decon_id__exact = decon)
+            decon_position = Models.DeconAnalysis.objects.filter(CNV__chrom__exact = chrom, CNV__start__lte = stop, CNV__end__gte = start, decon_id__exact = decon)
         
+        # chromosome filter
         else:
-            cnvs_position = Models.CNV.objects.filter(chrom__exact = position, deconanalysis__decon_id__exact = decon)
+            decon_position = Models.DeconAnalysis.objects.filter(CNV__chrom__exact = position, decon_id__exact = decon)
 
     else:
-        cnvs_position = Models.CNV.objects.none()
+        decon_position = Models.DeconAnalysis.objects.none()
 
     # need to intersect the queries
-    if cnvs_gene and cnvs_sample:
-        if cnvs_position:
-            cnvs_ids = (cnvs_gene & cnvs_sample & cnvs_position).values_list("id", flat = True)
+    if decon_gene and decon_sample:
+        if decon_position:
+            decon_analysis = (decon_gene & decon_sample & decon_position)
         else:
-            cnvs_ids = (cnvs_gene & cnvs_sample).values_list("id", flat = True)
+            decon_analysis = (decon_gene & decon_sample)
     
-    elif cnvs_sample and cnvs_position:
-        cnvs_ids = (cnvs_sample & cnvs_position).values_list("id", flat = True)
+    elif decon_sample and decon_position:
+        decon_analysis = (decon_sample & decon_position)
 
-    elif cnvs_gene and cnvs_position:
-        cnvs_ids = (cnvs_gene & cnvs_position).values_list("id", flat = True)
+    elif decon_gene and decon_position:
+        decon_analysis = (decon_gene & decon_position)
 
     # if only one of the fields used
     else:
-        cnvs_ids = (cnvs_gene | cnvs_sample | cnvs_position).values_list("id", flat = True)
-
-    # use the cnv ids to get the decon analysis row we finally want
-    if sample_object:
-        decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, CNV_id__in = list(cnvs_ids), sample_id__exact = sample_object[0].id)
-    else:
-        decon_analysis = Models.DeconAnalysis.objects.filter(decon_id__exact = decon.id, CNV_id__in = list(cnvs_ids))
+        decon_analysis = (decon_gene | decon_sample | decon_position)
 
     return decon_analysis

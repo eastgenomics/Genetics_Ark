@@ -31,23 +31,23 @@
 
       <tr>
         <th>
-          Filter per gene: {{ search_gene.gene }}
-          {% if search_gene.non_field_errors %}
-            {{ search_gene.non_field_errors.0 }}
+          Filter per gene: {{ gene_form.gene }}
+          {% if gene_form.non_field_errors %}
+            {{ gene_form.non_field_errors.0 }}
           {% endif %}
         </th>
       </tr>
         <th>
-          Filter per sample: {{ search_sample.sample }}
-          {% if search_sample.non_field_errors %}
-            {{ search_sample.non_field_errors.0 }}
+          Filter per sample: {{ sample_form.sample }}
+          {% if sample_form.non_field_errors %}
+            {{ sample_form.non_field_errors.0 }}
           {% endif %}
         </th>
       </tr>
         <th>
-          Filter per position: {{ search_position.position }}
-          {% if search_position.non_field_errors %}
-            {{ search_position.non_field_errors.0 }}
+          Filter per position: {{ position_form.position }}
+          {% if position_form.non_field_errors %}
+            {{ position_form.non_field_errors.0 }}
           {% endif %}          
         </th>
       </tr>
