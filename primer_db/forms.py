@@ -7,13 +7,18 @@ from .models import PrimerDetails, Coordinates, Status, Scientist, PCRProgram, B
 class PrimerNameForm(forms.Form):
 	primer_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
 
+	def clean(self):
+		if "add" in self.data:
+			print("add")
+		elif "search" in self.data:
+			print("search")
 
 class SequenceForm(forms.Form):
 	sequence = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer sequence', 'autocomplete': 'off'}))
 
 
 class GCPercentForm(forms.Form):
-	gcpercent = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
+	gc_percent = forms.FloatField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
 
 
 class TMForm(forms.Form):
@@ -33,8 +38,9 @@ class ArrivalDateForm(forms.Form):
 
 
 class StatusForm(forms.Form):
-	status = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Status'}))
-
+	CHOICES = (('On order', 'On order'), ('In Bank', 'In Bank'), ('Archived', 'Archived'))
+	status = forms.ChoiceField(choices = CHOICES)
+	
 
 class BufferForm(forms.Form):
 	buffer = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Buffer'}))
@@ -53,13 +59,24 @@ class ScientistSurnameForm(forms.Form):
 
 
 class ReferenceForm(forms.Form):
-	reference = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Reference number'}))	
+	# reference = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Reference number'}))	
+	CHOICES = (('37', '37'), ('37', '38'))
+	reference = forms.ChoiceField(choices = CHOICES)	
+
 
 class ChromNoForm(forms.Form):
 	chrom_no = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Chromosome no.'}))
 
 class StartCoordinateForm(forms.Form):
-	start_coordinate = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Start coordinate', 'autocomplete': 'off'}))
+	start_coordinate_37 = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Start coordinate', 'autocomplete': 'off'}))
 
 class EndCoordinateForm(forms.Form):
-	end_coordinate = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'End coordinate', 'autocomplete': 'off'}))
+	end_coordinate_37 = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'End coordinate', 'autocomplete': 'off'}))
+	
+
+
+
+
+# class SearchPrimerForm(forms.Form):
+# 	#search_primer = forms.CharField(widget = forms.TextInput(attrs={'placeholder': 'Enter primer search'}), required = False)
+# 	search_pos = forms.IntegerField(widget = forms.TextInput(attrs={'placeholder': 'Enter variant position'}), required = False)

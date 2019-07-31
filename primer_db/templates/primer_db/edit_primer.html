@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+#{% load widget_tweaks %}
+
+{% block body_block %}
+
+{% if messages %} 
+    {% for message in messages %} 
+        {{ message }} 
+    {% endfor %} 
+{% endif %} 
+
+<body style="padding-top: 80px">
+
+<h1>Primer Database</h1></br></br>
+
+
+
+
+<div class="row center-block">
+
+
+  <form action = "" method = "POST">
+    {% csrf_token %}
+    Primer name: {{ primer_name_form.primer_name }}</br></br>
+    Sequence: {{ sequence_form.sequence }}</br></br>
+	GC %:  {{ gcpercent_form.gc_percent }}</br></br>
+    Tm:    {{ tm_form.tm }}</br></br>
+    Length: {{ length_form.length }}</br></br>
+    Buffer:   {{ buffer_form.buffer }}</br></br> 
+    PCR Program: {{ pcr_form.pcr_program }}</br></br>
+    Status:   {{ status_form.status }}</br></br>
+    Comments: {{ comments_form.comments }}</br></br>
+    Forename: {{ forename_form.forename }}</br></br>
+    Surname:   {{ surname_form.surname }}</br></br>
+    Chromosome no.: {{ chrom_no_form.chrom_no }}</br></br>
+    Reference build:{{ reference_form.reference }}</br></br>
+    Start coordinate: {{ start_coordinate_37_form.start_coordinate_37 }}</br></br>
+    End coordinate: {{ end_coordinate_37_form.end_coordinate_37 }}</br></br>
+    
+
+
+    <button name="add" type="submit">Update primer</button>
+  </form>
+
+
+</div>
+
+
+{% endblock %}

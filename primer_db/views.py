@@ -4,9 +4,18 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.views.generic.edit import FormView
+from django.contrib import messages
+from django.views.generic import  ListView
+from .tables import PrimerDetailsTable
+from django_tables2 import RequestConfig
+from django.forms.models import model_to_dict
 
+#from django_tables2.views import SingleTableMixin
+#from django_filters.views import FilterView
+#import django_filters
 import primer_db.forms as Forms
 import primer_db.models as Models
+
 
 
 
@@ -33,10 +42,9 @@ def index(request):
         surname_form = Forms.ScientistSurnameForm(request.POST)
         reference_form = Forms.ReferenceForm(request.POST)
         chrom_no_form = Forms.ChromNoForm(request.POST)
-        start_coordinate_form = Forms.StartCoordinateForm(request.POST)
-        end_coordinate_form = Forms.EndCoordinateForm(request.POST)
+        start_coordinate_37_form = Forms.StartCoordinateForm(request.POST)
+        end_coordinate_37_form = Forms.EndCoordinateForm(request.POST)
 
-        print("status1")
 
 
 
@@ -54,8 +62,8 @@ def index(request):
             surname_form.is_valid() and
             reference_form.is_valid() and
             chrom_no_form.is_valid() and
-            start_coordinate_form.is_valid() and
-            end_coordinate_form.is_valid()
+            start_coordinate_37_form.is_valid() and
+            end_coordinate_37_form.is_valid()
             ):
 
             # the form is valid
@@ -87,10 +95,10 @@ def index(request):
             print(reference)
             chrom_no = chrom_no_form.cleaned_data["chrom_no"]
             print(chrom_no)
-            start_coordinate = start_coordinate_form.cleaned_data["start_coordinate"]
-            print(start_coordinate)
-            end_coordinate = end_coordinate_form.cleaned_data["end_coordinate"]
-            print(end_coordinate)
+            start_coordinate_37 = start_coordinate_37_form.cleaned_data["start_coordinate_37"]
+            print(start_coordinate_37)
+            end_coordinate_37 = end_coordinate_37_form.cleaned_data["end_coordinate_37"]
+            print(end_coordinate_37)
 
 
             print(status)
@@ -107,7 +115,7 @@ def index(request):
             new_buffer, created = Models.Buffer.objects.get_or_create(buffer = buffer)
             print(new_buffer)
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
-                start_coordinate = start_coordinate, end_coordinate = end_coordinate,
+                start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
                 reference = reference, chrom_no = chrom_no
                 )
             print(new_coordinates)  
@@ -121,7 +129,12 @@ def index(request):
                 pcr_program = new_pcr, buffer = new_buffer,
                 coordinates = new_coordinates)
 
-                    
+            primer = Models.PrimerDetails.objects.filter(primer_name__icontains = primer_name)
+            context_dict["primer"] = primer
+            messages.success(request, 'Primers successfully saved')
+        
+
+
             # recreate the form
             primer_name_form = Forms.PrimerNameForm()
             sequence_form = Forms.SequenceForm()
@@ -137,8 +150,8 @@ def index(request):
             surname_form = Forms.ScientistSurnameForm()
             reference_form = Forms.ReferenceForm()
             chrom_no_form = Forms.ChromNoForm()
-            start_coordinate_form = Forms.StartCoordinateForm()
-            end_coordinate_form = Forms.EndCoordinateForm()
+            start_coordinate_37_form = Forms.StartCoordinateForm()
+            end_coordinate_37_form = Forms.EndCoordinateForm()
 
 
             context_dict["primer_name_form"] = primer_name_form
@@ -155,8 +168,8 @@ def index(request):
             context_dict["surname_form"] = surname_form
             context_dict["reference_form"] = reference_form
             context_dict["chrom_no_form"] = chrom_no_form
-            context_dict["start_coordinate_form"] = start_coordinate_form
-            context_dict["end_coordinate_form"] = end_coordinate_form
+            context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+            context_dict["end_coordinate_37_form"] = end_coordinate_37_form
 
                 # return the page with the new comment
             return render(request, 'primer_db/index.html', context_dict)
@@ -177,8 +190,8 @@ def index(request):
         surname_form = Forms.ScientistSurnameForm()
         reference_form = Forms.ReferenceForm()
         chrom_no_form = Forms.ChromNoForm()
-        start_coordinate_form = Forms.StartCoordinateForm()
-        end_coordinate_form = Forms.EndCoordinateForm()
+        start_coordinate_37_form = Forms.StartCoordinateForm()
+        end_coordinate_37_form = Forms.EndCoordinateForm()
             
     context_dict["primer_name_form"] = primer_name_form
     context_dict["sequence_form"] = sequence_form
@@ -194,9 +207,358 @@ def index(request):
     context_dict["surname_form"] = surname_form
     context_dict["reference_form"] = reference_form
     context_dict["chrom_no_form"] = chrom_no_form
-    context_dict["start_coordinate_form"] = start_coordinate_form
-    context_dict["end_coordinate_form"] = end_coordinate_form
+    context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+    context_dict["end_coordinate_37_form"] = end_coordinate_37_form
 
 
     return render(request, 'primer_db/index.html', context_dict)
 
+
+
+    
+def search(request):
+
+    context_dict = {}
+    table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
+ 
+    context_dict["table"] = table
+
+    if request.method == 'GET':
+
+        var_pos = request.GET.get('var_pos', None)
+        
+        if var_pos:
+            primers = Models.PrimerDetails.objects.filter(coordinates__start_coordinate_37__lte=var_pos, 
+                coordinates__end_coordinate_37__gte=var_pos)
+            context_dict["primers"] = primers
+            print(primers)
+
+            table = PrimerDetailsTable(primers)
+            RequestConfig(request, paginate={'per_page': 50}).configure(table)
+
+            context_dict["table"] = table
+
+            return render(request, 'primer_db/search.html', context_dict)
+
+    else:
+        print("none")
+
+
+    if request.method == 'GET':
+
+        name_filter = request.GET.get('name_filter', None)
+        
+        if name_filter:
+            primer_names = Models.PrimerDetails.objects.filter(primer_name__icontains=name_filter)
+            context_dict["primer_names"] = primer_names
+            print(primer_names)
+
+            table = PrimerDetailsTable(primer_names)
+            RequestConfig(request, paginate={'per_page': 50}).configure(table)
+
+            context_dict["table"] = table
+
+            return render(request, 'primer_db/search.html', context_dict)
+
+
+    else:
+        print("none")
+
+    RequestConfig(request, paginate={'per_page': 50}).configure(table)
+
+    return render(request, 'primer_db/search.html', context_dict)
+
+
+
+
+def edit_primer(request, PrimerDetails_id):
+
+    context_dict = {}
+
+    print(PrimerDetails_id)
+
+    primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+
+    primer = primer[0]
+    buffer = primer.buffer
+    scientist = primer.scientist
+    pcr_program = primer.pcr_program
+    coordinates = primer.coordinates
+
+
+
+
+    primer_name_form = Forms.PrimerNameForm(initial = model_to_dict(primer))
+    sequence_form = Forms.SequenceForm(initial = model_to_dict(primer))
+    status_form = Forms.StatusForm(initial = model_to_dict(primer))
+    gcpercent_form = Forms.GCPercentForm(initial = model_to_dict(primer))
+    tm_form = Forms.TMForm(initial = model_to_dict(primer))
+    length_form = Forms.LengthForm(initial = model_to_dict(primer))
+    comments_form = Forms.CommentsForm(initial = model_to_dict(primer))
+    arrival_date_form = Forms.ArrivalDateForm(initial = model_to_dict(primer))
+    buffer_form = Forms.BufferForm(initial = model_to_dict(buffer))
+    pcr_form = Forms.PCRForm(initial = model_to_dict(pcr_program))
+    forename_form = Forms.ScientistForenameForm(initial = model_to_dict(scientist))
+    surname_form = Forms.ScientistSurnameForm(initial = model_to_dict(scientist))
+    reference_form = Forms.ReferenceForm(initial = model_to_dict(coordinates))
+    chrom_no_form = Forms.ChromNoForm(initial = model_to_dict(coordinates))
+    start_coordinate_37_form = Forms.StartCoordinateForm(initial = model_to_dict(coordinates))
+    end_coordinate_37_form = Forms.EndCoordinateForm(initial = model_to_dict(coordinates))
+
+
+    context_dict["primer_name_form"] = primer_name_form
+    context_dict["sequence_form"] = sequence_form
+    context_dict["status_form"] = status_form
+    context_dict["gcpercent_form"] = gcpercent_form
+    context_dict["tm_form"] = tm_form
+    context_dict["length_form"] = length_form
+    context_dict["comments_form"] = comments_form
+    context_dict["arrival_date_form"] = arrival_date_form
+    context_dict["buffer_form"] = buffer_form
+    context_dict["pcr_form"] = pcr_form
+    context_dict["forename_form"] = forename_form
+    context_dict["surname_form"] = surname_form
+    context_dict["reference_form"] = reference_form
+    context_dict["chrom_no_form"] = chrom_no_form
+    context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+    context_dict["end_coordinate_37_form"] = end_coordinate_37_form
+
+    context_dict["primer"] = primer
+
+
+    return render(request, 'primer_db/edit_primer.html', context_dict)
+    # sequence_form = Forms.SequenceForm()
+    # status_form = Forms.StatusForm()
+    # gcpercent_form = Forms.GCPercentForm()
+    # tm_form = Forms.TMForm()
+    # length_form = Forms.LengthForm()
+    # comments_form = Forms.CommentsForm()
+    # arrival_date_form = Forms.ArrivalDateForm()
+    # buffer_form = Forms.BufferForm()
+    # pcr_form = Forms.PCRForm()
+    # forename_form = Forms.ScientistForenameForm()
+    # surname_form = Forms.ScientistSurnameForm()
+    # reference_form = Forms.ReferenceForm()
+    # chrom_no_form = Forms.ChromNoForm()
+    # start_coordinate_37_form = Forms.StartCoordinateForm()
+    # end_coordinate_37_form = Forms.EndCoordinateForm()
+
+    # if request.method == 'POST':
+    #     primer_name_form = Forms.PrimerNameForm(request.POST, instance=post)
+    #     sequence_form = Forms.SequenceForm(request.POST, instance=post)
+    #     status_form = Forms.StatusForm(request.POST, instance=post)
+    #     gcpercent_form = Forms.GCPercentForm(request.POST, instance=post)
+    #     tm_form = Forms.TMForm(request.POST, instance=post)
+    #     length_form = Forms.LengthForm(request.POST, instance=post)
+    #     comments_form = Forms.CommentsForm(request.POST, instance=post)
+    #     arrival_date_form = Forms.ArrivalDateForm(request.POST, instance=post)
+    #     buffer_form = Forms.BufferForm(request.POST, instance=post)
+    #     pcr_form = Forms.PCRForm(request.POST, instance=post)
+    #     forename_form = Forms.ScientistForenameForm(request.POST, instance=post)
+    #     surname_form = Forms.ScientistSurnameForm(request.POST, instance=post)
+    #     reference_form = Forms.ReferenceForm(request.POST, instance=post)
+    #     chrom_no_form = Forms.ChromNoForm(request.POST, instance=post)
+    #     start_coordinate_37_form = Forms.StartCoordinateForm(request.POST, instance=post)
+    #     end_coordinate_37_form = Forms.EndCoordinateForm(request.POST, instance=post)
+
+    #     if (primer_name_form.is_valid() and 
+    #         sequence_form.is_valid() and
+    #         status_form.is_valid() and
+    #         gcpercent_form.is_valid() and
+    #         tm_form.is_valid() and
+    #         length_form.is_valid() and
+    #         comments_form.is_valid() and
+    #         arrival_date_form.is_valid() and
+    #         buffer_form.is_valid() and
+    #         pcr_form.is_valid() and
+    #         forename_form.is_valid() and
+    #         surname_form.is_valid() and
+    #         reference_form.is_valid() and
+    #         chrom_no_form.is_valid() and
+    #         start_coordinate_37_form.is_valid() and
+    #         end_coordinate_37_form.is_valid()
+    #         ):
+
+    #     # the form is valid
+    #         primer_name_form.save()
+    #         sequence_form.save()
+    #         status_form.save()
+    #         gcpercent_form.save()
+    #         tm_form.save()
+    #         length_form.save()
+    #         comments_form.save()
+    #         arrival_date_form.save()
+    #         buffer_form.save()
+    #         pcr_form.save()
+    #         forename_form.save()
+    #         surname_form.save()
+    #         reference_form.save()
+    #         chrom_no_form.save()
+    #         start_coordinate_37_form.save()
+    #         end_coordinate_37_form.save()
+            
+    #         url = reverse('search', kwargs={'key': key})
+    #         return render(request, (edit_done.html), {'url': url})
+    #     else:
+    #         # if invalid render edit page again
+    #         primer_name_form = Forms.PrimerNameForm(request.POST, instance=post)
+    #         sequence_form = Forms.SequenceForm(request.POST, instance=post)
+    #         status_form = Forms.StatusForm(request.POST, instance=post)
+    #         gcpercent_form = Forms.GCPercentForm(request.POST, instance=post)
+    #         tm_form = Forms.TMForm(request.POST, instance=post)
+    #         length_form = Forms.LengthForm(request.POST, instance=post)
+    #         comments_form = Forms.CommentsForm(request.POST, instance=post)
+    #         arrival_date_form = Forms.ArrivalDateForm(request.POST, instance=post)
+    #         buffer_form = Forms.BufferForm(request.POST, instance=post)
+    #         pcr_form = Forms.PCRForm(request.POST, instance=post)
+    #         forename_form = Forms.ScientistForenameForm(request.POST, instance=post)
+    #         surname_form = Forms.ScientistSurnameForm(request.POST, instance=post)
+    #         reference_form = Forms.ReferenceForm(request.POST, instance=post)
+    #         chrom_no_form = Forms.ChromNoForm(request.POST, instance=post)
+    #         start_coordinate_37_form = Forms.StartCoordinateForm(request.POST, instance=post)
+    #         end_coordinate_37_form = Forms.EndCoordinateForm(request.POST, instance=post)
+
+    #         context_dict["primer_name_form"] = primer_name_form
+    #         context_dict["sequence_form"] = sequence_form
+    #         context_dict["status_form"] = status_form
+    #         context_dict["gcpercent_form"] = gcpercent_form
+    #         context_dict["tm_form"] = tm_form
+    #         context_dict["length_form"] = length_form
+    #         context_dict["comments_form"] = comments_form
+    #         context_dict["arrival_date_form"] = arrival_date_form
+    #         context_dict["buffer_form"] = buffer_form
+    #         context_dict["pcr_form"] = pcr_form
+    #         context_dict["forename_form"] = forename_form
+    #         context_dict["surname_form"] = surname_form
+    #         context_dict["reference_form"] = reference_form
+    #         context_dict["chrom_no_form"] = chrom_no_form
+    #         context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+    #         context_dict["end_coordinate_37_form"] = end_coordinate_37_form
+
+    #     return render(request, edit_primer.html, context_dict)
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def edit_primer(request):
+#     print("test")
+#     primer = Models.PrimerDetails.objects.get(pk=record_id)
+#     if request.method == 'POST':
+#         primer_name_form = Forms.PrimerNameForm(request.POST, instance=post)
+#         sequence_form = Forms.SequenceForm(request.POST, instance=post)
+#         status_form = Forms.StatusForm(request.POST, instance=post)
+#         gcpercent_form = Forms.GCPercentForm(request.POST, instance=post)
+#         tm_form = Forms.TMForm(request.POST, instance=post)
+#         length_form = Forms.LengthForm(request.POST, instance=post)
+#         comments_form = Forms.CommentsForm(request.POST, instance=post)
+#         arrival_date_form = Forms.ArrivalDateForm(request.POST, instance=post)
+#         buffer_form = Forms.BufferForm(request.POST, instance=post)
+#         pcr_form = Forms.PCRForm(request.POST, instance=post)
+#         forename_form = Forms.ScientistForenameForm(request.POST, instance=post)
+#         surname_form = Forms.ScientistSurnameForm(request.POST, instance=post)
+#         reference_form = Forms.ReferenceForm(request.POST, instance=post)
+#         chrom_no_form = Forms.ChromNoForm(request.POST, instance=post)
+#         start_coordinate_37_form = Forms.StartCoordinateForm(request.POST, instance=post)
+#         end_coordinate_37_form = Forms.EndCoordinateForm(request.POST, instance=post)
+
+#         if (primer_name_form.is_valid() and 
+#             sequence_form.is_valid() and
+#             status_form.is_valid() and
+#             gcpercent_form.is_valid() and
+#             tm_form.is_valid() and
+#             length_form.is_valid() and
+#             comments_form.is_valid() and
+#             arrival_date_form.is_valid() and
+#             buffer_form.is_valid() and
+#             pcr_form.is_valid() and
+#             forename_form.is_valid() and
+#             surname_form.is_valid() and
+#             reference_form.is_valid() and
+#             chrom_no_form.is_valid() and
+#             start_coordinate_37_form.is_valid() and
+#             end_coordinate_37_form.is_valid()
+#             ):
+
+#         # the form is valid
+#             primer_name_form.save()
+#             sequence_form.save()
+#             status_form.save()
+#             gcpercent_form.save()
+#             tm_form.save()
+#             length_form.save()
+#             comments_form.save()
+#             arrival_date_form.save()
+#             buffer_form.save()
+#             pcr_form.save()
+#             forename_form.save()
+#             surname_form.save()
+#             reference_form.save()
+#             chrom_no_form.save()
+#             start_coordinate_37_form.save()
+#             end_coordinate_37_form.save()
+            
+#             url = reverse('search', kwargs={'key': key})
+#             return render(request, (edit_done.html), {'url': url})
+#         else:
+#             # if invalid render edit page again
+#             primer_name_form = Forms.PrimerNameForm(request.POST, instance=post)
+#             sequence_form = Forms.SequenceForm(request.POST, instance=post)
+#             status_form = Forms.StatusForm(request.POST, instance=post)
+#             gcpercent_form = Forms.GCPercentForm(request.POST, instance=post)
+#             tm_form = Forms.TMForm(request.POST, instance=post)
+#             length_form = Forms.LengthForm(request.POST, instance=post)
+#             comments_form = Forms.CommentsForm(request.POST, instance=post)
+#             arrival_date_form = Forms.ArrivalDateForm(request.POST, instance=post)
+#             buffer_form = Forms.BufferForm(request.POST, instance=post)
+#             pcr_form = Forms.PCRForm(request.POST, instance=post)
+#             forename_form = Forms.ScientistForenameForm(request.POST, instance=post)
+#             surname_form = Forms.ScientistSurnameForm(request.POST, instance=post)
+#             reference_form = Forms.ReferenceForm(request.POST, instance=post)
+#             chrom_no_form = Forms.ChromNoForm(request.POST, instance=post)
+#             start_coordinate_37_form = Forms.StartCoordinateForm(request.POST, instance=post)
+#             end_coordinate_37_form = Forms.EndCoordinateForm(request.POST, instance=post)
+
+#             context_dict["primer_name_form"] = primer_name_form
+#             context_dict["sequence_form"] = sequence_form
+#             context_dict["status_form"] = status_form
+#             context_dict["gcpercent_form"] = gcpercent_form
+#             context_dict["tm_form"] = tm_form
+#             context_dict["length_form"] = length_form
+#             context_dict["comments_form"] = comments_form
+#             context_dict["arrival_date_form"] = arrival_date_form
+#             context_dict["buffer_form"] = buffer_form
+#             context_dict["pcr_form"] = pcr_form
+#             context_dict["forename_form"] = forename_form
+#             context_dict["surname_form"] = surname_form
+#             context_dict["reference_form"] = reference_form
+#             context_dict["chrom_no_form"] = chrom_no_form
+#             context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+#             context_dict["end_coordinate_37_form"] = end_coordinate_37_form
+
+#         return render(request, edit_primer.html, context_dict)

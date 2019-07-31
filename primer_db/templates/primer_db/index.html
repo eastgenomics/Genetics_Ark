@@ -6,12 +6,21 @@
 
 {% block body_block %}
 
+{% if messages %} 
+    {% for message in messages %} 
+        {{ message }} 
+    {% endfor %} 
+{% endif %} 
+
+<body style="padding-top: 80px">
 
 <h1>Primer Database</h1>
 
 
 
 <div class="row center-block">
+
+<h4>Search for existing primers: <a  href="/primer_db/search"><button>Search for primers</button></a></br></br>
 
 <h4>Submit new primers:</h4>
 
@@ -21,24 +30,41 @@
     {{ arrival_date_form.arrival_date }}</br></br>
     {{ primer_name_form.primer_name }}
     {{ sequence_form.sequence }}
-    {{ gcpercent_form.gcpercent }}</br></br>
+    {{ gc_percent_form.gcpercent }}</br></br>
     {{ tm_form.tm }}
     {{ length_form.length }}
-    {{ comments_form.comments }}</br></br>
-    {{ buffer_form.buffer }} 
+    {{ buffer_form.buffer }}</br></br> 
     {{ pcr_form.pcr_program }}
-    {{ forename_form.forename }}</br></br>
+    {{ status_form.status }}
+    {{ comments_form.comments }}</br></br>
+    {{ forename_form.forename }}
     {{ surname_form.surname }}
-    {{ reference_form.reference }}
     {{ chrom_no_form.chrom_no }}</br></br>
-    {{ start_coordinate_form.start_coordinate }}
-    {{ end_coordinate_form.end_coordinate }}
-    {{ status_form.status }}</br></br>
-
+    {{ reference_form.reference }}
+    {{ start_coordinate_37_form.start_coordinate_37 }}
+    {{ end_coordinate_37_form.end_coordinate_37 }}</br></br>
     
+
+
     <button name="add" type="submit">Submit primers</button>
   </form>
+
+
 </div>
+
+<!-- 
+<form method="post">
+
+  {% csrf_token %}
+
+  <table>
+    {{ form }}
+  </table>
+
+</form>
+
+
+</body> -->
 
 
 {% endblock %}
