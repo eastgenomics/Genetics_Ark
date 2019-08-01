@@ -34,8 +34,8 @@ class PrimerDetails(models.Model):
 class Coordinates(models.Model):
 	reference = models.CharField(max_length=6)
 	chrom_no = models.CharField(max_length=2)
-	start_coordinate_37 = models.IntegerField(max_length=20, verbose_name = 'GRCh37 Start')
-	end_coordinate_37 = models.IntegerField(max_length=20, verbose_name = 'GRCh37 End')
+	start_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 Start')
+	end_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 End')
 	
 
         def __str__(self):

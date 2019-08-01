@@ -1,5 +1,8 @@
+
 {% extends 'base.html' %}
 #{% load widget_tweaks %}
+
+
 
 {% block body_block %}
 
@@ -14,7 +17,11 @@
 <h1>Primer Database</h1>
 
 
-<h3>Editing primer: {{primer.primer_name}}</h3></br>
+
+<div class="row center-block">
+
+
+<h4>Submit new primers:</h4>
 
 <html>
 <head>
@@ -98,8 +105,59 @@ table, td, th {
             <td>{{ end_coordinate_37_form.end_coordinate_37 }}</td>
         </tr>
     </table></br>       
-    <button name="add" type="submit" type="button" class = "bt btn-primary">Update primer</button>
+    <button name="add" type="submit" type="button" class = "bt btn-primary">Submit primer</button>
 
     </form>
 
+<!-- 
+</div>
+  <form action = "" method = "POST">
+    {% csrf_token %}
+    {{ arrival_date_form.arrival_date }}</br></br>
+    {{ primer_name_form.primer_name }}
+    {{ sequence_form.sequence }}
+    {{ gc_percent_form.gcpercent }}</br></br>
+    {{ tm_form.tm }}
+    {{ length_form.length }}
+    {{ buffer_form.buffer }}</br></br> 
+    {{ pcr_form.pcr_program }}
+    {{ status_form.status }}
+    {{ comments_form.comments }}</br></br>
+    {{ forename_form.forename }}
+    {{ surname_form.surname }}
+    {{ chrom_no_form.chrom_no }}</br></br>
+    {{ reference_form.reference }}
+    {{ start_coordinate_37_form.start_coordinate_37 }}
+    {{ end_coordinate_37_form.end_coordinate_37 }}</br></br>
+    
+
+
+    <button name="add" type="submit">Submit primers</button>
+  </form></br></br>
+
+
+<h4>Search for existing primers:</h4><a href="/primer_db/"><button type="button" class = "bt btn-primary">Search for primers</button></a>
+
+</div>
+ -->
+
+
+<!-- 
+<form method="post">
+
+  {% csrf_token %}
+
+  <table>
+    {{ form }}
+  </table>
+
+</form>
+
+
+</body> -->
+
+
 {% endblock %}
+
+
+
