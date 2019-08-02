@@ -88,20 +88,24 @@ table, td, th {
             <td>{{ chrom_no_form.chrom_no }}</td>
         </tr>
         <tr>
-            <td>Reference build:</td>
-            <td>{{ reference_form.reference }}</td>
-        </tr>
-        <tr>
-            <td>Start coordinate:</td>
+            <td>GRCh37 Start coordinate:</td>
             <td>{{ start_coordinate_37_form.start_coordinate_37 }}</td>
         </tr>
         <tr>
-            <td>End coordinate:</td>
+            <td>GRCh37 End coordinate:</td>
             <td>{{ end_coordinate_37_form.end_coordinate_37 }}</td>
+        </tr>
+        <tr>
+            <td>GRCh38 Start coordinate:</td>
+            <td>{{ start_coordinate_38_form.start_coordinate_38 }}</td>
+        </tr>
+        <tr>
+            <td>GRCh38 End coordinate:</td>
+            <td>{{ end_coordinate_38_form.end_coordinate_38 }}</td>
         </tr>
     </table></br>       
     <input  type="submit" name="update_primer" value="Update primer" class = "bt btn-primary"></input>&nbsp;&nbsp;
-    <input type="submit" name="delete_primer" value="Delete primer" class = "bt btn-danger"></input>
+    <input type="submit" name="delete_primer" value="Delete primer" class = "bt btn-danger" onclick="return confirm('Are you sure you want to delete the primer?')"></input>
 
 
     </form>

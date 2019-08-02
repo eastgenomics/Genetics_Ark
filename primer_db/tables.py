@@ -8,8 +8,10 @@ class PrimerDetailsTable(tables.Table):
 	primer_name = tables.LinkColumn("edit_primer", args = [A('pk')])
 	reference = tables.Column(accessor = "coordinates.reference")
 	chrom_no = tables.Column(accessor = "coordinates.chrom_no")
-	start = tables.Column(accessor="coordinates.start_coordinate_37")
-	end = tables.Column(accessor = "coordinates.end_coordinate_37")
+	start37 = tables.Column(accessor="coordinates.start_coordinate_37")
+	end37 = tables.Column(accessor = "coordinates.end_coordinate_37")
+	start38 = tables.Column(accessor="coordinates.start_coordinate_38")
+	end38 = tables.Column(accessor = "coordinates.end_coordinate_38")
 
 	class Meta:	
 
@@ -22,7 +24,7 @@ class PrimerDetailsTable(tables.Table):
 					'scientist', 'pcr_program', 'buffer')
 
 		sequence = ('primer_name', 'sequence', 'gc_percent', 'length', 
-					'tm', 'chrom_no', 'start', 'end', 'buffer', 
+					'tm', 'chrom_no', 'start37', 'end37','start38', 'end38', 'buffer', 
 					'pcr_program', 'scientist', 'arrival_date', 'status', 'comments')
 
 		exclude = ('reference',)

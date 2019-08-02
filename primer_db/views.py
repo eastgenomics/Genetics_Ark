@@ -9,14 +9,14 @@ from django.views.generic import  ListView
 from .tables import PrimerDetailsTable
 from django_tables2 import RequestConfig
 from django.forms.models import model_to_dict
+from django.shortcuts import get_object_or_404, redirect
+
 
 #from django_tables2.views import SingleTableMixin
 #from django_filters.views import FilterView
 #import django_filters
 import primer_db.forms as Forms
 import primer_db.models as Models
-
-
 
 
 
@@ -42,8 +42,8 @@ def submit(request):
         surname_form = Forms.ScientistSurnameForm(request.POST)
         reference_form = Forms.ReferenceForm(request.POST)
         chrom_no_form = Forms.ChromNoForm(request.POST)
-        start_coordinate_37_form = Forms.StartCoordinateForm(request.POST)
-        end_coordinate_37_form = Forms.EndCoordinateForm(request.POST)
+        start_coordinate_form = Forms.StartCoordinateForm(request.POST)
+        end_coordinate_form = Forms.EndCoordinateForm(request.POST)
 
 
 
@@ -62,8 +62,8 @@ def submit(request):
             surname_form.is_valid() and
             reference_form.is_valid() and
             chrom_no_form.is_valid() and
-            start_coordinate_37_form.is_valid() and
-            end_coordinate_37_form.is_valid()
+            start_coordinate_form.is_valid() and
+            end_coordinate_form.is_valid()
             ):
 
             # the form is valid
@@ -95,11 +95,26 @@ def submit(request):
             print(reference)
             chrom_no = chrom_no_form.cleaned_data["chrom_no"]
             print(chrom_no)
-            start_coordinate_37 = start_coordinate_37_form.cleaned_data["start_coordinate_37"]
-            print(start_coordinate_37)
-            end_coordinate_37 = end_coordinate_37_form.cleaned_data["end_coordinate_37"]
-            print(end_coordinate_37)
+            if reference == "37":
+                print("coord37")
+                start_coordinate_37 = start_coordinate_form.cleaned_data["start_coordinate"]
+                print(start_coordinate_37)
+                end_coordinate_37 = end_coordinate_form.cleaned_data["end_coordinate"]
+                print(end_coordinate_37)
+                start_coordinate_38 = None
+                end_coordinate_38 = None
+            elif reference == "38":   
+                print("coord38") 
+                start_coordinate_38 = start_coordinate_form.cleaned_data["start_coordinate"]
+                print(start_coordinate_38)
+                end_coordinate_38 = end_coordinate_form.cleaned_data["end_coordinate"]
+                print(end_coordinate_38)
+                start_coordinate_37 = None
+                end_coordinate_37 = None
 
+            else:
+                print("no coord")
+                pass
 
             print(status)
 
@@ -116,6 +131,7 @@ def submit(request):
             print(new_buffer)
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
                 start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
+                start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38,
                 reference = reference, chrom_no = chrom_no
                 )
             print(new_coordinates)  
@@ -129,8 +145,8 @@ def submit(request):
                 pcr_program = new_pcr, buffer = new_buffer,
                 coordinates = new_coordinates)
 
-            primer = Models.PrimerDetails.objects.filter(primer_name__icontains = primer_name)
-            context_dict["primer"] = primer
+            # primer = Models.PrimerDetails.objects.filter(primer_name__icontains = primer_name)
+            # context_dict["primer"] = primer
             messages.success(request, 'Primers successfully saved')
         
 
@@ -150,8 +166,8 @@ def submit(request):
             surname_form = Forms.ScientistSurnameForm()
             reference_form = Forms.ReferenceForm()
             chrom_no_form = Forms.ChromNoForm()
-            start_coordinate_37_form = Forms.StartCoordinateForm()
-            end_coordinate_37_form = Forms.EndCoordinateForm()
+            start_coordinate_form = Forms.StartCoordinateForm()
+            end_coordinate_form = Forms.EndCoordinateForm()
 
 
             context_dict["primer_name_form"] = primer_name_form
@@ -168,8 +184,9 @@ def submit(request):
             context_dict["surname_form"] = surname_form
             context_dict["reference_form"] = reference_form
             context_dict["chrom_no_form"] = chrom_no_form
-            context_dict["start_coordinate_37_form"] = start_coordinate_37_form
-            context_dict["end_coordinate_37_form"] = end_coordinate_37_form
+            context_dict["start_coordinate_form"] = start_coordinate_form
+            context_dict["end_coordinate_form"] = end_coordinate_form
+
 
                 # return the page with the new comment
             return render(request, 'primer_db/submit.html', context_dict)
@@ -190,8 +207,9 @@ def submit(request):
         surname_form = Forms.ScientistSurnameForm()
         reference_form = Forms.ReferenceForm()
         chrom_no_form = Forms.ChromNoForm()
-        start_coordinate_37_form = Forms.StartCoordinateForm()
-        end_coordinate_37_form = Forms.EndCoordinateForm()
+        start_coordinate_form = Forms.StartCoordinateForm()
+        end_coordinate_form = Forms.EndCoordinateForm()
+
             
     context_dict["primer_name_form"] = primer_name_form
     context_dict["sequence_form"] = sequence_form
@@ -207,21 +225,29 @@ def submit(request):
     context_dict["surname_form"] = surname_form
     context_dict["reference_form"] = reference_form
     context_dict["chrom_no_form"] = chrom_no_form
-    context_dict["start_coordinate_37_form"] = start_coordinate_37_form
-    context_dict["end_coordinate_37_form"] = end_coordinate_37_form
-
+    context_dict["start_coordinate_form"] = start_coordinate_form
+    context_dict["end_coordinate_form"] = end_coordinate_form
 
     return render(request, 'primer_db/submit.html', context_dict)
 
 
 
-    
+# homepage view of database, displays all primers and inc. search functions    
 def index(request):
 
     context_dict = {}
     table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
- 
+
+    # returns primer totals filtered by status
+    total_archived = Models.PrimerDetails.objects.filter(status__status__icontains="archived").count()
+    total_bank = Models.PrimerDetails.objects.filter(status__status__icontains="bank").count()
+    total_order = Models.PrimerDetails.objects.filter(status__status__icontains="order").count()
+
     context_dict["table"] = table
+    context_dict["total_archived"] = total_archived
+    context_dict["total_bank"] = total_bank
+    context_dict["total_order"] = total_order
+
 
     # function for filtering primers by variant position within coordinates
     if request.method == 'GET':
@@ -229,12 +255,14 @@ def index(request):
         var_pos = request.GET.get('var_pos', None)
         
         if var_pos:
-            primers = Models.PrimerDetails.objects.filter(coordinates__start_coordinate_37__lte=var_pos, 
+            primers37 = Models.PrimerDetails.objects.filter(coordinates__start_coordinate_37__lte=var_pos, 
                 coordinates__end_coordinate_37__gte=var_pos)
-            context_dict["primers"] = primers
-            print(primers)
+            primers38 = Models.PrimerDetails.objects.filter(coordinates__start_coordinate_38__lte=var_pos, 
+                coordinates__end_coordinate_38__gte=var_pos)
+            context_dict["37_primers"] = primers37
+            context_dict["38_primers"] = primers38
 
-            table = PrimerDetailsTable(primers)
+            table = PrimerDetailsTable(primers37, primers38)
             RequestConfig(request, paginate={'per_page': 50}).configure(table)
 
             context_dict["table"] = table
@@ -265,71 +293,21 @@ def index(request):
     else:
         print("none")
 
-    RequestConfig(request, paginate={'per_page': 50}).configure(table)
+    RequestConfig(request, paginate={'per_page': 10}).configure(table)
 
     return render(request, 'primer_db/index.html', context_dict)
 
 
 
-
+# function for edit view of individual primers
 def edit_primer(request, PrimerDetails_id):
 
     context_dict = {}
 
-    print(PrimerDetails_id)
-
-    primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-
-    primer = primer[0]
-    buffer = primer.buffer
-    scientist = primer.scientist
-    pcr_program = primer.pcr_program
-    coordinates = primer.coordinates
-
-
-    primer_name_form = Forms.PrimerNameForm(initial = model_to_dict(primer))
-    sequence_form = Forms.SequenceForm(initial = model_to_dict(primer))
-    status_form = Forms.StatusForm(initial = model_to_dict(primer))
-    gcpercent_form = Forms.GCPercentForm(initial = model_to_dict(primer))
-    tm_form = Forms.TMForm(initial = model_to_dict(primer))
-    length_form = Forms.LengthForm(initial = model_to_dict(primer))
-    comments_form = Forms.CommentsForm(initial = model_to_dict(primer))
-    arrival_date_form = Forms.ArrivalDateForm(initial = model_to_dict(primer))
-    buffer_form = Forms.BufferForm(initial = model_to_dict(buffer))
-    pcr_form = Forms.PCRForm(initial = model_to_dict(pcr_program))
-    forename_form = Forms.ScientistForenameForm(initial = model_to_dict(scientist))
-    surname_form = Forms.ScientistSurnameForm(initial = model_to_dict(scientist))
-    reference_form = Forms.ReferenceForm(initial = model_to_dict(coordinates))
-    chrom_no_form = Forms.ChromNoForm(initial = model_to_dict(coordinates))
-    start_coordinate_37_form = Forms.StartCoordinateForm(initial = model_to_dict(coordinates))
-    end_coordinate_37_form = Forms.EndCoordinateForm(initial = model_to_dict(coordinates))
-
-
-    context_dict["primer_name_form"] = primer_name_form
-    context_dict["sequence_form"] = sequence_form
-    context_dict["status_form"] = status_form
-    context_dict["gcpercent_form"] = gcpercent_form
-    context_dict["tm_form"] = tm_form
-    context_dict["length_form"] = length_form
-    context_dict["comments_form"] = comments_form
-    context_dict["arrival_date_form"] = arrival_date_form
-    context_dict["buffer_form"] = buffer_form
-    context_dict["pcr_form"] = pcr_form
-    context_dict["forename_form"] = forename_form
-    context_dict["surname_form"] = surname_form
-    context_dict["reference_form"] = reference_form
-    context_dict["chrom_no_form"] = chrom_no_form
-    context_dict["start_coordinate_37_form"] = start_coordinate_37_form
-    context_dict["end_coordinate_37_form"] = end_coordinate_37_form
-
-    context_dict["primer"] = primer
-
-
-    return render(request, 'primer_db/edit_primer.html', context_dict)
-    
-
     if request.method == "POST":
-            # data is sent
+
+        print("text2")
+
         primer_name_form = Forms.PrimerNameForm(request.POST)
         sequence_form = Forms.SequenceForm(request.POST)
         status_form = Forms.StatusForm(request.POST)
@@ -344,92 +322,250 @@ def edit_primer(request, PrimerDetails_id):
         surname_form = Forms.ScientistSurnameForm(request.POST)
         reference_form = Forms.ReferenceForm(request.POST)
         chrom_no_form = Forms.ChromNoForm(request.POST)
-        start_coordinate_37_form = Forms.StartCoordinateForm(request.POST)
-        end_coordinate_37_form = Forms.EndCoordinateForm(request.POST)
+        start_coordinate_37_form = Forms.StartCoordinate37Form(request.POST)
+        end_coordinate_37_form = Forms.EndCoordinate37Form(request.POST)
+        start_coordinate_38_form = Forms.StartCoordinate38Form(request.POST)
+        end_coordinate_38_form = Forms.EndCoordinate38Form(request.POST)
 
 
 
-        if (primer_name_form.is_valid() and 
-            sequence_form.is_valid() and
-            status_form.is_valid() and
-            gcpercent_form.is_valid() and
-            tm_form.is_valid() and
-            length_form.is_valid() and
-            comments_form.is_valid() and
-            arrival_date_form.is_valid() and
-            buffer_form.is_valid() and
-            pcr_form.is_valid() and
-            forename_form.is_valid() and
-            surname_form.is_valid() and
-            reference_form.is_valid() and
-            chrom_no_form.is_valid() and
-            start_coordinate_37_form.is_valid() and
-            end_coordinate_37_form.is_valid()
-            ):
+        # when update button is pressed, save updates made to current primer
+        if request.POST.get("update_primer"):
 
-            # the form is valid
-            primer_name = primer_name_form.cleaned_data["primer_name"] 
-            print(primer_name)
-            sequence = sequence_form.cleaned_data["sequence"]
-            print(sequence)
-            status = status_form.cleaned_data["status"]
-            print(status)
-            gcpercent = gcpercent_form.cleaned_data["gcpercent"]
-            print(gcpercent)
-            tm = tm_form.cleaned_data["tm"]
-            print(tm)
-            length = length_form.cleaned_data["length"]
-            print(length)
-            comments = comments_form.cleaned_data["comments"]
-            print(comments)
-            arrival_date = arrival_date_form.cleaned_data["arrival_date"]
-            print(arrival_date)
-            buffer = buffer_form.cleaned_data["buffer"].capitalize()
-            print(buffer)
-            pcr_program = pcr_form.cleaned_data["pcr_program"]
-            print(pcr_program)
-            forename = forename_form.cleaned_data["forename"].capitalize()
-            print(forename)
-            surname = surname_form.cleaned_data["surname"].capitalize()
-            print(surname)
-            reference = reference_form.cleaned_data["reference"]
-            print(reference)
-            chrom_no = chrom_no_form.cleaned_data["chrom_no"]
-            print(chrom_no)
-            start_coordinate_37 = start_coordinate_37_form.cleaned_data["start_coordinate_37"]
-            print(start_coordinate_37)
-            end_coordinate_37 = end_coordinate_37_form.cleaned_data["end_coordinate_37"]
-            print(end_coordinate_37)
+            print("text")
+                # data is sent
+           
+
+            if (primer_name_form.is_valid() and 
+                sequence_form.is_valid() and
+                status_form.is_valid() and
+                gcpercent_form.is_valid() and
+                tm_form.is_valid() and
+                length_form.is_valid() and
+                comments_form.is_valid() and
+                arrival_date_form.is_valid() and
+                buffer_form.is_valid() and
+                pcr_form.is_valid() and
+                forename_form.is_valid() and
+                surname_form.is_valid() and
+                chrom_no_form.is_valid() and
+                start_coordinate_37_form.is_valid() and
+                end_coordinate_37_form.is_valid() and
+                start_coordinate_38_form.is_valid() and
+                end_coordinate_38_form.is_valid()
+                ):
+
+                # the form is valid
+                primer_name = primer_name_form.cleaned_data["primer_name"] 
+                print(primer_name)
+                sequence = sequence_form.cleaned_data["sequence"]
+                print(sequence)
+                status = status_form.cleaned_data["status"]
+                print(status)
+                gcpercent = gcpercent_form.cleaned_data["gc_percent"]
+                print(gcpercent)
+                tm = tm_form.cleaned_data["tm"]
+                print(tm)
+                length = length_form.cleaned_data["length"]
+                print(length)
+                comments = comments_form.cleaned_data["comments"]
+                print(comments)
+                arrival_date = arrival_date_form.cleaned_data["arrival_date"]
+                print(arrival_date)
+                buffer = buffer_form.cleaned_data["buffer"].capitalize()
+                print(buffer)
+                pcr_program = pcr_form.cleaned_data["pcr_program"]
+                print(pcr_program)
+                forename = forename_form.cleaned_data["forename"].capitalize()
+                print(forename)
+                surname = surname_form.cleaned_data["surname"].capitalize()
+                print(surname)
+                chrom_no = chrom_no_form.cleaned_data["chrom_no"]
+                print(chrom_no)
+                start_coordinate_37 = start_coordinate_37_form.cleaned_data["start_coordinate_37"]
+                print(start_coordinate_37)
+                end_coordinate_37 = end_coordinate_37_form.cleaned_data["end_coordinate_37"]
+                print(end_coordinate_37)
+                start_coordinate_38 = start_coordinate_38_form.cleaned_data["start_coordinate_38"]
+                print(start_coordinate_38)
+                end_coordinate_38 = end_coordinate_38_form.cleaned_data["end_coordinate_38"]
+                print(end_coordinate_38)
 
 
-            print(saving_status)
+                print("saving_status")
 
-            # save primer to database
+                # save primer to database
+                
+                new_status, created = Models.Status.objects.update_or_create(status = status)
+                print(new_status)
+                new_scientist, created = Models.Scientist.objects.update_or_create(
+                    forename = forename, surname = surname)
+                new_pcr, created = Models.PCRProgram.objects.update_or_create(
+                    pcr_program = pcr_program)
+                print(new_pcr)
+                new_buffer, created = Models.Buffer.objects.update_or_create(buffer = buffer)
+                print(new_buffer)
+                new_coordinates, created = Models.Coordinates.objects.update_or_create(
+                    start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
+                    start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38,
+                    chrom_no = chrom_no
+                    )
+                print(new_coordinates)  
+
+
+                new_primer =  Models.PrimerDetails.objects.update_or_create(
+                    primer_name = primer_name, 
+                    defaults={
+                    'sequence': sequence, 
+                    'gc_percent': gcpercent, 'tm': tm, 'length': length,
+                    'comments':  comments, 'arrival_date': arrival_date,
+                    'status': new_status, 'scientist': new_scientist,
+                    'pcr_program': new_pcr, 'buffer': new_buffer,
+                    'coordinates': new_coordinates})
+
+                messages.success(request, 'Primer successfully updated')
+
+
+                # recreate the form with the submitted data
+                new_primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+
+                new_primer = new_primer[0]
+                new_buffer = new_primer.buffer
+                new_scientist = new_primer.scientist
+                new_pcr_program = new_primer.pcr_program
+                new_coordinates = new_primer.coordinates
+
+
+                primer_name_form = Forms.PrimerNameForm(initial = model_to_dict(new_primer))
+                sequence_form = Forms.SequenceForm(initial = model_to_dict(new_primer))
+                status_form = Forms.StatusForm(initial = model_to_dict(new_primer))
+                gcpercent_form = Forms.GCPercentForm(initial = model_to_dict(new_primer))
+                tm_form = Forms.TMForm(initial = model_to_dict(new_primer))
+                length_form = Forms.LengthForm(initial = model_to_dict(new_primer))
+                comments_form = Forms.CommentsForm(initial = model_to_dict(new_primer))
+                arrival_date_form = Forms.ArrivalDateForm(initial = model_to_dict(new_primer))
+                buffer_form = Forms.BufferForm(initial = model_to_dict(new_buffer))
+                pcr_form = Forms.PCRForm(initial = model_to_dict(new_pcr_program))
+                forename_form = Forms.ScientistForenameForm(initial = model_to_dict(new_scientist))
+                surname_form = Forms.ScientistSurnameForm(initial = model_to_dict(new_scientist))
+                chrom_no_form = Forms.ChromNoForm(initial = model_to_dict(new_coordinates))
+                start_coordinate_37_form = Forms.StartCoordinate37Form(initial = model_to_dict(new_coordinates))
+                end_coordinate_37_form = Forms.EndCoordinate37Form(initial = model_to_dict(new_coordinates))
+                start_coordinate_38_form = Forms.StartCoordinate38Form(initial = model_to_dict(new_coordinates))
+                end_coordinate_38_form = Forms.EndCoordinate38Form(initial = model_to_dict(new_coordinates))
+
+
+                context_dict["primer_name_form"] = primer_name_form
+                context_dict["sequence_form"] = sequence_form
+                context_dict["status_form"] = status_form
+                context_dict["gcpercent_form"] = gcpercent_form
+                context_dict["tm_form"] = tm_form
+                context_dict["length_form"] = length_form
+                context_dict["comments_form"] = comments_form
+                context_dict["arrival_date_form"] = arrival_date_form
+                context_dict["buffer_form"] = buffer_form
+                context_dict["pcr_form"] = pcr_form
+                context_dict["forename_form"] = forename_form
+                context_dict["surname_form"] = surname_form
+                context_dict["chrom_no_form"] = chrom_no_form
+                context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+                context_dict["end_coordinate_37_form"] = end_coordinate_37_form
+                context_dict["start_coordinate_38_form"] = start_coordinate_38_form
+                context_dict["end_coordinate_38_form"] = end_coordinate_38_form
+
+                context_dict["primer"] = new_primer
+
+
+
+                # return the page with the new comment
+                return render(request, 'primer_db/edit_primer.html', context_dict)
+
+
+        # when delete button is pressed, delete current primer
+        elif request.POST.get("delete_primer"):
+            print("delete")
+            primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+            del_primer = primer[0].primer_name
+            # primer.coordinates
+            print(type(primer[0].coordinates))
+            primer[0].coordinates.delete()
+            # primer.delete()
+
             
-            new_status, created = Models.Status.objects.get_or_create(status = status)
-            print(new_status)
-            new_scientist, created = Models.Scientist.objects.get_or_create(
-                forename = forename, surname = surname)
-            new_pcr, created = Models.PCRProgram.objects.get_or_create(
-                pcr_program = pcr_program)
-            print(new_pcr)
-            new_buffer, created = Models.Buffer.objects.get_or_create(buffer = buffer)
-            print(new_buffer)
-            new_coordinates, created = Models.Coordinates.objects.get_or_create(
-                start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
-                reference = reference, chrom_no = chrom_no
-                )
-            print(new_coordinates)  
+
+            messages.success(request, 'Primer "{primer}" successfully deleted'.format(primer = del_primer))
 
 
-            new_primer =  Models.PrimerDetails.objects.create(
-                primer_name = primer_name, sequence = sequence, 
-                gc_percent = gcpercent, tm = tm, length = length,
-                comments =  comments, arrival_date = arrival_date,
-                status = new_status, scientist = new_scientist,
-                pcr_program = new_pcr, buffer = new_buffer,
-                coordinates = new_coordinates)
+            context_dict = {}
+            table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
+            print("text3")
+            # returns primer totals filtered by status
+            total_archived = Models.PrimerDetails.objects.filter(status__status__icontains="archived").count()
+            total_bank = Models.PrimerDetails.objects.filter(status__status__icontains="bank").count()
+            total_order = Models.PrimerDetails.objects.filter(status__status__icontains="order").count()
 
-            primer = Models.PrimerDetails.objects.filter(primer_name__icontains = primer_name)
-            context_dict["primer"] = primer
-            messages.success(request, 'Primers successfully updated')
+            context_dict["table"] = table
+            context_dict["total_archived"] = total_archived
+            context_dict["total_bank"] = total_bank
+            context_dict["total_order"] = total_order
+
+            RequestConfig(request, paginate={'per_page': 50}).configure(table)
+
+            return render(request, 'primer_db/index.html', context_dict)
+
+
+
+
+    else:
+        # initial view wfor form with populated data from selected primer
+        primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+
+        primer = primer[0]
+        buffer = primer.buffer
+        scientist = primer.scientist
+        pcr_program = primer.pcr_program
+        coordinates = primer.coordinates
+
+
+        primer_name_form = Forms.PrimerNameForm(initial = model_to_dict(primer))
+        sequence_form = Forms.SequenceForm(initial = model_to_dict(primer))
+        status_form = Forms.StatusForm(initial = model_to_dict(primer))
+        gcpercent_form = Forms.GCPercentForm(initial = model_to_dict(primer))
+        tm_form = Forms.TMForm(initial = model_to_dict(primer))
+        length_form = Forms.LengthForm(initial = model_to_dict(primer))
+        comments_form = Forms.CommentsForm(initial = model_to_dict(primer))
+        arrival_date_form = Forms.ArrivalDateForm(initial = model_to_dict(primer))
+        buffer_form = Forms.BufferForm(initial = model_to_dict(buffer))
+        pcr_form = Forms.PCRForm(initial = model_to_dict(pcr_program))
+        forename_form = Forms.ScientistForenameForm(initial = model_to_dict(scientist))
+        surname_form = Forms.ScientistSurnameForm(initial = model_to_dict(scientist))
+        chrom_no_form = Forms.ChromNoForm(initial = model_to_dict(coordinates))
+        start_coordinate_37_form = Forms.StartCoordinate37Form(initial = model_to_dict(coordinates))
+        end_coordinate_37_form = Forms.EndCoordinate37Form(initial = model_to_dict(coordinates))
+        start_coordinate_38_form = Forms.StartCoordinate38Form(initial = model_to_dict(coordinates))
+        end_coordinate_38_form = Forms.EndCoordinate38Form(initial = model_to_dict(coordinates))
+
+
+        context_dict["primer_name_form"] = primer_name_form
+        context_dict["sequence_form"] = sequence_form
+        context_dict["status_form"] = status_form
+        context_dict["gcpercent_form"] = gcpercent_form
+        context_dict["tm_form"] = tm_form
+        context_dict["length_form"] = length_form
+        context_dict["comments_form"] = comments_form
+        context_dict["arrival_date_form"] = arrival_date_form
+        context_dict["buffer_form"] = buffer_form
+        context_dict["pcr_form"] = pcr_form
+        context_dict["forename_form"] = forename_form
+        context_dict["surname_form"] = surname_form
+        context_dict["chrom_no_form"] = chrom_no_form
+        context_dict["start_coordinate_37_form"] = start_coordinate_37_form
+        context_dict["end_coordinate_37_form"] = end_coordinate_37_form
+        context_dict["start_coordinate_38_form"] = start_coordinate_38_form
+        context_dict["end_coordinate_38_form"] = end_coordinate_38_form
+
+        context_dict["primer"] = primer
+
+
+        return render(request, 'primer_db/edit_primer.html', context_dict)
+

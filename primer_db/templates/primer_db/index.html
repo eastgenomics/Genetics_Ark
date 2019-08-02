@@ -14,13 +14,16 @@
     {% endfor %} 
 {% endif %} 
 
-<h1>Primer Database</h1>
+<h1>Primer Database</h1></br>
 
 
-<h4>Submit new primers:</h4><a href="/primer_db/submit"><button type="button" class = "bt btn-primary">Submission form</button></a>
 
 
 <div class="row center-block">
+
+<a href="/primer_db/submit"><button type="button" class = "bt btn-primary">Submit new primers</button></a></br></br>
+
+
 
 <form type="get" action="" style="padding-top:5px;">
     <input type="text" name="var_pos" placeholder="Search variant position:">
@@ -50,7 +53,7 @@
 </br>
 
 
-<a href="/primer_db/index"><button type="button" class = "bt btn-primary">View all</button></a></br></br>
+<a href="/primer_db/"><button type="button" class = "bt btn-primary">View all</button></a></br></br>
 
 Total primers in bank: {{ total_bank }}</br>
 Total primers on order: {{ total_order }}</br>

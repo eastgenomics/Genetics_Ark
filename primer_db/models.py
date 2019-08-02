@@ -14,13 +14,13 @@ class PrimerDetails(models.Model):
 	gc_percent = models.FloatField(verbose_name='GC %')
 	tm = models.FloatField()
 	length = models.IntegerField()
-	comments = models.CharField(max_length=200)
+	comments = models.CharField(max_length=250, null=True)
 	arrival_date = models.DateField()
-	status = models.ForeignKey("Status")
-	scientist = models.ForeignKey("Scientist")
-	pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program')
-	buffer = models.ForeignKey("Buffer")
-	coordinates = models.ForeignKey("Coordinates")
+	status = models.ForeignKey("Status" )
+	scientist = models.ForeignKey("Scientist" )
+	pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program', )
+	buffer = models.ForeignKey("Buffer" )
+	coordinates = models.ForeignKey("Coordinates", on_delete=models.CASCADE)
 
         def __str__(self):
                 """String for representing the Model object."""
@@ -34,8 +34,10 @@ class PrimerDetails(models.Model):
 class Coordinates(models.Model):
 	reference = models.CharField(max_length=6)
 	chrom_no = models.CharField(max_length=2)
-	start_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 Start')
-	end_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 End')
+	start_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 Start', null=True)
+	end_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 End', null=True)
+        start_coordinate_38 = models.IntegerField(verbose_name = 'GRCh38 Start', null=True)
+        end_coordinate_38 = models.IntegerField(verbose_name = 'GRCh38 End',  null=True)
 	
 
         def __str__(self):
