@@ -11,15 +11,11 @@ from django_tables2 import RequestConfig
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 
-
-#from django_tables2.views import SingleTableMixin
-#from django_filters.views import FilterView
-#import django_filters
 import primer_db.forms as Forms
 import primer_db.models as Models
 
 
-
+# function for submitting new primers to database
 def submit(request):
     template = loader.get_template('primer_db/submit.html')
    # return render(request, 'primer_db/index.html')
@@ -27,7 +23,7 @@ def submit(request):
     context_dict = {}
 
     if request.method == "POST":
-            # data is sent
+        # data is sent
         primer_name_form = Forms.PrimerNameForm(request.POST)
         sequence_form = Forms.SequenceForm(request.POST)
         status_form = Forms.StatusForm(request.POST)
@@ -47,7 +43,7 @@ def submit(request):
 
 
 
-
+        # check if data input to each form is valid
         if (primer_name_form.is_valid() and 
             sequence_form.is_valid() and
             status_form.is_valid() and
@@ -95,6 +91,7 @@ def submit(request):
             print(reference)
             chrom_no = chrom_no_form.cleaned_data["chrom_no"]
             print(chrom_no)
+            # checks if ref 37 or 38 has been selected and selects appropriate database field
             if reference == "37":
                 print("coord37")
                 start_coordinate_37 = start_coordinate_form.cleaned_data["start_coordinate"]
@@ -114,7 +111,7 @@ def submit(request):
 
             else:
                 print("no coord")
-                pass
+                pass # needs something here although it can only be 37 or 38 since it is a choicefield
 
             print(status)
 
@@ -145,13 +142,12 @@ def submit(request):
                 pcr_program = new_pcr, buffer = new_buffer,
                 coordinates = new_coordinates)
 
-            # primer = Models.PrimerDetails.objects.filter(primer_name__icontains = primer_name)
-            # context_dict["primer"] = primer
+            # success save message passed to submit.html
             messages.success(request, 'Primers successfully saved')
         
 
 
-            # recreate the form
+            # recreate the empty form
             primer_name_form = Forms.PrimerNameForm()
             sequence_form = Forms.SequenceForm()
             status_form = Forms.StatusForm()
@@ -188,7 +184,7 @@ def submit(request):
             context_dict["end_coordinate_form"] = end_coordinate_form
 
 
-                # return the page with the new comment
+            # return the submit page
             return render(request, 'primer_db/submit.html', context_dict)
 
     else:
@@ -238,7 +234,7 @@ def index(request):
     context_dict = {}
     table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
 
-    # returns primer totals filtered by status
+    # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__status__icontains="archived").count()
     total_bank = Models.PrimerDetails.objects.filter(status__status__icontains="bank").count()
     total_order = Models.PrimerDetails.objects.filter(status__status__icontains="order").count()
@@ -249,7 +245,8 @@ def index(request):
     context_dict["total_order"] = total_order
 
 
-    # function for filtering primers by variant position within coordinates
+    # function for filtering primers by variant position within coordinates 
+    # needs also filtering by chromosome number 
     if request.method == 'GET':
 
         var_pos = request.GET.get('var_pos', None)
@@ -299,7 +296,7 @@ def index(request):
 
 
 
-# function for edit view of individual primers
+# function for edit_primer view of individual primers
 def edit_primer(request, PrimerDetails_id):
 
     context_dict = {}
@@ -335,7 +332,7 @@ def edit_primer(request, PrimerDetails_id):
             print("text")
                 # data is sent
            
-
+            # chekcs the form is valid
             if (primer_name_form.is_valid() and 
                 sequence_form.is_valid() and
                 status_form.is_valid() and
@@ -412,7 +409,7 @@ def edit_primer(request, PrimerDetails_id):
                     )
                 print(new_coordinates)  
 
-
+                # if primer is present updates, if not creates new instance in database
                 new_primer =  Models.PrimerDetails.objects.update_or_create(
                     primer_name = primer_name, 
                     defaults={
@@ -492,7 +489,7 @@ def edit_primer(request, PrimerDetails_id):
             # primer.delete()
 
             
-
+            # delete message passed to index.html after deleting
             messages.success(request, 'Primer "{primer}" successfully deleted'.format(primer = del_primer))
 
 
@@ -517,7 +514,7 @@ def edit_primer(request, PrimerDetails_id):
 
 
     else:
-        # initial view wfor form with populated data from selected primer
+        # initial view for form with populated data from selected primer
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
 
         primer = primer[0]

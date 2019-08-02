@@ -8,6 +8,7 @@
 
 <h1>Primer Database</h1>
 
+<!-- success message for updated primer being saved  -->
 {% if messages %} 
     {% for message in messages %}
     <div class="alert alert-success" role="alert">
@@ -103,7 +104,8 @@ table, td, th {
             <td>GRCh38 End coordinate:</td>
             <td>{{ end_coordinate_38_form.end_coordinate_38 }}</td>
         </tr>
-    </table></br>       
+    </table></br> 
+    <!--update and delete buttons when editing a primer  -->
     <input  type="submit" name="update_primer" value="Update primer" class = "bt btn-primary"></input>&nbsp;&nbsp;
     <input type="submit" name="delete_primer" value="Delete primer" class = "bt btn-danger" onclick="return confirm('Are you sure you want to delete the primer?')"></input>
 

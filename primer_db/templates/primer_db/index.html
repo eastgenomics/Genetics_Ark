@@ -6,6 +6,7 @@
 
 <body style="padding-top: 80px">
 
+<!-- success message when primer is deleted from edit_primer and returns to index -->
 {% if messages %} 
     {% for message in messages %}
     <div class="alert alert-success" role="alert">
@@ -24,11 +25,12 @@
 <a href="/primer_db/submit"><button type="button" class = "bt btn-primary">Submit new primers</button></a></br></br>
 
 
-
+<!-- form for primer name filter -->
 <form type="get" action="" style="padding-top:5px;">
     <input type="text" name="var_pos" placeholder="Search variant position:">
     <button id="search_submit" type="submit">Submit</button>
 </form>
+
 
 
 <form type="get" action="" style="padding-top:10px;">
@@ -37,7 +39,7 @@
 </form></br>
 
 
-
+<!-- table displaying primers in database -->
 <html>
   <head>
     <title>All primers</title>
@@ -61,106 +63,3 @@ Total primers in archived: {{ total_archived }}
 
 
 
-
-
-<!-- 
-<button type="button" class="btn btn-primary" href="/primer_db/search">View all</button>
-
-
-<h4>Search for existing primers: <a  href="/primer_db/search"><button>Search for primers</button></a></br></br> -->
-
-
-
-<!-- 
-{% for primer in primers %}
-  {{ primers }}
-{% endfor %}
-{% endblock %}
- -->
-
-
-<!--  -->
-
-
-<!-- 
-  <form action = "." method = "GET">
-        {% csrf_token %}
-        {{ primer_form.primer}}</br></br>
-    
-    <button name="search" type="submit">Search Primers</button>
-    <input type="text" name="q">
-  </form>
-
-
-</div> -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 
-     <button name="search" type="submit">
-        <i class="fa fa-search"></i>
-      </button>
-      <input class="searchfield" id="searchbox" type="text" placeholder="Search by primer name"> -->
-
-
-
-
-
-
-
-
-<!-- 
-
-
-  <form action = " " method="POST" >
-  	    {% csrf_token %}
-  	    <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
-
-  	    <tr>
-  	    	<th>
-  	   			Search: {{ search_primer.primer }}
-
-  	   		</th>
-		</tr>
-
-
-		</table>	
-
-      	<button  type="submit">Search</button>
-      	
-  </form>
-
-
-</div>
- -->

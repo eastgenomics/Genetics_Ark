@@ -3,6 +3,9 @@ from primer_db.models import PrimerDetails
 from primer_db.models import Coordinates
 from django_tables2 import A
 
+
+# table used in index view for displaying all primers
+
 class PrimerDetailsTable(tables.Table):
 
 	primer_name = tables.LinkColumn("edit_primer", args = [A('pk')])

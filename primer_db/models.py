@@ -16,6 +16,7 @@ class PrimerDetails(models.Model):
 	length = models.IntegerField()
 	comments = models.CharField(max_length=250, null=True)
 	arrival_date = models.DateField()
+        location = models.CharField(max_length=20, verbose_name='Storage location')
 	status = models.ForeignKey("Status" )
 	scientist = models.ForeignKey("Scientist" )
 	pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program', )
