@@ -3,16 +3,18 @@
 
 {% block body_block %}
 
-{% if messages %} 
-    {% for message in messages %} 
-        {{ message }} 
-    {% endfor %} 
-{% endif %} 
 
 <body style="padding-top: 80px">
 
 <h1>Primer Database</h1>
 
+{% if messages %} 
+    {% for message in messages %}
+    <div class="alert alert-success" role="alert">
+        <strong>{{ message }}</strong> 
+    </div>
+    {% endfor %} 
+{% endif %} 
 
 <h3>Editing primer: {{primer.primer_name}}</h3></br>
 
@@ -98,8 +100,11 @@ table, td, th {
             <td>{{ end_coordinate_37_form.end_coordinate_37 }}</td>
         </tr>
     </table></br>       
-    <button name="add" type="submit" type="button" class = "bt btn-primary">Update primer</button>
+    <input  type="submit" name="update_primer" value="Update primer" class = "bt btn-primary"></input>&nbsp;&nbsp;
+    <input type="submit" name="delete_primer" value="Delete primer" class = "bt btn-danger"></input>
+
 
     </form>
+
 
 {% endblock %}
