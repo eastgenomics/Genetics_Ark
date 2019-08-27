@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 import datetime
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -16,8 +17,8 @@ class PrimerDetails(models.Model):
 	length = models.IntegerField()
 	comments = models.CharField(max_length=250, null=True)
 	arrival_date = models.DateField()
-        location = models.CharField(max_length=20, verbose_name='Storage location')
-	status = models.ForeignKey("Status" )
+        location = models.CharField(max_length=20, verbose_name='Storage location', null=True)
+	status = models.ForeignKey("Status")
 	scientist = models.ForeignKey("Scientist" )
 	pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program', )
 	buffer = models.ForeignKey("Buffer" )
@@ -25,12 +26,14 @@ class PrimerDetails(models.Model):
 
         def __str__(self):
                 """String for representing the Model object."""
-                return ('{} {} {} {} {} {} {} {} {} {} {} {}'.format(
+                return ('{} {} {} {} {} {} {} {} {} {} {} {} {}'.format(
                 self.primer_name, self.sequence, self.gc_percent, self.tm,
-                self.length, self.comments, self.arrival_date, self.status, 
+                self.length, self.comments, self.arrival_date, self.location, self.status, 
                 self.scientist, self.pcr_program, self.buffer, self.coordinates)
 
                 )
+
+
 
 class Coordinates(models.Model):
 	reference = models.CharField(max_length=6)

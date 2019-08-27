@@ -73,6 +73,17 @@ table, td, th {
             <td>{{ status_form.status }}</td>
         </tr>
         <tr>
+            <td>Storage location:</td>
+            <td>{{ status_form.location}}</td>
+            <td>
+            {% if status_form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    <strong >{{ status_form.non_field_errors.0 }}</strong>
+                </div>
+            {% endif %}
+            </td>
+        </tr>
+        <tr>
             <td>Comments:</td>
             <td>{{ comments_form.comments }}</td>
         </tr>

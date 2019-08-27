@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm
 import datetime
 from .models import PrimerDetails, Coordinates, Status, Scientist, PCRProgram, Buffer 
-
+from django.core.exceptions import ValidationError
 
 class PrimerNameForm(forms.Form):
 	primer_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
@@ -34,12 +34,26 @@ class ArrivalDateForm(forms.Form):
 class StatusForm(forms.Form):
 	CHOICES = (('On order', 'On order'), ('In Bank', 'In Bank'), ('Archived', 'Archived'))
 	status = forms.ChoiceField(choices = CHOICES)
-	
+	location = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Storage Location'}))
+
+	def clean(self):
+		cd = self.cleaned_data
+		print(cd.get('status'))
+		print(cd.get('location'))
+		if cd.get('status') == "In Bank" and cd.get('location') == "":
+			print("error2")
+			raise forms.ValidationError('Location can not be blank when status is In Bank')
+			print("validation error passed")
+		return cd			
+
 class BufferForm(forms.Form):
 	buffer = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Buffer'}), initial="Buffer D")
 
 class PCRForm(forms.Form):
 	pcr_program = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'PCR Program'}))
+
+#class LocationForm(forms.Form):
+#	location = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Storage Location'}))
 
 class ScientistForenameForm(forms.Form):
 	forename = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Scientist Forename'}))
@@ -66,10 +80,10 @@ class EndCoordinateForm(forms.Form):
 	end_coordinate = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'End coordinate', 'autocomplete': 'off'}))
 	
 class StartCoordinate37Form(forms.Form):
-	start_coordinate_37 = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder':'Start coordinate', 'autocomplete': 'off'}))
+	start_coordinate_37 = forms.IntegerField(required=False, widget=forms.TextInput(attrs={'placeholder':'Start coordinate', 'autocomplete': 'off'}))
 
 class EndCoordinate37Form(forms.Form):
-	end_coordinate_37 = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder':'End coordinate', 'autocomplete': 'off'}))
+	end_coordinate_37 = forms.IntegerField(required=False, widget=forms.TextInput(attrs={'placeholder':'End coordinate', 'autocomplete': 'off'}))
 
 class StartCoordinate38Form(forms.Form):
 	start_coordinate_38 = forms.IntegerField(required=False, widget=forms.TextInput(attrs={'placeholder':'Start coordinate', 'autocomplete': 'off'}))

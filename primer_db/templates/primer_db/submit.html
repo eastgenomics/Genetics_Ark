@@ -81,6 +81,17 @@ table, td, th {
             <td>{{ status_form.status }}</td>
         </tr>
         <tr>
+            <td>Storage location:</td>
+            <td>{{ status_form.location}}</td>
+            <td>
+            {% if status_form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ status_form.non_field_errors.0 }}</> 
+                </div>
+            {% endif %}
+            </td>
+        </tr>
+        <tr>
             <td>Comments:</td>
             <td>{{ comments_form.comments }}</td>
         </tr>
@@ -110,8 +121,11 @@ table, td, th {
         </tr>
     </table></br>       
     <button  type="submit" name = "submit" class = "bt btn-primary">Submit primer</button>
+    <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
 
     </form>
+
+
 
 
 {% endblock %}

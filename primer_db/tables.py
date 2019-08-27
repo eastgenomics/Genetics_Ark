@@ -24,11 +24,11 @@ class PrimerDetailsTable(tables.Table):
 
 		fields = ('primer_name', 'sequence', 'gc_percent', 'tm', 
 					'length', 'comments', 'arrival_date', 'status',
-					'scientist', 'pcr_program', 'buffer')
+					'scientist', 'pcr_program', 'buffer', 'location')
 
 		sequence = ('primer_name', 'sequence', 'gc_percent', 'length', 
 					'tm', 'chrom_no', 'start37', 'end37','start38', 'end38', 'buffer', 
-					'pcr_program', 'scientist', 'arrival_date', 'status', 'comments')
+					'pcr_program', 'scientist', 'arrival_date', 'location', 'status', 'comments')
 
 		exclude = ('reference',)
 
