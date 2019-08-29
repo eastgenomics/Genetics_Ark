@@ -19,6 +19,7 @@
 
 <h3>Editing primer: {{primer.primer_name}}</h3></br>
 
+
 <html>
 <head>
 <style>
@@ -78,7 +79,7 @@ table, td, th {
             <td>
             {% if status_form.non_field_errors %}
                 <div class="alert alert-danger" role="alert">
-                    <strong >{{ status_form.non_field_errors.0 }}</strong>
+                    <strong>{{ status_form.non_field_errors.0 }}</strong>
                 </div>
             {% endif %}
             </td>

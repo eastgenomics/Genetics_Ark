@@ -7,6 +7,8 @@
 <body style="padding-top: 80px">
 
 <!-- success message when primer is deleted from edit_primer and returns to index -->
+
+
 {% if messages %} 
     {% for message in messages %}
     <div class="alert alert-success" role="alert">
@@ -14,6 +16,7 @@
     </div>
     {% endfor %} 
 {% endif %} 
+
 
 <h1>Primer Database</h1></br>
 
@@ -64,10 +67,11 @@
   </select></br>
     <input type="text" name="var_pos" placeholder="Search variant position:">
     <button id="search_submit" type="submit">Submit</button>
-</form>
+</form></br>
 
-
-
+{% if var_pos and chrom_no %}
+  Showing results for position {{ var_pos }} on chromosome {{ chrom_no}} </br></br>
+{% endif %}
 <!-- table displaying primers in database -->
 <html>
   <head>
