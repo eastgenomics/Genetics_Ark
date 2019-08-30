@@ -33,21 +33,33 @@
         <th>
           Filter per gene: {{ gene_form.gene }}
           {% if gene_form.non_field_errors %}
-            {{ gene_form.non_field_errors.0 }}
+            <br>
+            <br>
+            <div class="alert alert-danger" role="alert">
+              {{ gene_form.non_field_errors.0 }}</> 
+            </div>
           {% endif %}
         </th>
       </tr>
         <th>
           Filter per sample: {{ sample_form.sample }}
           {% if sample_form.non_field_errors %}
-            {{ sample_form.non_field_errors.0 }}
+            <br>
+            <br>
+            <div class="alert alert-danger" role="alert">
+              {{ sample_form.non_field_errors.0 }}</> 
+            </div>
           {% endif %}
         </th>
       </tr>
         <th>
           Filter per position: {{ position_form.position }}
           {% if position_form.non_field_errors %}
-            {{ position_form.non_field_errors.0 }}
+            <br>
+            <br>
+            <div class="alert alert-danger" role="alert">
+              {{ position_form.non_field_errors.0 }}</> 
+            </div>
           {% endif %}          
         </th>
       </tr>

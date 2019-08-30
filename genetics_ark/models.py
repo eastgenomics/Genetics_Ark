@@ -91,7 +91,6 @@ class CNV(models.Model):
     def get_samples(self):
         """ Function to get samples and their number for a given CNV
 
-        - go to the DeconCNV to get decons
         - use the decon instances to get the samples
         """
 

@@ -1116,7 +1116,6 @@ def filter_cnvs(request, decon, gene = None, sample = None, position = None):
             decon_sample = Models.DeconAnalysis.objects.none()
 
     else:
-        sample_object = None
         decon_sample = Models.DeconAnalysis.objects.none()
 
     # looking for cnvs at that position

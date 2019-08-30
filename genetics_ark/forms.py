@@ -69,11 +69,11 @@ class FilterSampleForm(forms.Form):
         sample_name = self.cleaned_data['sample']
 
         if sample_name:
-            if re.match("^[a-zA-Z0-9]*$", sample_name):
+            if re.match("^[XGWIC][0-9]*$", sample_name):
                 sample_name = sample_name.strip().upper()
 
             else:
-                raise forms.ValidationError("Invalid gene name, should not contain special characters!")
+                raise forms.ValidationError("Invalid sample name!")
 
         return sample_name
 
