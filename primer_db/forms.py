@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 class PrimerNameForm(forms.Form):
 	primer_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
-
+	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
 
 class SequenceForm(forms.Form):
 	sequence = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer sequence', 'autocomplete': 'off'}))

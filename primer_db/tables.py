@@ -22,11 +22,11 @@ class PrimerDetailsTable(tables.Table):
 		attrs = {"class": "paleblue"}
 		template_name = 'django_tables2/bootstrap.html'
 
-		fields = ('primer_name', 'sequence', 'gc_percent', 'tm', 
+		fields = ('primer_name', 'gene', 'sequence', 'gc_percent', 'tm', 
 					'length', 'comments', 'arrival_date', 'status',
 					'scientist', 'pcr_program', 'buffer', 'location')
 
-		sequence = ('primer_name', 'sequence', 'gc_percent', 'length', 
+		sequence = ('primer_name', 'gene', 'sequence', 'gc_percent', 'length', 
 					'tm', 'chrom_no', 'start37', 'end37','start38', 'end38', 'buffer', 
 					'pcr_program', 'scientist', 'arrival_date', 'location', 'status', 'comments')
 

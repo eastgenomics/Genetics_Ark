@@ -68,7 +68,8 @@ def submit(request):
 
 
             # the form is valid
-            primer_name = primer_name_form.cleaned_data["primer_name"] 
+            primer_name = primer_name_form.cleaned_data["primer_name"]
+            gene = primer_name_form.cleaned_data["gene"].upper() 
             sequence = sequence_form.cleaned_data["sequence"]
             status = status_form.cleaned_data["status"]
             gc_percent = gcpercent_form.cleaned_data["gc_percent"]
@@ -125,7 +126,7 @@ def submit(request):
                 )
 
             new_primer =  Models.PrimerDetails.objects.create(
-                primer_name = primer_name, sequence = sequence, 
+                primer_name = primer_name, gene = gene, sequence = sequence, 
                 gc_percent = gc_percent, tm = tm, length = length,
                 comments =  comments, arrival_date = arrival_date,
                 location = location,status = new_status, 
@@ -356,7 +357,8 @@ def edit_primer(request, PrimerDetails_id):
                 ):
                 print("update form is valid")
                 # the form is valid
-                primer_name = primer_name_form.cleaned_data["primer_name"] 
+                primer_name = primer_name_form.cleaned_data["primer_name"]
+                gene = primer_name_form.cleaned_data["gene"] 
                 sequence = sequence_form.cleaned_data["sequence"]
                 status = status_form.cleaned_data["status"]
                 gcpercent = gcpercent_form.cleaned_data["gc_percent"]
@@ -398,7 +400,7 @@ def edit_primer(request, PrimerDetails_id):
                 new_primer =  Models.PrimerDetails.objects.update_or_create(
                     primer_name = primer_name, 
                     defaults={
-                    'sequence': sequence, 
+                    'gene' : gene, 'sequence': sequence, 
                     'gc_percent': gcpercent, 'tm': tm, 'length': length,
                     'comments':  comments, 'arrival_date': arrival_date,
                     'location': location, 'status': new_status, 
@@ -443,7 +445,7 @@ def edit_primer(request, PrimerDetails_id):
                 context_dict["end_coordinate_37_form"] = end_coordinate_37_form
                 context_dict["start_coordinate_38_form"] = start_coordinate_38_form
                 context_dict["end_coordinate_38_form"] = end_coordinate_38_form
-                context_dict["primer"] = primer
+                context_dict["primer"] = primer # needed to display primer name on page
                 print("else")
 
                 return render(request, 'primer_db/edit_primer.html', context_dict)

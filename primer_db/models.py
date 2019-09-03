@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 
 class PrimerDetails(models.Model):
 	primer_name = models.CharField(unique=True, max_length=50)
+        gene = models.CharField(max_length=15)
 	sequence = models.CharField(max_length=100)
 	gc_percent = models.FloatField(verbose_name='GC %')
 	tm = models.FloatField()
