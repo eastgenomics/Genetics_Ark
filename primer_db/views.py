@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.template import loader
 from django.views.generic.edit import FormView
 from django.contrib import messages
@@ -420,7 +421,9 @@ def edit_primer(request, PrimerDetails_id):
 
                 print("view")
                
-                return index(request)
+                #return render('primer_db/index.html', context_dict)
+                return  redirect('/primer_db/')
+
 
             else:
                 # initial view for form with populated data from selected primer
