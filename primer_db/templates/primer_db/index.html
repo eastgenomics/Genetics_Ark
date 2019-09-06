@@ -21,17 +21,21 @@
 <h1>Primer Database</h1></br>
 
 
-
-
 <div class="row center-block">
 
-<a href="/primer_db/submit"><button type="button" class = "bt btn-primary">Submit new primers</button></a></br></br>
+<a href="/primer_db/submit"><button type="button" class = "bt btn-primary">Submit single primer</button></a>
 
+<a href="/primer_db/submit_pair"><button type="button" class = "bt btn-primary">Submit primer pair</button></a></br></br>
 
 <!-- form for primer name filter -->
 
 <form type="get" action="" style="padding-top:10px;">
-    <input type="text" name="name_filter" placeholder="Search primer name:">
+    <input type="text" name="name_filter" placeholder="Search primer name">
+    <button id="search_submit" type="submit">Submit</button>
+</form></br>
+
+<form type="get" action="" style="padding-top:10px;">
+    <input type="text" name="gene_filter" placeholder="Search exact gene name">
     <button id="search_submit" type="submit">Submit</button>
 </form></br>
 

@@ -24,6 +24,7 @@ class PrimerDetails(models.Model):
 	pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program', )
 	buffer = models.ForeignKey("Buffer" )
 	coordinates = models.ForeignKey("Coordinates", on_delete=models.CASCADE)
+        pairs = models.ForeignKey("Pairs")
 
         def __str__(self):
                 """String for representing the Model object."""
@@ -33,7 +34,6 @@ class PrimerDetails(models.Model):
                 self.scientist, self.pcr_program, self.buffer, self.coordinates)
 
                 )
-
 
 
 class Coordinates(models.Model):
@@ -50,6 +50,10 @@ class Coordinates(models.Model):
                 return '{} {} {} {}'.format(self.reference, self.chrom_no, 
                 	self.start_coordinate_37, self.end_coordinate_37)
 
+
+class Pairs(models.Model):
+        coverage_37 = models.CharField(max_length = 50, verbose_name = 'GRCh37 Coverage', null = True)
+        coverage_38 = models.CharField(max_length = 50, verbose_name = 'GRCh38 Coverage', null = True)
 
 
 class Status(models.Model):

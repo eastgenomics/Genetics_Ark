@@ -11,7 +11,7 @@ urlpatterns = [
 
                url(r'^submit/$', views.submit, name = 'submit'),
 
-               url(r'^submit/$', views.submit_pair, name = 'submit'),
+               url(r'^submit_pair/$', views.submit_pair, name = 'submit'),
 
               
                url(r'^edit_primer/(?P<PrimerDetails_id>[0-9]+)/$', views.edit_primer, name = 'edit_primer')
