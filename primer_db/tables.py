@@ -25,10 +25,10 @@ class PrimerDetailsTable(tables.Table):
 		template_name = 'django_tables2/bootstrap.html'
 
 		fields = ('primer_name', 'gene', 'sequence', 'gc_percent', 'tm', 
-					'length', 'comments', 'arrival_date', 'status',
+					'comments', 'arrival_date', 'status',
 					'scientist', 'pcr_program', 'buffer', 'location')
 
-		sequence = ('primer_name', 'gene', 'sequence', 'gc_percent', 'length', 
+		sequence = ('primer_name', 'gene', 'sequence', 'gc_percent', 
 					'tm', 'chrom_no', 'buffer', 'coverage37', 'coverage38', 
 					'pcr_program', 'scientist', 'arrival_date', 'location', 'status', 'comments')
 

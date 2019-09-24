@@ -12,6 +12,7 @@ from django_tables2 import RequestConfig
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ValidationError
+import re
 
 import primer_db.forms as Forms
 import primer_db.models as Models
@@ -43,14 +44,41 @@ def index(request):
         context_dict["var_pos"] = var_pos
         context_dict["chrom_no"] = chrom_no
 
+
+        primers37_id = []
+        primers38_id = []
+
+
         if var_pos:
             
-            primers37 = Models.PrimerDetails.objects.filter(coordinates__start_coordinate_37__lte=var_pos, 
-                coordinates__end_coordinate_37__gte=var_pos).filter(coordinates__chrom_no=chrom_no)
-            primers38 = Models.PrimerDetails.objects.filter(coordinates__start_coordinate_38__lte=var_pos, 
-                coordinates__end_coordinate_38__gte=var_pos).filter(coordinates__chrom_no=chrom_no)
+            var_pos = int(var_pos)
 
-            #chrom_no = Models.PrimerDetails.objects.filter(coordinates__chrom_no=chrom_no)
+            chrom_list = Models.PrimerDetails.objects.filter(coordinates__chrom_no = chrom_no).values_list(
+                'id', 'pairs__coverage_37', 'pairs__coverage_38', 'coordinates__chrom_no')
+
+
+            for row in chrom_list:
+                
+                
+                start_37 = int(re.search(r":(\d+)", row[1]).group().strip(":"))
+                end_37 = int(re.search(r"\+(\d+)", row[1]).group().strip("+"))
+
+                start_38 = int(re.search(r":(\d+)", row[2]).group().strip(":"))
+                end_38 = int(re.search(r"\+(\d+)", row[2]).group().strip("+"))
+               
+                if start_37 < var_pos < end_37:
+                    primers37_id.append(row[0])
+
+                if start_38 < var_pos < end_38:
+                    primers38_id.append(row[0])
+
+
+            primers37 = Models.PrimerDetails.objects.filter(pk__in=primers37_id)
+            primers38 = Models.PrimerDetails.objects.filter(pk__in=primers38_id)
+            print(primers38)
+
+
+            print(primers37)
 
 
             #context_dict["chrom_no"] = chrom_no
@@ -96,11 +124,11 @@ def index(request):
         
         
         if gene_filter:
-            gene_name = Models.PrimerDetails.objects.filter(gene = gene_name)
+            gene_name = Models.PrimerDetails.objects.filter(gene = gene_filter)
             context_dict["gene_name"] = gene_name
             print(gene_name)
 
-            table = PrimerDetailsTable(primer_names)
+            table = PrimerDetailsTable(gene_name)
             RequestConfig(request, paginate={'per_page': 50}).configure(table)
 
             context_dict["table"] = table
@@ -164,7 +192,7 @@ def submit(request):
             status = status_form.cleaned_data["status"]
             gc_percent = primer_form.cleaned_data["gc_percent"]
             tm = primer_form.cleaned_data["tm"]
-            length = primer_form.cleaned_data["length"]
+            #length = primer_form.cleaned_data["length"]
             comments = primer_form.cleaned_data["comments"]
             arrival_date = arrival_date_form.cleaned_data["arrival_date"]
             buffer = primer_form.cleaned_data["buffer"].capitalize()
@@ -212,7 +240,7 @@ def submit(request):
 
             new_primer =  Models.PrimerDetails.objects.create(
                 primer_name = primer_name, gene = gene, sequence = sequence, 
-                gc_percent = gc_percent, tm = tm, length = length,
+                gc_percent = gc_percent, tm = tm,
                 comments =  comments, arrival_date = arrival_date,
                 location = location,status = new_status, 
                 scientist = new_scientist,pcr_program = new_pcr, 
@@ -303,7 +331,7 @@ def edit_primer(request, PrimerDetails_id):
                 status = status_form.cleaned_data["status"]
                 gcpercent = primer_form.cleaned_data["gc_percent"]
                 tm = primer_form.cleaned_data["tm"]
-                length = primer_form.cleaned_data["length"]
+                #length = primer_form.cleaned_data["length"]
                 comments = primer_form.cleaned_data["comments"]
                 arrival_date = primer_form.cleaned_data["arrival_date"]
                 buffer = primer_form.cleaned_data["buffer"].capitalize()
@@ -341,7 +369,7 @@ def edit_primer(request, PrimerDetails_id):
                     primer_name = primer_name, 
                     defaults={
                     'gene' : gene, 'sequence': sequence, 
-                    'gc_percent': gcpercent, 'tm': tm, 'length': length,
+                    'gc_percent': gcpercent, 'tm': tm,
                     'comments':  comments, 'arrival_date': arrival_date,
                     'location': location, 'status': new_status, 
                     'scientist': new_scientist,'pcr_program': new_pcr, 
@@ -422,7 +450,7 @@ def edit_primer(request, PrimerDetails_id):
         'gene' : primer.gene,
         'gc_percent' : primer.gc_percent,
         'tm' : primer.tm,
-        'length' : primer.length,
+        #'length' : primer.length,
         'comments' : primer.comments,
         'buffer' : primer.buffer,
         'pcr_program' : primer.pcr_program,
@@ -504,7 +532,7 @@ def submit_pair(request):
             status1 = status_form1.cleaned_data["status"]
             gc_percent1 = primer_form1.cleaned_data["gc_percent"]
             tm1 = primer_form1.cleaned_data["tm"]
-            length1 = primer_form1.cleaned_data["length"]
+            #length1 = primer_form1.cleaned_data["length"]
             comments1 = primer_form1.cleaned_data["comments"]
             arrival_date1 = arrival_date_form1.cleaned_data["arrival_date"]
             buffer1 = primer_form1.cleaned_data["buffer"].capitalize()
@@ -521,7 +549,7 @@ def submit_pair(request):
             status2 = status_form2.cleaned_data["status"]
             gc_percent2 = primer_form2.cleaned_data["gc_percent"]
             tm2 = primer_form2.cleaned_data["tm"]
-            length2 = primer_form2.cleaned_data["length"]
+            #length2 = primer_form2.cleaned_data["length"]
             comments2 = primer_form2.cleaned_data["comments"]
             arrival_date2 = arrival_date_form2.cleaned_data["arrival_date"]
             buffer2 = primer_form2.cleaned_data["buffer"].capitalize()
@@ -593,7 +621,7 @@ def submit_pair(request):
 
             new_primer1 =  Models.PrimerDetails.objects.create(
                 primer_name = primer_name1, gene = gene1, sequence = sequence1, 
-                gc_percent = gc_percent1, tm = tm1, length = length1,
+                gc_percent = gc_percent1, tm = tm1, 
                 comments =  comments1, arrival_date = arrival_date1,
                 location = location1,status = new_status1, 
                 scientist = new_scientist1,pcr_program = new_pcr1, 
@@ -622,7 +650,7 @@ def submit_pair(request):
 
             new_primer2 =  Models.PrimerDetails.objects.create(
                 primer_name = primer_name2, gene = gene2, sequence = sequence2, 
-                gc_percent = gc_percent2, tm = tm2, length = length2,
+                gc_percent = gc_percent2, tm = tm2,
                 comments =  comments2, arrival_date = arrival_date2,
                 location = location2,status = new_status2, 
                 scientist = new_scientist2,pcr_program = new_pcr2, 

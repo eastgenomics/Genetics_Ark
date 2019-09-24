@@ -15,7 +15,6 @@ class PrimerDetails(models.Model):
 	sequence = models.CharField(max_length=100)
 	gc_percent = models.FloatField(verbose_name='GC %')
 	tm = models.FloatField()
-	length = models.IntegerField()
 	comments = models.CharField(max_length=250, null=True)
 	arrival_date = models.DateField()
         location = models.CharField(max_length=20, verbose_name='Storage location', null=True)
@@ -28,9 +27,9 @@ class PrimerDetails(models.Model):
 
         def __str__(self):
                 """String for representing the Model object."""
-                return ('{} {} {} {} {} {} {} {} {} {} {} {} {}'.format(
+                return ('{} {} {} {} {} {} {} {} {} {} {} {}'.format(
                 self.primer_name, self.sequence, self.gc_percent, self.tm,
-                self.length, self.comments, self.arrival_date, self.location, self.status, 
+                self.comments, self.arrival_date, self.location, self.status, 
                 self.scientist, self.pcr_program, self.buffer, self.coordinates)
 
                 )
@@ -54,6 +53,9 @@ class Coordinates(models.Model):
 class Pairs(models.Model):
         coverage_37 = models.CharField(max_length = 50, verbose_name = 'GRCh37 Coverage', null = True)
         coverage_38 = models.CharField(max_length = 50, verbose_name = 'GRCh38 Coverage', null = True)
+        #length = models.IntegerField()
+
+        
 
 
 class Status(models.Model):

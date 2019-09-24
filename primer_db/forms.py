@@ -9,7 +9,7 @@ class PrimerForm(forms.Form):
 	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
 	gc_percent = forms.FloatField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
 	tm = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter melting temp', 'autocomplete': 'off'}))
-	length = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter sequence length', 'autocomplete': 'off'}))
+	# length = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter sequence length', 'autocomplete': 'off'}))
 	comments = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Other comments'}))
 	buffer = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Buffer'}), initial="Buffer D")
 	pcr_program = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'PCR Program'}), initial = "TD65_55")	
