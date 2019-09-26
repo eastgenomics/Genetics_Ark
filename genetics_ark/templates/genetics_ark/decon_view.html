@@ -7,7 +7,7 @@
 <h2>Decon run: <a href = {% url 'decon_view' decon.id %}>{{ decon.name }}</a></h2></br>
 
 <div class="col-sm1">
-  <div float: left;">
+  <div>
     <table border=0 cellpadding="2" cellspacing="2" class="table table-condensed">
 
       <tr>
@@ -17,7 +17,7 @@
         <th>Date:</th><td>{{ decon.date }}</td>
       </tr>
       <tr>
-        <th>Target file and ref</th><td>"{{ bedfile }}" from {{ ref }}</td>
+        <th>Target file and ref:</th><td>"{{ bedfile }}" from {{ ref }}</td>
       </tr>
 
     </table>
