@@ -39,6 +39,7 @@ else:
     ALLOWED_HOSTS = ['login01']
     ALLOWED_HOSTS = ['ga.ctrulab.uk']
     ALLOWED_HOSTS = ['127.0.0.1']
+    ALLOWED_HOSTS = ['10.212.75.208']
 
 # Application definition
 

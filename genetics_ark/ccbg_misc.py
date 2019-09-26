@@ -46,9 +46,9 @@ def svg_perc_coverage(perc):
     colour_value = 0
     MIN_VALUE = 79
     if ( perc >= MIN_VALUE ):
-        print perc
+        print(perc)
         colour_value = ( (100 - MIN_VALUE) - ( 100.0-perc ) ) /(100 - MIN_VALUE)*100
-        print colour_value
+        print(colour_value)
         
 
     hue = colour_value*0.35/100
@@ -83,13 +83,14 @@ def svg_boxplot( data, current=None):
     HEIGHT_DRAW = HEIGHT - 2*MARGIN
     MID_HEIGHT  = HEIGHT/2
 
+    print(data)
 
     data = sorted( data )
     mean = sum(data)/len(data)
     q0   = min( data )
-    q1   = data[ len(data)/4 ]
-    q2   = data[ len(data)/2 ]
-    q3   = data[ len(data)*3/4 ]
+    q1   = data[ int(len(data)/4) ]
+    q2   = data[ int(len(data)/2) ]
+    q3   = data[ int(len(data)*3/4) ]
     q4   = max( data )
     range = q4 - q0
 
@@ -136,7 +137,7 @@ def svg_boxplot( data, current=None):
 
 
 def is_a_number( value ):
-    if ( type(value) is not float and  type(value) is not int and type(value) is not long ):
+    if ( type(value) is not float and  type(value) is not int ):
         return False
 
     return True
@@ -145,7 +146,7 @@ def is_a_number( value ):
 
 def readable_number( value ):    
 
-    if ( type( value ) is not int and type( value ) is not long and type( value ) is not float):
+    if ( type( value ) is not int and type( value ) is not float):
         return value
 
     if (value > 1000000000):

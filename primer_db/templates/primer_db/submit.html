@@ -14,7 +14,7 @@
     {% endfor %} 
 {% endif %} 
 
-<body style="padding-top: 80px">
+<body style="padding-top: 80px; padding-left: 80px">
 
 <h1>Primer Database</h1>
 
@@ -58,14 +58,14 @@ table, td, th {
                         <td> Sequence:</td>
                         <td>{{ sequence_form.sequence }} </td>
                     </tr>
-                    <tr>
+<!--                     <tr>
                         <td>GC %: </td>
                         <td>{{ primer_form.gc_percent }} </td>
                     </tr>
                     <tr>
                         <td>Tm: </td>
                         <td>{{ primer_form.tm }} </td>
-                    </tr>
+                    </tr> -->
                    <!--  <tr>
                         <td>Length: </td>
                         <td>{{ primer_form.length }} </td>
@@ -109,7 +109,7 @@ table, td, th {
                         <td><p>Surname:</td>
                         <td>{{ primer_form.surname }}</td>
                     </tr>
-                    <tr>
+<!--                     <tr>
                         <td>Chromosome no.:</td>
                         <td>{{ chrom_no_form.chrom_no }}</td>
                     </tr>
@@ -124,7 +124,7 @@ table, td, th {
                     <tr>
                         <td>End coordinate:</td>
                         <td>{{ submit_coordinate_form.end_coordinate }}</td>
-                    </tr>
+                    </tr> -->
                 </table></br>       
                 <button  type="submit" name = "submit" class = "bt btn-primary">Submit primer</button>
                 <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
