@@ -8,8 +8,11 @@ from django_tables2 import A
 
 class PrimerDetailsTable(tables.Table):
 
+
+
 	primer_name = tables.LinkColumn("edit_primer", args = [A('pk')])
 	tm = tables.Column()
+	status = tables.Column()
 	reference = tables.Column(accessor = "coordinates.reference")
 	chrom_no = tables.Column(accessor = "coordinates.chrom_no")
 	coverage37 = tables.Column(accessor = "pairs.coverage_37")
@@ -22,6 +25,17 @@ class PrimerDetailsTable(tables.Table):
 	
 	def render_tm(tm, value):
 		return '{:0.2f}'.format(value)
+
+
+	def render_status(status, value, column):
+		if str(value) == "Archived":
+			column.attrs = {'td': {'bgcolor': 'red'}}
+		elif str(value) == "On Order":
+			column.attrs = {'td': {'bgcolor': 'orange'}}
+		else:
+			column.attrs = {'td': {}}
+		return value
+
 
 	class Meta:	
 
@@ -41,6 +55,6 @@ class PrimerDetailsTable(tables.Table):
 
 		exclude = ('reference','start37', 'end37','start38', 'end38')
 
-		
+		row_attrs = { 'data-status': lambda record: record.status}
 
 

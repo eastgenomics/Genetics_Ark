@@ -28,7 +28,7 @@ class StatusLocationForm(forms.Form):
 	CHOICES = (('On order', 'On order'), ('In Bank', 'In Bank'), ('Archived', 'Archived'))
 	status = forms.ChoiceField(choices = CHOICES)
 	location = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Storage Location'}))
-
+  
 	# checks if status is in bank and raises validation error if no location is input
 	def clean(self):
 		cd = self.cleaned_data

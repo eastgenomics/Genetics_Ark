@@ -27,16 +27,22 @@ import primer_mapper
 
 def mapper1(primer_seq1, gene, ref):
 
-    coverage37, primer1_start37, primer1_end37, primer2_start37, primer2_end37, gene_chrom = primer_mapper.main(primer_seq1, gene, ref)
+    res = primer_mapper.main(primer_seq1, gene, ref)
 
-    return primer1_start37, primer1_end37, gene_chrom 
+    print("gene: ", gene)
+
+    primer1_start = res[1]
+    primer1_end = res[2]
+    gene_chrom = res[5]
+
+    return primer1_start, primer1_end, gene_chrom 
 
 
 def mapper2(primer_seq1, gene, ref, primer_2):
 
     primer_mapper.main(primer_seq1, gene, ref, primer_2)
 
-    return coverage, primer1_start, primer1_end, primer2_start, primer2_end
+    return coverage, primer1_start, primer1_end, primer2_start, primer2_end, gene_chrom
 
 
 def gc_calculate(sequence):
@@ -271,6 +277,14 @@ def submit(request):
 
             new_buffer, created = Models.Buffer.objects.get_or_create(buffer = buffer)
 
+            test = Models.Coordinates.objects.get_or_create(
+                start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
+                start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
+                chrom_no = gene_chrom
+                )
+
+            print(test)
+
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
                 start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
                 start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
@@ -304,8 +318,8 @@ def submit(request):
             context_dict["status_form"] = status_form
             context_dict["arrival_date_form"] = arrival_date_form
             #context_dict["reference_form"] = reference_form
-            context_dict["chrom_no_form"] = chrom_no_form
-            context_dict["submit_coordinate_form"] = submit_coordinate_form
+            #context_dict["chrom_no_form"] = chrom_no_form
+            #context_dict["submit_coordinate_form"] = submit_coordinate_form
 
 
             # return the submit page
@@ -539,46 +553,47 @@ def submit_pair(request):
         sequence_form1 = Forms.SequenceForm(request.POST, prefix= "sequence_form1")
         status_form1 = Forms.StatusLocationForm(request.POST, prefix = "status_form1")
         arrival_date_form1 = Forms.ArrivalDateForm(request.POST, prefix = "arrival_date_form1")
-        reference_form1 = Forms.ReferenceForm(request.POST, prefix = "reference_form1")
-        chrom_no_form1 = Forms.ChromNoForm(request.POST, prefix = "chrom_no_form1")
-        submit_coordinate_form1 = Forms.SubmitCoordinateForm(request.POST, prefix = "submit_coordinate_form1")
+        #reference_form1 = Forms.ReferenceForm(request.POST, prefix = "reference_form1")
+        #chrom_no_form1 = Forms.ChromNoForm(request.POST, prefix = "chrom_no_form1")
+        #submit_coordinate_form1 = Forms.SubmitCoordinateForm(request.POST, prefix = "submit_coordinate_form1")
 
         primer_form2 = Forms.PrimerForm(request.POST, prefix="primer_form2")
         sequence_form2 = Forms.SequenceForm(request.POST, prefix = "sequence_form2")
         status_form2 = Forms.StatusLocationForm(request.POST, prefix = "status_form2")
         arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix = "arrival_date_form2")
-        reference_form2 = Forms.ReferenceForm(request.POST, prefix = "reference_form2")
-        chrom_no_form2 = Forms.ChromNoForm(request.POST, prefix = "chrom_no_form2")
-        submit_coordinate_form2 = Forms.SubmitCoordinateForm(request.POST, prefix = "submit_coordinate_form2")
+        #reference_form2 = Forms.ReferenceForm(request.POST, prefix = "reference_form2")
+        #chrom_no_form2 = Forms.ChromNoForm(request.POST, prefix = "chrom_no_form2")
+        #submit_coordinate_form2 = Forms.SubmitCoordinateForm(request.POST, prefix = "submit_coordinate_form2")
 
-        print(primer_form1, primer_form2)
+        #print(primer_form1, primer_form2)
 
         # check if data input to each form is valid
         if (primer_form1.is_valid() and 
             sequence_form1.is_valid() and
             status_form1.is_valid() and
             arrival_date_form1.is_valid() and
-            reference_form1.is_valid() and
-            chrom_no_form1.is_valid() and
-            submit_coordinate_form1.is_valid() and
+            # reference_form1.is_valid() and
+            # chrom_no_form1.is_valid() and
+            # submit_coordinate_form1.is_valid() and
 
             primer_form2.is_valid() and 
             sequence_form2.is_valid() and
             status_form2.is_valid() and
-            arrival_date_form2.is_valid() and
-            reference_form2.is_valid() and
-            chrom_no_form2.is_valid() and
-            submit_coordinate_form2.is_valid()
+            arrival_date_form2.is_valid()
+            # reference_form2.is_valid() and
+            # chrom_no_form2.is_valid() and
+            # submit_coordinate_form2.is_valid()
             ):
             print("pair data valid")
+
 
             # the form is valid
             primer_name1 = primer_form1.cleaned_data["primer_name"]
             gene1 = primer_form1.cleaned_data["gene"].upper() 
             sequence1 = sequence_form1.cleaned_data["sequence"]
             status1 = status_form1.cleaned_data["status"]
-            gc_percent1 = primer_form1.cleaned_data["gc_percent"]
-            tm1 = primer_form1.cleaned_data["tm"]
+            #gc_percent1 = primer_form1.cleaned_data["gc_percent"]
+            #tm1 = primer_form1.cleaned_data["tm"]
             #length1 = primer_form1.cleaned_data["length"]
             comments1 = primer_form1.cleaned_data["comments"]
             arrival_date1 = arrival_date_form1.cleaned_data["arrival_date"]
@@ -586,16 +601,17 @@ def submit_pair(request):
             pcr_program1 = primer_form1.cleaned_data["pcr_program"]
             forename1 = primer_form1.cleaned_data["forename"].capitalize()
             surname1 = primer_form1.cleaned_data["surname"].capitalize()
-            reference1 = reference_form1.cleaned_data["reference"]
-            chrom_no1 = chrom_no_form1.cleaned_data["chrom_no"]
+            #reference1 = reference_form1.cleaned_data["reference"]
+            #chrom_no1 = chrom_no_form1.cleaned_data["chrom_no"]
             location1 = status_form1.cleaned_data["location"]
+
 
             primer_name2 = primer_form2.cleaned_data["primer_name"]
             gene2 = primer_form2.cleaned_data["gene"].upper() 
             sequence2 = sequence_form2.cleaned_data["sequence"]
             status2 = status_form2.cleaned_data["status"]
-            gc_percent2 = primer_form2.cleaned_data["gc_percent"]
-            tm2 = primer_form2.cleaned_data["tm"]
+            #gc_percent2 = primer_form2.cleaned_data["gc_percent"]
+            #tm2 = primer_form2.cleaned_data["tm"]
             #length2 = primer_form2.cleaned_data["length"]
             comments2 = primer_form2.cleaned_data["comments"]
             arrival_date2 = arrival_date_form2.cleaned_data["arrival_date"]
@@ -603,47 +619,75 @@ def submit_pair(request):
             pcr_program2 = primer_form2.cleaned_data["pcr_program"]
             forename2 = primer_form2.cleaned_data["forename"].capitalize()
             surname2 = primer_form2.cleaned_data["surname"].capitalize()
-            reference2 = reference_form2.cleaned_data["reference"]
-            chrom_no2 = chrom_no_form2.cleaned_data["chrom_no"]
+            #reference2 = reference_form2.cleaned_data["reference"]
+           # chrom_no2 = chrom_no_form2.cleaned_data["chrom_no"]
             location2 = status_form2.cleaned_data["location"]
 
 
-            # checks if ref 37 or 38 has been selected and selects appropriate database field
-            if reference1 == "37":
 
-                start_coordinate_37_1 = submit_coordinate_form1.cleaned_data["start_coordinate"]
-                end_coordinate_37_1 = submit_coordinate_form1.cleaned_data["end_coordinate"]
-                start_coordinate_38_1 = None
-                end_coordinate_38_1 = None
+            # call functions to calculate gc % and tm
+            gc_percent1 = gc_calculate(sequence1)
+            tm1 = tm_calculate(sequence1)
+            print("primer1 gc: ", gc_percent1)
+            print("primer1 tm:: ", tm1)
 
-            elif reference1 == "38":   
-
-                start_coordinate_38_1 = submit_coordinate_form2.cleaned_data["start_coordinate"]
-                end_coordinate_38_1 = submit_coordinate_form2.cleaned_data["end_coordinate"]
-                start_coordinate_37_1 = None
-                end_coordinate_37_1 = None
-
-            else:
-                pass # needs something here although it can only be 37 or 38 since it is a choicefield
+            gc_percent2 = gc_calculate(sequence2)
+            tm2 = tm_calculate(sequence2)
+            print("primer2 gc: ", gc_percent2)
+            print("primer2 tm:: ", tm2)
 
 
-            # checks if ref 37 or 38 has been selected and selects appropriate database field
-            if reference2 == "37":
+            # call primer_mapper to map primer to bnoth 37 and 38, then return coords and chromosome number
+            coverage, start_coordinate_37, end_coordinate_37, gene_chrom = mapper2(sequence1, gene, 37, sequence2)
 
-                start_coordinate_37_2 = submit_coordinate_form2.cleaned_data["start_coordinate"]
-                end_coordinate_37_2 = submit_coordinate_form2.cleaned_data["end_coordinate"]
-                start_coordinate_38_2 = None
-                end_coordinate_38_2 = None
+            
+            start_coordinate_37, end_coordinate_37, gene_chrom = mapper2(sequence1, gene, 38, sequence2)
 
-            elif reference2 == "38":   
+            print("37 ", start_coordinate_37, end_coordinate_37)
+            print("38 ", start_coordinate_38, end_coordinate_38)
+            print("chrom no: ", gene_chrom)
 
-                start_coordinate_38_2 = submit_coordinate_form2.cleaned_data["start_coordinate"]
-                end_coordinate_38_2 = submit_coordinate_form2.cleaned_data["end_coordinate"]
-                start_coordinate_37_2 = None
-                end_coordinate_37_2 = None
 
-            else:
-                pass # needs something here although it can only be 37 or 38 since it is a choicefield
+
+
+
+
+#             # checks if ref 37 or 38 has been selected and selects appropriate database field
+#             if reference1 == "37":
+
+#                 start_coordinate_37_1 = submit_coordinate_form1.cleaned_data["start_coordinate"]
+#                 end_coordinate_37_1 = submit_coordinate_form1.cleaned_data["end_coordinate"]
+#                 start_coordinate_38_1 = None
+#                 end_coordinate_38_1 = None
+
+#             elif reference1 == "38":   
+
+#                 start_coordinate_38_1 = submit_coordinate_form2.cleaned_data["start_coordinate"]
+#                 end_coordinate_38_1 = submit_coordinate_form2.cleaned_data["end_coordinate"]
+#                 start_coordinate_37_1 = None
+#                 end_coordinate_37_1 = None
+
+#             else:
+#                 pass # needs something here although it can only be 37 or 38 since it is a choicefield
+
+
+#             # checks if ref 37 or 38 has been selected and selects appropriate database field
+#             if reference2 == "37":
+
+#                 start_coordinate_37_2 = submit_coordinate_form2.cleaned_data["start_coordinate"]
+#                 end_coordinate_37_2 = submit_coordinate_form2.cleaned_data["end_coordinate"]
+#                 start_coordinate_38_2 = None
+#                 end_coordinate_38_2 = None
+
+#             elif reference2 == "38":   
+# /
+#                 start_coordinate_38_2 = submit_coordinate_form2.cleaned_data["start_coordinate"]
+#                 end_coordinate_38_2 = submit_coordinate_form2.cleaned_data["end_coordinate"]
+#                 start_coordinate_37_2 = None
+#                 end_coordinate_37_2 = None
+
+#             else:
+#                 pass # needs something here although it can only be 37 or 38 since it is a choicefield
 
             # save primer1 to database
             print("saving primer1")
@@ -713,9 +757,9 @@ def submit_pair(request):
             sequence_form1 = Forms.SequenceForm()
             status_form1 = Forms.StatusLocationForm()
             arrival_date_form1 = Forms.ArrivalDateForm()
-            reference_form1 = Forms.ReferenceForm()
-            chrom_no_form1 = Forms.ChromNoForm()
-            submit_coordinate_for1 = Forms.SubmitCoordinateForm()
+            #reference_form1 = Forms.ReferenceForm()
+            #chrom_no_form1 = Forms.ChromNoForm()
+            #submit_coordinate_for1 = Forms.SubmitCoordinateForm()
 
             primer_form2 = Forms.PrimerForm()
             sequence_form2 = Forms.SequenceForm()
@@ -730,17 +774,17 @@ def submit_pair(request):
             context_dict["sequence_form1"] = sequence_form1
             context_dict["status_form1"] = status_form1
             context_dict["arrival_date_form1"] = arrival_date_form1
-            context_dict["reference_form1"] = reference_form1
-            context_dict["chrom_no_form1"] = chrom_no_form1
-            context_dict["submit_coordinate_form1"] = submit_coordinate_form1
+            #context_dict["reference_form1"] = reference_form1
+            #context_dict["chrom_no_form1"] = chrom_no_form1
+            #context_dict["submit_coordinate_form1"] = submit_coordinate_form1
 
             context_dict["primer_form2"] = primer_form2
             context_dict["sequence_form2"] = sequence_form2
             context_dict["status_form2"] = status_form2
             context_dict["arrival_date_form2"] = arrival_date_form2
-            context_dict["reference_form2"] = reference_form2
-            context_dict["chrom_no_form2"] = chrom_no_form2
-            context_dict["submit_coordinate_form2"] = submit_coordinate_form2
+            #context_dict["reference_form2"] = reference_form2
+            #context_dict["chrom_no_form2"] = chrom_no_form2
+            #context_dict["submit_coordinate_form2"] = submit_coordinate_form2
 
 
             # return the submit page
@@ -753,33 +797,33 @@ def submit_pair(request):
             sequence_form1 = Forms.SequenceForm()
             status_form1 = Forms.StatusLocationForm()
             arrival_date_form1 = Forms.ArrivalDateForm()
-            reference_form1 = Forms.ReferenceForm()
-            chrom_no_form1 = Forms.ChromNoForm()
-            submit_coordinate_form1 = Forms.SubmitCoordinateForm()
+            #reference_form1 = Forms.ReferenceForm()
+            #chrom_no_form1 = Forms.ChromNoForm()
+            #submit_coordinate_form1 = Forms.SubmitCoordinateForm()
 
             primer_form2 = Forms.PrimerForm()
             sequence_form2 = Forms.SequenceForm()
             status_form2 = Forms.StatusLocationForm()
             arrival_date_form2 = Forms.ArrivalDateForm()
-            reference_form2 = Forms.ReferenceForm()
-            chrom_no_form2 = Forms.ChromNoForm()
-            submit_coordinate_form2 = Forms.SubmitCoordinateForm()
+            #reference_form2 = Forms.ReferenceForm()
+            #chrom_no_form2 = Forms.ChromNoForm()
+            #submit_coordinate_form2 = Forms.SubmitCoordinateForm()
 
             
     context_dict["primer_form1"] = primer_form1
     context_dict["sequence_form1"] = sequence_form1
     context_dict["status_form1"] = status_form1
     context_dict["arrival_date_form1"] = arrival_date_form1
-    context_dict["reference_form1"] = reference_form1
-    context_dict["chrom_no_form1"] = chrom_no_form1
-    context_dict["submit_coordinate_form1"] = submit_coordinate_form1
+    #context_dict["reference_form1"] = reference_form1
+    #context_dict["chrom_no_form1"] = chrom_no_form1
+    #context_dict["submit_coordinate_form1"] = submit_coordinate_form1
 
     context_dict["primer_form2"] = primer_form2
     context_dict["sequence_form2"] = sequence_form2
     context_dict["status_form2"] = status_form2
     context_dict["arrival_date_form2"] = arrival_date_form2
-    context_dict["reference_form2"] = reference_form2
-    context_dict["chrom_no_form2"] = chrom_no_form2
-    context_dict["submit_coordinate_form2"] = submit_coordinate_form2
+    #context_dict["reference_form2"] = reference_form2
+    #context_dict["chrom_no_form2"] = chrom_no_form2
+    #context_dict["submit_coordinate_form2"] = submit_coordinate_form2
 
     return render(request, 'primer_db/submit_pair.html', context_dict)

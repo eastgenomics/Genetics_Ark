@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
+{% load bootstrap3 %}
 
 
 {% block body_block %}
@@ -73,9 +74,24 @@
     <button id="search_submit" type="submit">Submit</button>
 </form></br>
 
+
+<!-- <form type="get" action="" style="padding-top:10px;">
+    <select name="status">
+        <option value="Archived">Archived</option>
+        <option value="On Order">On Order</option>
+        <option value="In Bank">In Bank</option>
+    </select>
+    <button id="search_submit" type="submit">Submit</button>
+</form></br>
+ -->
+
+
 {% if var_pos and chrom_no %}
   Showing results for position {{ var_pos }} on chromosome {{ chrom_no}} </br></br>
 {% endif %}
+
+
+
 <!-- table displaying primers in database -->
 <html>
   <head>
@@ -86,6 +102,7 @@
     
     {% render_table table %}
     
+
   
 </html>
 </body>
