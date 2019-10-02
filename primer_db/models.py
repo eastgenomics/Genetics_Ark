@@ -46,7 +46,8 @@ class Coordinates(models.Model):
 
     def __str__(self):
         """String for representing the Model object."""
-        return '{} {} {} {}'.format(self.reference, self.chrom_no, self.start_coordinate_37, self.end_coordinate_37)
+        return '{} {} {} {} {}'.format(self.chrom_no, self.start_coordinate_37, 
+            self.end_coordinate_37, self.start_coordinate_38, self.end_coordinate_38)
 
 
 class Pairs(models.Model):

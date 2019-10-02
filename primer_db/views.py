@@ -20,13 +20,17 @@ import sys
 import primer_db.forms as Forms
 import primer_db.models as Models
 
-sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/')
+# path to ampping script
+sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/') 
 
 import primer_mapper
 
 
-def mapper1(primer_seq1, gene, ref):
 
+def mapper1(primer_seq1, gene, ref):
+    """
+    Function for calling primer mapper when submitting single primer
+    """
     res = primer_mapper.main(primer_seq1, gene, ref)
 
     print("gene: ", gene)
@@ -39,13 +43,18 @@ def mapper1(primer_seq1, gene, ref):
 
 
 def mapper2(primer_seq1, gene, ref, primer_2):
-
+    """
+    Function for calling primer mapper when submitting pair of primers
+    """
     primer_mapper.main(primer_seq1, gene, ref, primer_2)
 
     return coverage, primer1_start, primer1_end, primer2_start, primer2_end, gene_chrom
 
 
 def gc_calculate(sequence):
+    """
+    Function for calculating GC % of submitted primer sequence
+    """
     sequence = sequence.upper()
     gc_calc = round((((sequence.count('G') + sequence.count('C')) / len(sequence)) * 100), 2)
 
@@ -53,7 +62,9 @@ def gc_calculate(sequence):
 
 
 def tm_calculate(sequence):
-
+    """
+    Function for calculating Tm of submitted primer sequence
+    """
     OLIGOTM = "/mnt/storage/apps/software/primer3_core/2.3.7/src/oligotm -sc 1 -tp 1 -n 0.6 -dv 1.5 "
 
     cmd = OLIGOTM + sequence
@@ -63,10 +74,13 @@ def tm_calculate(sequence):
     return tm_calc
 
 
+
+
 def index(request):
 
     """
-    Homepage view of database, displays all primers and inc. search functions    
+    Homepage view of database; displays all primers inc. search functions and use of check boxes for changing
+    status of multiple primers and recalculating coverage for a given pair of primers    
 
     """
 
@@ -166,7 +180,7 @@ def index(request):
         print("searching passed")
 
 
-    # function for filtering primers exact gene name
+    # function for filtering primers on exact gene name
     if request.method == 'GET':
 
         gene_filter = request.GET.get('gene_filter', None)
@@ -190,10 +204,87 @@ def index(request):
         print("searching passed")
 
 
+
+    # function for changing handling check boxes
+    if request.method == 'POST':
+
+        pks = request.POST.getlist('check')
+
+        if 'recalc' in request.POST:
+            # recalculating coverage from 2 selected primers
+
+            print("recalculating")
+
+            if len(pks) != 2:
+                #need error message when 2 primers not selected and raise exception
+                pass
+
+
+            gene1 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[0])
+            gene2 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[1])
+
+            if gene1 != gene2:
+                # need error message when 2 selected primers aren't on same gene and raise exception
+                pass
+
+
+            primer1 = Models.PrimerDetails.objects.values_list('primer_name', flat=True).get(pk=pks[0]).split("_")[-1]
+            primer2 = Models.PrimerDetails.objects.values_list('primer_name', flat=True).get(pk=pks[1]).split("_")[-1]
+      
+            print(primer1, primer2)
+
+            if primer1[0] == "F" and primer2[0] == "R":
+                print("Cool")
+
+                f_start37 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_37').get(pk=pks[0])[0]
+                r_end37 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_37').get(pk=pks[1])[0]
+                f_start38 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_38').get(pk=pks[0])[0]
+                r_end38 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_38').get(pk=pks[1])[0]
+                
+                print(f_start37, r_end37, f_start38, r_end38)
+               
+                pass
+
+            elif primer1[0] == "R" and primer2[0] == "F":
+                print("valid")
+
+                f_start37 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_37').get(pk=pks[1])[0]
+                r_end37 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_37').get(pk=pks[0])[0]
+                f_start38 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_38').get(pk=pks[1])[0]
+                r_end38 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_38').get(pk=pks[0])[0]
+
+                print(f_start37, r_end37, f_start38, r_end38)
+
+                pass
+
+            else:
+                # not a forward and reverse selected, need to raise exception and error message
+                pass
+
+
+            # need to calculate coverage from coordinates and display in a window
+
+
+        elif 'new_status' in request.POST and 'recalc' not in request.POST:
+            # changing status of multiple primers at once
+
+            print("changing status")
+            print(request.POST)
+
+            new_status = request.POST.get('new_status') # get status to change to from POST data
+
+            for pk in pks:
+
+                update_status = Models.Status.objects.get_or_create(status=new_status)
+                status_id = Models.Status.objects.filter(status__icontains=new_status).first().id
+                Models.PrimerDetails.objects.filter(pk=pk).update(status=status_id)
+
+
+
+
     RequestConfig(request, paginate={'per_page': 30}).configure(table)
 
     return render(request, 'primer_db/index.html', context_dict)
-
 
 
 
@@ -211,20 +302,12 @@ def submit(request):
 
         print("submitting single primer")
         
-        # name = request.POST.get('name')
-
-        # if name == "form1":
-        #     print("form1")
-
 
         # data is sent
         primer_form = Forms.PrimerForm(request.POST)
         sequence_form = Forms.SequenceForm(request.POST)
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
-        #reference_form = Forms.ReferenceForm(request.POST)
-        #chrom_no_form = Forms.ChromNoForm(request.POST)
-        #submit_coordinate_form = Forms.SubmitCoordinateForm(request.POST)
 
 
         # check if data input to each form is valid
@@ -232,9 +315,6 @@ def submit(request):
             sequence_form.is_valid() and
             status_form.is_valid() and
             arrival_date_form.is_valid() 
-            #reference_form.is_valid() and
-            #chrom_no_form.is_valid() and
-            #submit_coordinate_form.is_valid()
             ):
             print("data valid")
 
@@ -256,7 +336,7 @@ def submit(request):
             tm = tm_calculate(sequence)
 
 
-            # call primer_mapper to map primer to bnoth 37 and 38, then return coords and chromosome number
+            # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
             start_coordinate_37, end_coordinate_37, gene_chrom = mapper1(sequence, gene, 37)
             start_coordinate_38, end_coordinate_38, gene_chrom = mapper1(sequence, gene, 38)
 
@@ -277,13 +357,6 @@ def submit(request):
 
             new_buffer, created = Models.Buffer.objects.get_or_create(buffer = buffer)
 
-            test = Models.Coordinates.objects.get_or_create(
-                start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
-                start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
-                chrom_no = gene_chrom
-                )
-
-            print(test)
 
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
                 start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
@@ -300,30 +373,10 @@ def submit(request):
                 buffer = new_buffer, coordinates = new_coordinates)
 
             # success save message passed to submit.html
-            messages.success(request, 'Primers successfully saved')
+            messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
+                primer_name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38))
         
-
-            # recreate the empty form
-            primer_form = Forms.PrimerForm()
-            sequence_form = Forms.SequenceForm()
-            status_form = Forms.StatusLocationForm()
-            arrival_date_form = Forms.ArrivalDateForm()
-            #reference_form = Forms.ReferenceForm()
-            #chrom_no_form = Forms.ChromNoForm()
-            #submit_coordinate_form = Forms.SubmitCoordinateForm()
-
-
-            context_dict["primer_form"] = primer_form
-            context_dict["sequence_form"] = sequence_form
-            context_dict["status_form"] = status_form
-            context_dict["arrival_date_form"] = arrival_date_form
-            #context_dict["reference_form"] = reference_form
-            #context_dict["chrom_no_form"] = chrom_no_form
-            #context_dict["submit_coordinate_form"] = submit_coordinate_form
-
-
-            # return the submit page
-            return render(request, 'primer_db/submit.html', context_dict)
+            return redirect('submit')
 
     else:
             # if data is not sent, just display the form
@@ -331,18 +384,13 @@ def submit(request):
         sequence_form = Forms.SequenceForm()
         status_form = Forms.StatusLocationForm()
         arrival_date_form = Forms.ArrivalDateForm()
-        #reference_form = Forms.ReferenceForm()
-        #chrom_no_form = Forms.ChromNoForm()
-        #submit_coordinate_form = Forms.SubmitCoordinateForm()
 
             
     context_dict["primer_form"] = primer_form
     context_dict["sequence_form"] = sequence_form
     context_dict["status_form"] = status_form
     context_dict["arrival_date_form"] = arrival_date_form
-    #context_dict["reference_form"] = reference_form
-    #context_dict["chrom_no_form"] = chrom_no_form
-    #context_dict["submit_coordinate_form"] = submit_coordinate_form
+
 
     return render(request, 'primer_db/submit.html', context_dict)
 
@@ -383,11 +431,11 @@ def edit_primer(request, PrimerDetails_id):
                 gene = primer_form.cleaned_data["gene"] 
                 sequence = sequence_form.cleaned_data["sequence"]
                 status = status_form.cleaned_data["status"]
-                gcpercent = primer_form.cleaned_data["gc_percent"]
-                tm = primer_form.cleaned_data["tm"]
+                #gcpercent = primer_form.cleaned_data["gc_percent"]
+                #tm = primer_form.cleaned_data["tm"]
                 #length = primer_form.cleaned_data["length"]
                 comments = primer_form.cleaned_data["comments"]
-                arrival_date = primer_form.cleaned_data["arrival_date"]
+                arrival_date = arrival_date_form.cleaned_data["arrival_date"]
                 buffer = primer_form.cleaned_data["buffer"].capitalize()
                 pcr_program = primer_form.cleaned_data["pcr_program"]
                 forename = primer_form.cleaned_data["forename"].capitalize()
@@ -423,7 +471,7 @@ def edit_primer(request, PrimerDetails_id):
                     primer_name = primer_name, 
                     defaults={
                     'gene' : gene, 'sequence': sequence, 
-                    'gc_percent': gcpercent, 'tm': tm,
+                    # 'gc_percent': gcpercent, 'tm': tm,
                     'comments':  comments, 'arrival_date': arrival_date,
                     'location': location, 'status': new_status, 
                     'scientist': new_scientist,'pcr_program': new_pcr, 
@@ -488,7 +536,7 @@ def edit_primer(request, PrimerDetails_id):
 
             RequestConfig(request, paginate={'per_page': 50}).configure(table)
 
-            return render(request, 'primer_db/index.html', context_dict)
+            return  redirect('/primer_db/')
 
     
     # initial view for form with populated data from selected primer
@@ -497,6 +545,8 @@ def edit_primer(request, PrimerDetails_id):
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
     primer = primer[0]
     coordinates = primer.coordinates
+    status = primer.status
+
 
 
     primer_details_dict = {
@@ -516,19 +566,24 @@ def edit_primer(request, PrimerDetails_id):
 
     primer_form = Forms.PrimerForm(initial = primer_details_dict)
     sequence_form = Forms.SequenceForm(initial = model_to_dict(primer))
-    status_form = Forms.StatusLocationForm(initial = model_to_dict(primer))
+    location_form = Forms.StatusLocationForm(initial = model_to_dict(primer))
     arrival_date_form = Forms.ArrivalDateForm(initial = model_to_dict(primer))
     chrom_no_form = Forms.ChromNoForm(initial = model_to_dict(coordinates))
     coordinate_form = Forms.CoordinateForm(initial = model_to_dict(coordinates))
+    status_form =  Forms.StatusLocationForm(initial = model_to_dict(status))
 
+    print(model_to_dict(primer.status))
+    print(" ")
+    #print(chrom_no_form)
 
     context_dict["primer_form"] = primer_form
     context_dict["sequence_form"] = sequence_form
-    context_dict["status_form"] = status_form
+    context_dict["location_form"] = location_form
     context_dict["arrival_date_form"] = arrival_date_form
     context_dict["chrom_no_form"] = chrom_no_form
     context_dict["coordinate_form"] = coordinate_form
     context_dict["primer"] = primer
+    context_dict["status_form"] = status_form
 
 
     return render(request, 'primer_db/edit_primer.html', context_dict)
@@ -648,46 +703,6 @@ def submit_pair(request):
             print("chrom no: ", gene_chrom)
 
 
-
-
-
-
-#             # checks if ref 37 or 38 has been selected and selects appropriate database field
-#             if reference1 == "37":
-
-#                 start_coordinate_37_1 = submit_coordinate_form1.cleaned_data["start_coordinate"]
-#                 end_coordinate_37_1 = submit_coordinate_form1.cleaned_data["end_coordinate"]
-#                 start_coordinate_38_1 = None
-#                 end_coordinate_38_1 = None
-
-#             elif reference1 == "38":   
-
-#                 start_coordinate_38_1 = submit_coordinate_form2.cleaned_data["start_coordinate"]
-#                 end_coordinate_38_1 = submit_coordinate_form2.cleaned_data["end_coordinate"]
-#                 start_coordinate_37_1 = None
-#                 end_coordinate_37_1 = None
-
-#             else:
-#                 pass # needs something here although it can only be 37 or 38 since it is a choicefield
-
-
-#             # checks if ref 37 or 38 has been selected and selects appropriate database field
-#             if reference2 == "37":
-
-#                 start_coordinate_37_2 = submit_coordinate_form2.cleaned_data["start_coordinate"]
-#                 end_coordinate_37_2 = submit_coordinate_form2.cleaned_data["end_coordinate"]
-#                 start_coordinate_38_2 = None
-#                 end_coordinate_38_2 = None
-
-#             elif reference2 == "38":   
-# /
-#                 start_coordinate_38_2 = submit_coordinate_form2.cleaned_data["start_coordinate"]
-#                 end_coordinate_38_2 = submit_coordinate_form2.cleaned_data["end_coordinate"]
-#                 start_coordinate_37_2 = None
-#                 end_coordinate_37_2 = None
-
-#             else:
-#                 pass # needs something here although it can only be 37 or 38 since it is a choicefield
 
             # save primer1 to database
             print("saving primer1")

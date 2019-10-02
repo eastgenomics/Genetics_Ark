@@ -17,19 +17,22 @@ class PrimerDetailsTable(tables.Table):
 	chrom_no = tables.Column(accessor = "coordinates.chrom_no")
 	coverage37 = tables.Column(accessor = "pairs.coverage_37")
 	coverage38 = tables.Column(accessor = "pairs.coverage_38")
-	check = tables.CheckBoxColumn(accessor = 'pk')
+	check = tables.CheckBoxColumn(verbose_name=" refewrf", accessor = 'pk')
 	# start37 = tables.Column(accessor="coordinates.start_coordinate_37")
 	# end37 = tables.Column(accessor = "coordinates.end_coordinate_37")
 	# start38 = tables.Column(accessor="coordinates.start_coordinate_38")
 	# end38 = tables.Column(accessor = "coordinates.end_coordinate_38")
 	
 	def render_tm(tm, value):
+		# render tm to 2dp
 		return '{:0.2f}'.format(value)
 
 
 	def render_status(status, value, column):
+		# render status cell colour dependent on status
+
 		if str(value) == "Archived":
-			column.attrs = {'td': {'bgcolor': 'red'}}
+			column.attrs = {'td': {'bgcolor': 'pink'}}
 		elif str(value) == "On Order":
 			column.attrs = {'td': {'bgcolor': 'orange'}}
 		else:
@@ -43,7 +46,7 @@ class PrimerDetailsTable(tables.Table):
 		attrs = {"class": "paleblue"}
 		template_name = 'django_tables2/bootstrap.html'
 
-		#order_by = "-A('pk')"
+		#order_by = "arrival_date"
 
 		fields = ('primer_name', 'gene', 'sequence', 'gc_percent', 
 					'comments', 'arrival_date', 'status', 'tm',

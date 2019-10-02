@@ -75,16 +75,6 @@
 </form></br>
 
 
-<!-- <form type="get" action="" style="padding-top:10px;">
-    <select name="status">
-        <option value="Archived">Archived</option>
-        <option value="On Order">On Order</option>
-        <option value="In Bank">In Bank</option>
-    </select>
-    <button id="search_submit" type="submit">Submit</button>
-</form></br>
- -->
-
 
 {% if var_pos and chrom_no %}
   Showing results for position {{ var_pos }} on chromosome {{ chrom_no}} </br></br>
@@ -92,16 +82,44 @@
 
 
 
-<!-- table displaying primers in database -->
-<html>
-  <head>
-    <title>All primers</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-  <head>
-  
+
+<!-- 
+<form action="" method="POST">
+
+    {% csrf_token %}
+
+    Select primer pair to recalculate coverage: 
+
+    <input type="submit" name="recalc"/></br></br>
+
+
+</form>
+ -->
+
+
+<form action="" method="post">
     
+    {% csrf_token %}
+
+    Change primer status: 
+
+    <select name="new_status">
+        <option value="Archived">Archived</option>
+        <option value="On Order">On Order</option>
+        <option value="In Bank">In Bank</option>
+    </select>
+
+    <button type="submit"/>Submit</button></br></br>
+
+
+    Select primer pair to recalculate coverage: 
+
+    <input type="submit" name="recalc" value="Recalculate"/></br></br>
+
     {% render_table table %}
-    
+
+</form>
+
 
   
 </html>

@@ -79,11 +79,11 @@ table, td, th {
         </tr>
         <tr>
             <td>Storage location:</td>
-            <td>{{ status_form.location}}</td>
+            <td>{{ location_form.location}}</td>
             <td>
-            {% if status_form.non_field_errors %}
+            {% if location_form.non_field_errors %}
                 <div class="alert alert-danger" role="alert">
-                    <strong>{{ status_form.non_field_errors.0 }}</strong>
+                    <strong>{{ location_form.non_field_errors.0 }}</strong>
                 </div>
             {% endif %}
             </td>
@@ -101,7 +101,7 @@ table, td, th {
             <td>{{ primer_form.surname }}</td>
         </tr>
         <tr>
-            <td>Chromosome no.:</td>
+            <td>Chromosome number:</td>
             <td>{{ chrom_no_form.chrom_no }}</td>
         </tr>
         <tr>
