@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+#{% load widget_tweaks %}
+
+
+{% block body_block %}
+
+<body style="padding-top: 80px">
+
+    <h1>Primer Database</h1>
+    
+    <!-- success message for updated primer being saved  -->
+    {% if messages %} 
+        {% for message in messages %}
+        <div class="alert alert-success" role="alert">
+            <strong>{{ message }}</strong> 
+        </div>
+        {% endfor %} 
+    {% endif %} 
+    
+
+
+<div class="row center-block">
+
+
+<html>
+<head>
+<style>
+
+table, td, th {
+    padding: 10px;
+  text-align: left;
+}
+
+</style>
+</head>
+</html>
+
+<body>
+
+
+    <div style="float:left; width=50%">
+
+        <h4>Editing primer: {{primer1.primer_name}}</h4></br>
+
+        <form id = "forward" action = "" method = "POST">
+        {% csrf_token %}
+
+        <table>
+            <tr>
+                <td>Primer name: </td>
+                <td>{{ primer_form1.primer_name }}</td>
+            </tr>
+            <tr>
+                <td>Gene name: </td>
+                <td>{{ primer_form1.gene }}</td>
+            </tr>
+            <tr>
+                <td> Sequence:</td>
+                <td>{{ sequence_form1.sequence }} </td>
+            </tr>
+            <tr>
+                <td>GC %: </td>
+                <td>{{ primer_form1.gc_percent }} </td>
+            </tr>
+            <tr>
+                <td>Tm: </td>
+                <td>{{ primer_form1.tm }} </td>
+            </tr>
+            <tr>
+                <td>Buffer: </td>
+                <td>{{ primer_form1.buffer }}</td>
+            </tr>
+            <tr>
+                <td>PCR Program: </td>
+                <td>{{ primer_form1.pcr_program }}</td>
+            </tr>
+            <tr>
+                <td>Arrival date:</td>
+                <td>{{ arrival_date_form1.arrival_date }}</td>
+            </tr>
+            <tr>
+                <td>Status:</td>
+                <td>{{ status_form1.status }}</td>
+            </tr>
+            <tr>
+                <td>Storage location:</td>
+                <td>{{ location_form1.location}}</td>
+                <td>
+                {% if location_form1.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ location_form1.non_field_errors.0 }}</> 
+                    </div>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td> SNP Check Date </td>
+                <td> {{ snp_form1.snp_date}} </td>
+            </tr>
+            <tr>
+                <td> SNP Check Info </td>
+                <td> {{ snp_form1.snp_info}} </td>
+            </tr>
+            <tr>
+                <td> Comments </td>
+                <td>{{ primer_form1.comments }}</td>
+            </tr>
+            <tr>
+                <td>Forename:</td>
+                <td>{{ primer_form1.forename }}</td>
+            </tr>
+            <tr>
+                <td><p>Surname:</td>
+                <td>{{ primer_form1.surname }}</td>
+            </tr>
+            <tr>
+                <td>Chromosome no.:</td>
+                <td>{{ chrom_no_form1.chrom_no }}</td>
+            </tr>
+            <tr>
+                <td>GRCh37 Start coordinate:</td>
+                <td>{{ coordinate_form1.start_coordinate_37 }}</td>
+            </tr>
+            <tr>
+                <td>GRCh37 End coordinate:</td>
+                <td>{{ coordinate_form1.end_coordinate_37 }}</td>
+            </tr>
+            <tr>
+                <td>GRCh38 Start coordinate:</td>
+                <td>{{ coordinate_form1.start_coordinate_38 }}</td>
+            </tr>
+            <tr>
+                <td>GRCh38 End coordinate:</td>
+                <td>{{ coordinate_form1.end_coordinate_38 }}</td>
+            </tr></br></br>
+            <tr> 
+                <td> GRCh37 Coverage: </td> 
+                <td> {{ coverage_form.coverage_37 }} </td>
+
+            </tr>
+
+
+
+        </table></br>       
+        <button  type="submit" name = "submit" class = "bt btn-primary">Submit primer</button>
+        <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
+
+    </div>
+
+
+    <div style="float:right, width:50%">
+
+        <h4>Editing primer: {{primer2.primer_name}}</h4></br>
+
+            <table>
+                <tr>
+                    <td>Primer name: </td>
+                    <td>{{ primer_form2.primer_name }}</td>
+                </tr>
+                <tr>
+                    <td>Gene name: </td>
+                    <td>{{ primer_form2.gene }}</td>
+                </tr>
+                <tr>
+                    <td> Sequence:</td>
+                    <td>{{ sequence_form2.sequence }} </td>
+                </tr>
+                <tr>
+                    <td>GC %: </td>
+                    <td>{{ primer_form2.gc_percent }} </td>
+                </tr>
+                <tr>
+                    <td>Tm: </td>
+                    <td>{{ primer_form2.tm }} </td>
+                </tr>
+                <tr>
+                    <td>Buffer: </td>
+                    <td>{{ primer_form2.buffer }}</td>
+                </tr>
+                <tr>
+                    <td>PCR Program: </td>
+                    <td>{{ primer_form2.pcr_program }}</td>
+                </tr>
+                <tr>
+                    <td>Arrival date:</td>
+                    <td>{{ arrival_date_form2.arrival_date }}</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td>{{ status_form2.status }}</td>
+                </tr>
+                <tr>
+                    <td>Storage location:</td>
+                    <td>{{ location_form2.location}}</td>
+                    <td>
+                    {% if location_form2.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ location_form2.non_field_errors.0 }}</> 
+                        </div>
+                    {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td> SNP Check Date </td>
+                    <td> {{ snp_form1.snp_date}} </td>
+                </tr>
+                <tr>
+                    <td> SNP Check Info </td>
+                    <td> {{ snp_form1.snp_info}} </td>
+                </tr>
+                <tr>
+                    <td>Comments:</td>
+                    <td>{{ primer_form2.comments }}</td>
+                </tr>
+                <tr>
+                    <td>Forename:</td>
+                    <td>{{ primer_form2.forename }}</td>
+                </tr>
+                <tr>
+                    <td><p>Surname:</td>
+                    <td>{{ primer_form2.surname }}</td>
+                </tr>
+                <tr>
+                    <td>Chromosome no.:</td>
+                    <td>{{ chrom_no_form2.chrom_no }}</td>
+                </tr>
+                <tr>
+                    <td>GRCh37 Start coordinate:</td>
+                    <td>{{ coordinate_form2.start_coordinate_37 }}</td>
+                </tr>
+                <tr>
+                    <td>GRCh37 End coordinate:</td>
+                    <td>{{ coordinate_form2.end_coordinate_37 }}</td>
+                </tr>
+                <tr>
+                    <td>GRCh38 Start coordinate:</td>
+                    <td>{{ coordinate_form2.start_coordinate_38 }}</td>
+                </tr>
+                <tr>
+                    <td>GRCh38 End coordinate:</td>
+                    <td>{{ coordinate_form2.end_coordinate_38 }}</td>
+                </tr></br></br>
+                <tr>
+                    <td> GRCh38 Coverage: </td> 
+                    <td> {{ coverage_form.coverage_38 }} </td>
+    
+                </tr>
+            </table></br>       
+
+            </form>
+
+    </div>
+
+</body>
+
+{% endblock %}
+
+
+

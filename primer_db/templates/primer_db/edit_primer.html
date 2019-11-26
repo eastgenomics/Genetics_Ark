@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-#{% load widget_tweaks %}
+{% load widget_tweaks %}
 
 {% block body_block %}
 
@@ -87,6 +87,14 @@ table, td, th {
                 </div>
             {% endif %}
             </td>
+        </tr>
+        <tr>
+            <td>SNP Check Date:</td>
+            <td>{{ snp_date_form.snp_date }}</td>
+        </tr>
+        <tr>
+            <td>SNP Info:</td>
+            <td>{{ snp_info_form.snp_info }}</td>
         </tr>
         <tr>
             <td>Comments:</td>

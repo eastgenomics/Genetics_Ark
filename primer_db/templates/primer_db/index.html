@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
-{% load bootstrap3 %}
+
 
 
 {% block body_block %}
@@ -12,11 +12,23 @@
 
 {% if messages %} 
     {% for message in messages %}
-    <div class="alert alert-success" role="alert">
-        <strong>{{ message }}</strong> 
-    </div>
+
+        {% if 'error' in message.tags %}
+            <div class="alert alert-danger" role="alert">
+                <strong>{{ message }}</strong> 
+            </div>
+        {% endif %}
+
+        {% if 'success' in message.tags %}
+        <div class="alert alert-success" role="alert">
+            <strong>{{ message }}</strong> 
+        </div>
+        {% endif %}
+
+
     {% endfor %} 
 {% endif %} 
+
 
 
 <h1>Primer Database</h1></br>
@@ -32,10 +44,10 @@
 
 <form type="get" action="" style="padding-top:10px;">
     <input type="text" name="name_filter" placeholder="Search primer name">
-    <button id="search_submit" type="submit">Submit</button>
-</form></br>
-
-<form type="get" action="" style="padding-top:10px;">
+    <button id="search_submit" type="submit">Submit</button>&nbsp;&nbsp;&nbsp;
+<!-- </form>
+    
+<form type="get" action="" style="padding-top:10px;"> -->
     <input type="text" name="gene_filter" placeholder="Search exact gene name">
     <button id="search_submit" type="submit">Submit</button>
 </form></br>
@@ -69,7 +81,7 @@
         <option value="23">23</option>
         <option value="X">X</option>
         <option value="Y">Y</option>
-  </select></br>
+  </select>&nbsp;&nbsp;
     <input type="text" name="var_pos" placeholder="Search variant position:">
     <button id="search_submit" type="submit">Submit</button>
 </form></br>

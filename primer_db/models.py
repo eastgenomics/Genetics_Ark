@@ -5,6 +5,7 @@ from django.db import models
 import datetime
 from django.core.exceptions import ValidationError
 
+
 # Create your models here.
 
 # set all to null=True for testing forms
@@ -15,9 +16,12 @@ class PrimerDetails(models.Model):
     sequence = models.CharField(max_length=100)
     gc_percent = models.FloatField(verbose_name='GC %')
     tm = models.FloatField()
-    comments = models.CharField(max_length=250, null=True)
-    arrival_date = models.DateField()
+    comments = models.TextField(max_length=500, null=True)
+    arrival_date = models.DateField(null=True)
     location = models.CharField(max_length=20, verbose_name='Storage location', null=True)
+    snp_status = models.CharField(default=0, max_length=1, null=True, blank=False, verbose_name='SNP')
+    snp_info = models.TextField(max_length=500, null=True, blank = False)
+    snp_date = models.DateField(null = True, blank = True)
     status = models.ForeignKey("Status")
     scientist = models.ForeignKey("Scientist" )
     pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program', )

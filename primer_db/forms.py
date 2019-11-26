@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError
 class PrimerForm(forms.Form):
 	primer_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
 	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
-	# gc_percent = forms.FloatField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
-	# tm = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter melting temp', 'autocomplete': 'off'}))
+	gc_percent = forms.FloatField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
+	tm = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter melting temp', 'autocomplete': 'off'}))
 	# length = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter sequence length', 'autocomplete': 'off'}))
 	comments = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Other comments'}))
 	buffer = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Buffer'}), initial="Buffer D")
@@ -35,12 +35,16 @@ class StatusLocationForm(forms.Form):
 
 		if cd.get('status') == "In Bank" and cd.get('location') == "":
 			raise forms.ValidationError('Location can not be blank when status is In Bank') 
-		return cd			
+		return cd
+
+class SNPForm(forms.Form):
+	snp_status = forms.CharField(required=False)
+	snp_info = forms.CharField(required=False)
+	snp_date = forms.DateField(required=False)			
 
 class ReferenceForm(forms.Form):
 	ref_choice = (('37', '37'), ('38', '38'))
 	reference = forms.ChoiceField(choices = ref_choice)	
-
 
 class ChromNoForm(forms.Form):
 	# chrom_no = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Chromosome no.'}))
@@ -60,3 +64,6 @@ class CoordinateForm(forms.Form):
 	start_coordinate_38 = forms.IntegerField(required=False, widget=forms.TextInput(attrs={'placeholder':'Start coordinate', 'autocomplete': 'off'}))
 	end_coordinate_38 = forms.IntegerField(required=False, widget=forms.TextInput(attrs={'placeholder':'End coordinate', 'autocomplete': 'off'}))
 
+class CoverageForm(forms.Form):
+	coverage_37 = forms.CharField(required=False, widget=forms.TextInput)
+	coverage_38 = forms.CharField(required=False, widget=forms.TextInput)
