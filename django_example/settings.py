@@ -50,8 +50,6 @@ INSTALLED_APPS = [
     'widget_tweaks', # Makes rendering forms a lot easier
 #    'debug_toolbar', # Awesome for debugging django sites
     'django_tables2',# make nice tables
-    'django_filters',
-    'bootstrap3',
     # Standard stuff
     'django.contrib.admin',
     'django.contrib.auth',

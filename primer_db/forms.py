@@ -40,7 +40,7 @@ class StatusLocationForm(forms.Form):
 class SNPForm(forms.Form):
 	snp_status = forms.CharField(required=False)
 	snp_info = forms.CharField(required=False)
-	snp_date = forms.DateField(required=False)			
+	snp_date = forms.CharField(required=False)			
 
 class ReferenceForm(forms.Form):
 	ref_choice = (('37', '37'), ('38', '38'))
