@@ -40,18 +40,18 @@ table, td, th {
 
     <div style="float:left; width=50%">
 
-        <h4>Editing primer: {{primer1.primer_name}}</h4></br>
+        <h4>Editing primer: {{primer1.name}}</h4></br>
 
         <form id = "forward" action = "" method = "POST">
         {% csrf_token %}
 
         <table>
             <tr>
-                <td>Primer name: </td>
+                <td>Primer name:</td>
                 <td>{{ primer_form1.primer_name }}</td>
             </tr>
             <tr>
-                <td>Gene name: </td>
+                <td>Gene name:</td>
                 <td>{{ primer_form1.gene }}</td>
             </tr>
             <tr>
@@ -59,19 +59,19 @@ table, td, th {
                 <td>{{ sequence_form1.sequence }} </td>
             </tr>
             <tr>
-                <td>GC %: </td>
+                <td>GC %:</td>
                 <td>{{ primer_form1.gc_percent }} </td>
             </tr>
             <tr>
-                <td>Tm: </td>
+                <td>Tm:</td>
                 <td>{{ primer_form1.tm }} </td>
             </tr>
             <tr>
-                <td>Buffer: </td>
+                <td>Buffer:</td>
                 <td>{{ primer_form1.buffer }}</td>
             </tr>
             <tr>
-                <td>PCR Program: </td>
+                <td>PCR Program:</td>
                 <td>{{ primer_form1.pcr_program }}</td>
             </tr>
             <tr>
@@ -80,29 +80,29 @@ table, td, th {
             </tr>
             <tr>
                 <td>Status:</td>
-                <td>{{ status_form1.status }}</td>
+                <td>{{ status_loc_form1.status }}</td>
             </tr>
             <tr>
                 <td>Storage location:</td>
-                <td>{{ location_form1.location}}</td>
+                <td>{{ status_loc_form1.location}}</td>
                 <td>
-                {% if location_form1.non_field_errors %}
+                {% if status_loc_form1.non_field_errors %}
                     <div class="alert alert-danger" role="alert">
-                        {{ location_form1.non_field_errors.0 }}</> 
+                        {{ status_loc_form1.non_field_errors.0 }}</> 
                     </div>
                 {% endif %}
                 </td>
             </tr>
             <tr>
-                <td> SNP Check Date </td>
-                <td> {{ snp_form1.snp_date}} </td>
+                <td>SNP Check Date:</td>
+                <td> {{ snp_form1.snp_date }} </td>
             </tr>
             <tr>
-                <td> SNP Check Info </td>
-                <td> {{ snp_form1.snp_info}} </td>
+                <td>SNP Check Info:</td>
+                <td> {{ snp_form1.snp_info }} </td>
             </tr>
             <tr>
-                <td> Comments </td>
+                <td>Comments:</td>
                 <td>{{ primer_form1.comments }}</td>
             </tr>
             <tr>
@@ -134,7 +134,7 @@ table, td, th {
                 <td>{{ coordinate_form1.end_coordinate_38 }}</td>
             </tr></br></br>
             <tr> 
-                <td> GRCh37 Coverage: </td> 
+                <td>GRCh37 Coverage:</td> 
                 <td> {{ coverage_form.coverage_37 }} </td>
 
             </tr>
@@ -142,23 +142,20 @@ table, td, th {
 
 
         </table></br>       
-        <button  type="submit" name = "update_primers" value="Update primers" class = "bt btn-primary">Update primers</button>
-        <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
-
     </div>
 
 
     <div style="float:right, width:50%">
 
-        <h4>Editing primer: {{primer2.primer_name}}</h4></br>
+        <h4>Editing primer: {{primer2.name}}</h4></br>
 
             <table>
                 <tr>
-                    <td>Primer name: </td>
+                    <td>Primer name:</td>
                     <td>{{ primer_form2.primer_name }}</td>
                 </tr>
                 <tr>
-                    <td>Gene name: </td>
+                    <td>Gene name:</td>
                     <td>{{ primer_form2.gene }}</td>
                 </tr>
                 <tr>
@@ -166,19 +163,19 @@ table, td, th {
                     <td>{{ sequence_form2.sequence }} </td>
                 </tr>
                 <tr>
-                    <td>GC %: </td>
+                    <td>GC %:</td>
                     <td>{{ primer_form2.gc_percent }} </td>
                 </tr>
                 <tr>
-                    <td>Tm: </td>
+                    <td>Tm:</td>
                     <td>{{ primer_form2.tm }} </td>
                 </tr>
                 <tr>
-                    <td>Buffer: </td>
+                    <td>Buffer:</td>
                     <td>{{ primer_form2.buffer }}</td>
                 </tr>
                 <tr>
-                    <td>PCR Program: </td>
+                    <td>PCR Program:</td>
                     <td>{{ primer_form2.pcr_program }}</td>
                 </tr>
                 <tr>
@@ -187,26 +184,26 @@ table, td, th {
                 </tr>
                 <tr>
                     <td>Status:</td>
-                    <td>{{ status_form2.status }}</td>
+                    <td>{{ status_loc_form2.status }}</td>
                 </tr>
                 <tr>
                     <td>Storage location:</td>
-                    <td>{{ location_form2.location}}</td>
+                    <td>{{ status_loc_form2.location }}</td>
                     <td>
-                    {% if location_form2.non_field_errors %}
+                    {% if status_loc_form2.non_field_errors %}
                         <div class="alert alert-danger" role="alert">
-                            {{ location_form2.non_field_errors.0 }}</> 
+                            {{ status_loc_form2.non_field_errors.0 }}</> 
                         </div>
                     {% endif %}
                     </td>
                 </tr>
                 <tr>
-                    <td> SNP Check Date </td>
-                    <td> {{ snp_form1.snp_date}} </td>
+                    <td>SNP Check Date:</td>
+                    <td> {{ snp_form2.snp_date }} </td>
                 </tr>
                 <tr>
-                    <td> SNP Check Info </td>
-                    <td> {{ snp_form1.snp_info}} </td>
+                    <td>SNP Check Info:</td>
+                    <td> {{ snp_form2.snp_info }} </td>
                 </tr>
                 <tr>
                     <td>Comments:</td>
@@ -239,7 +236,7 @@ table, td, th {
                 <tr>
                     <td>GRCh38 End coordinate:</td>
                     <td>{{ coordinate_form2.end_coordinate_38 }}</td>
-                </tr></br></br>
+                </tr><br><br>
                 <tr>
                     <td> GRCh38 Coverage: </td> 
                     <td> {{ coverage_form.coverage_38 }} </td>
@@ -247,10 +244,10 @@ table, td, th {
                 </tr>
             </table></br>       
 
-            </form>
-
+            <button  type="submit" name = "update_primers" value="Update primers" class = "bt btn-primary">Update primers</button>
+            <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
+        </form>
     </div>
-
 </body>
 
 {% endblock %}
