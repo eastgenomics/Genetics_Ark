@@ -21,11 +21,11 @@ class PrimerDetailsTable(tables.Table):
 	# start38 = tables.Column(accessor="coordinates.start_coordinate_38")
 	# end38 = tables.Column(accessor = "coordinates.end_coordinate_38")
 	
-	def render_tm(self.tm, value):
+	def render_tm(tm, value):
 		# render tm to 2dp
 		return '{:0.2f}'.format(value)
 
-	def render_status(self.status, value, column):
+	def render_status(status, value, column):
 		# render status cell colour dependent on status
 
 		if str(value) == "Archived":
@@ -36,7 +36,7 @@ class PrimerDetailsTable(tables.Table):
 			column.attrs = {'td': {}}
 		return value
 
-	def render_snp_status(self.snp_status, value, column):
+	def render_snp_status(snp_status, value, column):
 		# render SNP check cell colour dependent on presence of SNP check
 		# 0 = not checked, 1 = no SNPs, 2 = SNPs detected
 
