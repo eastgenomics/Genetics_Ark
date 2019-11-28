@@ -7,10 +7,7 @@ from django_tables2 import A
 # table used in index view for displaying all primers
 
 class PrimerDetailsTable(tables.Table):
-
-
-
-	primer_name = tables.LinkColumn("edit_pair", args = [A('pk')])
+	name = tables.LinkColumn("edit_pair", args = [A('pk')])
 	tm = tables.Column()
 	status = tables.Column()
 	snp_status = tables.Column(default = ' ')
@@ -24,12 +21,11 @@ class PrimerDetailsTable(tables.Table):
 	# start38 = tables.Column(accessor="coordinates.start_coordinate_38")
 	# end38 = tables.Column(accessor = "coordinates.end_coordinate_38")
 	
-	def render_tm(tm, value):
+	def render_tm(self.tm, value):
 		# render tm to 2dp
 		return '{:0.2f}'.format(value)
 
-
-	def render_status(status, value, column):
+	def render_status(self.status, value, column):
 		# render status cell colour dependent on status
 
 		if str(value) == "Archived":
@@ -40,7 +36,7 @@ class PrimerDetailsTable(tables.Table):
 			column.attrs = {'td': {}}
 		return value
 
-	def render_snp_status(snp_status, value, column):
+	def render_snp_status(self.snp_status, value, column):
 		# render SNP check cell colour dependent on presence of SNP check
 		# 0 = not checked, 1 = no SNPs, 2 = SNPs detected
 
@@ -62,19 +58,15 @@ class PrimerDetailsTable(tables.Table):
 		attrs = {"class": "paleblue"}
 		template_name = 'django_tables2/bootstrap.html'
 
-		#order_by = "arrival_date"
-
-		fields = ('primer_name', 'gene', 'sequence', 'gc_percent', 
+		fields = ('name', 'gene', 'sequence', 'gc_percent', 
 					'comments', 'arrival_date', 'status', 'tm',
 					'scientist', 'pcr_program', 'buffer', 'location', 
 					'snp_status', 'snp_date', 'snp_info')
 
-		sequence = ('check', 'primer_name', 'gene', 'sequence', 'gc_percent', 
+		sequence = ('check', 'name', 'gene', 'sequence', 'gc_percent', 
 					'tm', 'chrom_no', 'buffer', 'coverage37', 'coverage38', 
 					'pcr_program', 'scientist', 'arrival_date', 'location', 'status', 'snp_status', 'comments')
 
 		exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info')
 
 		row_attrs = { 'data-status': lambda record: record.status}
-
-
