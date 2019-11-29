@@ -248,9 +248,6 @@ def submit(request):
     context_dict = {}
 
     if request.method == "POST":
-
-        print("submitting single primer")
-        
         # data is sent
         primer_form = Forms.PrimerForm(request.POST)
         sequence_form = Forms.SequenceForm(request.POST)
@@ -262,9 +259,7 @@ def submit(request):
             sequence_form.is_valid() and
             status_form.is_valid() and
             arrival_date_form.is_valid() 
-            ):
-            print("data valid")
-
+        ):
             # the form is valid
             primer_name = primer_form.cleaned_data["name"]
             gene = primer_form.cleaned_data["gene"].upper() 
@@ -286,10 +281,6 @@ def submit(request):
             # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
             start_coordinate_37, end_coordinate_37, gene_chrom = mapper1(sequence, gene, 37)
             start_coordinate_38, end_coordinate_38, gene_chrom = mapper1(sequence, gene, 38)
-
-            print("37 ", start_coordinate_37, end_coordinate_37)
-            print("38 ", start_coordinate_38, end_coordinate_38)
-            print("chrom no: ", gene_chrom)
 
             # save primer to database
             new_status, created = Models.Status.objects.get_or_create(name = status)
@@ -565,7 +556,6 @@ def edit_primer(request, PrimerDetails_id):
     context_dict = {}
 
     if request.method == "POST":
-        print("pressed")
 
         primer_form = Forms.PrimerForm(request.POST)
         sequence_form = Forms.SequenceForm(request.POST)
@@ -576,22 +566,15 @@ def edit_primer(request, PrimerDetails_id):
         coordinate_form = Forms.CoordinateForm(request.POST)
         snp_form = Forms.SNPForm(request.POST)
 
-        print(primer_form.is_bound)
-
-        print("kuhkjhl", request.POST)
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer"):
-            print("update button pressed")
-            # checks the form is valid
             if (primer_form.is_valid() and 
                 sequence_form.is_valid() and
                 status_form.is_valid() and
                 arrival_date_form.is_valid() and
                 chrom_no_form.is_valid() and
                 coordinate_form.is_valid() 
-                ):
-                print("update form is valid")
-
+            ):
                 # the form is valid
                 primer_name = primer_form.cleaned_data["name"]
                 gene = primer_form.cleaned_data["gene"] 
@@ -610,9 +593,7 @@ def edit_primer(request, PrimerDetails_id):
                 end_coordinate_38 = coordinate_form.cleaned_data["end_coordinate_38"]
                 location = status_form.cleaned_data["location"]
 
-
                 # save primer to database
-                print("saving")
                 new_status, created = Models.Status.objects.update_or_create(name = status)
 
                 new_scientist, created = Models.Scientist.objects.update_or_create(
@@ -631,36 +612,24 @@ def edit_primer(request, PrimerDetails_id):
 
                 # if primer is present updates, if not creates new instance in database
                 new_primer =  Models.PrimerDetails.objects.update_or_create(
-                    name = primer_name, 
-                defaults={
-                    'gene' : gene, 'sequence': sequence, 
-                    # 'gc_percent': gcpercent, 'tm': tm,
-                    'comments':  comments, 'arrival_date': arrival_date,
-                    'location': location, 'status': new_status, 
-                    'scientist': new_scientist,'pcr_program': new_pcr, 
-                    'buffer': new_buffer, 'coordinates': new_coordinates})
-
-                #messages.success(request, 'Primer successfully updated')
-
+                    name = primer_name, defaults={
+                        'gene' : gene, 'sequence': sequence, 
+                        # 'gc_percent': gcpercent, 'tm': tm,
+                        'comments':  comments, 'arrival_date': arrival_date,
+                        'location': location, 'status': new_status, 
+                        'scientist': new_scientist,'pcr_program': new_pcr, 
+                        'buffer': new_buffer, 'coordinates': new_coordinates
+                })
 
                 primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-
-                #new_primer = new_primer[0]
 
                 messages.success(request, 'Primer "{}" successfully updated'.format(primer),
                     extra_tags="success")
-
-                print("view")
                
-                #return render('primer_db/index.html', context_dict)
                 return  redirect('/primer_db/')
-
-
             else:
                 # view for form with populated data from selected primer if form is invalid
-                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-
-                primer = primer[0]
+                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
 
                 context_dict["primer_form"] = primer_form
                 context_dict["sequence_form"] = sequence_form
@@ -671,7 +640,6 @@ def edit_primer(request, PrimerDetails_id):
                 context_dict["snp_form"] = snp_form
 
                 return render(request, 'primer_db/edit_primer.html', context_dict)
-                print("returned")
 
 
         # when delete button is pressed, delete current primer
@@ -700,33 +668,22 @@ def edit_primer(request, PrimerDetails_id):
             RequestConfig(request, paginate={'per_page': 50}).configure(table)
 
             return  redirect('/primer_db/')
-
     
-    # initial view for form with populated data from selected primer
-    print("initial primer edit view")
-
-    primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-    primer = primer[0]
+    primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
     coordinates = primer.coordinates
     status = primer.status
 
-    print(primer)
-    #print(model_to_dict(primer.pairs))
-
     primer_details_dict = {
-
         'primer_name' : primer.primer_name,
         'gene' : primer.gene,
         'gc_percent' : primer.gc_percent,
         'tm' : primer.tm,
-        #'length' : primer.length,
         'comments' : primer.comments,
         'buffer' : primer.buffer,
         'pcr_program' : primer.pcr_program,
         'forename' : primer.scientist.forename,
         'surname' : primer.scientist.surname
     }
-
 
     primer_form = Forms.PrimerForm(initial = primer_details_dict)
     sequence_form = Forms.SequenceForm(initial = model_to_dict(primer))
@@ -737,10 +694,6 @@ def edit_primer(request, PrimerDetails_id):
     status_form =  Forms.StatusLocationForm(initial = model_to_dict(status))
     snp_date_form = Forms.SNPForm(initial = model_to_dict(primer))
     snp_info_form = Forms.SNPForm(initial = model_to_dict(primer))
-
-    print(model_to_dict(primer.status))
-    print(" ")
-    #print(chrom_no_form)
 
     context_dict["primer_form"] = primer_form
     context_dict["sequence_form"] = sequence_form
@@ -757,9 +710,6 @@ def edit_primer(request, PrimerDetails_id):
 
 
 def edit_pair(request, PrimerDetails_id):
-    
-    context_dict = {}
-
     """
     Function for edit view of a pair of primers
     """
@@ -767,14 +717,11 @@ def edit_pair(request, PrimerDetails_id):
     context_dict = {}
 
     if request.method == "POST":
-        print("pressed")
-
         # data sent for first primer
         primer_form1 = Forms.PrimerForm(request.POST, prefix ="form1")
         sequence_form1 = Forms.SequenceForm(request.POST, prefix ="form1")
-        status_form1 = Forms.StatusLocationForm(request.POST, prefix ="form1")
+        status_loc_form1 = Forms.StatusLocationForm(request.POST, prefix ="form1")
         arrival_date_form1 = Forms.ArrivalDateForm(request.POST, prefix ="form1")
-        # reference_form1 = Forms.ReferenceForm(request.POST, prefix ="reference_form1")
         chrom_no_form1 = Forms.ChromNoForm(request.POST, prefix ="form1")
         coordinate_form1 = Forms.CoordinateForm(request.POST, prefix ="form1")
         snp_form1 = Forms.SNPForm(request.POST, prefix ="form1")
@@ -782,21 +729,21 @@ def edit_pair(request, PrimerDetails_id):
         # data sent for second primer
         primer_form2 = Forms.PrimerForm(request.POST, prefix ="form2")
         sequence_form2 = Forms.SequenceForm(request.POST, prefix ="form2")
-        status_form2 = Forms.StatusLocationForm(request.POST, prefix ="form2")
+        status_loc_form2 = Forms.StatusLocationForm(request.POST, prefix ="form2")
         arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix ="form2")
-        # reference_form1 = Forms.ReferenceForm(request.POST, prefix ="reference_form1")
         chrom_no_form2 = Forms.ChromNoForm(request.POST, prefix ="form2")
         coordinate_form2 = Forms.CoordinateForm(request.POST, prefix ="form2")
         snp_form2 = Forms.SNPForm(request.POST, prefix ="form2")
 
+        fields = ["primer_name", "gene", "sequence", "gc_percent", "tm", "buffer", "pcr_program", "arrival_date", "status", 
+        "location", "snp_date", "snp_info", "comments", "forename", "surname", "chrom_no", 
+        "start_coordinate_37", "end_coordinate_37", "start_coordinate_38", "end_coordinate_38"]
+
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primers"):
-            print("update button pressed")
-
-            # checks the forms are valid
             if (primer_form1.is_valid() and 
                 sequence_form1.is_valid() and
-                status_form1.is_valid() and
+                status_loc_form1.is_valid() and
                 arrival_date_form1.is_valid() and
                 chrom_no_form1.is_valid() and
                 coordinate_form1.is_valid() and
@@ -804,52 +751,42 @@ def edit_pair(request, PrimerDetails_id):
                 
                 primer_form2.is_valid() and 
                 sequence_form2.is_valid() and
-                status_form2.is_valid() and
+                status_loc_form2.is_valid() and
                 arrival_date_form2.is_valid() and
                 chrom_no_form2.is_valid() and
                 coordinate_form2.is_valid() and
                 snp_form2.is_valid()
-                ):
-        
-                print("update form is valid")
-
-                fields = ["primer_name", "gene", "sequence", "gc_percent", "tm", "buffer", "pcr_program", "arrival_date", "status", 
-                "location", "snp_status", "snp_date", "snp_info", "comments", "forename", "surname", "chrom_no", 
-                "start_coordinate_37", "end_coordinate_37", "start_coordinate_38", "end_coordinate_38"]
-
+            ):
                 forms1 = []
                 forms2 =[]
 
                 # loop for adding correct fields to forms
-                for i in fields:
-                    if i == "sequence":
-                        forms1.append(sequence_form1.cleaned_data[i])
-                        forms2.append(sequence_form2.cleaned_data[i])
-                    elif i == "status":
-                        forms1.append(status_form1.cleaned_data[i])
-                        forms2.append(status_form2.cleaned_data[i])
-                    elif i == "location":
-                        forms1.append(status_form1.cleaned_data[i])
-                        forms2.append(status_form2.cleaned_data[i])
-                    elif i == "arrival_date":
-                        forms1.append(arrival_date_form1.cleaned_data[i])
-                        forms2.append(arrival_date_form2.cleaned_data[i])
-                    elif i == "chrom_no":
-                        forms1.append(chrom_no_form1.cleaned_data[i])
-                        forms2.append(chrom_no_form2.cleaned_data[i])
-                    elif "snp" in i:
-                        forms1.append(snp_form1.cleaned_data[i])
-                        forms2.append(snp_form2.cleaned_data[i])
-                    elif "coordinate" in i:
-                        forms1.append(coordinate_form1.cleaned_data[i])
-                        forms2.append(coordinate_form2.cleaned_data[i])
+                for field in fields:
+                    if field == "sequence":
+                        forms1.append(sequence_form1.cleaned_data[field])
+                        forms2.append(sequence_form2.cleaned_data[field])
+                    elif field == "status" or field == "location":
+                        forms1.append(status_loc_form1.cleaned_data[field])
+                        forms2.append(status_loc_form2.cleaned_data[field])
+                    elif field == "arrival_date":
+                        forms1.append(arrival_date_form1.cleaned_data[field])
+                        forms2.append(arrival_date_form2.cleaned_data[field])
+                    elif field == "chrom_no":
+                        forms1.append(chrom_no_form1.cleaned_data[field])
+                        forms2.append(chrom_no_form2.cleaned_data[field])
+                    elif "snp" in field:
+                        forms1.append(snp_form1.cleaned_data[field])
+                        forms2.append(snp_form2.cleaned_data[field])
+                    elif "coordinate" in field:
+                        forms1.append(coordinate_form1.cleaned_data[field])
+                        forms2.append(coordinate_form2.cleaned_data[field])
                     else:
-                        forms1.append(primer_form1.cleaned_data[i])
-                        forms2.append(primer_form2.cleaned_data[i])  
+                        forms1.append(primer_form1.cleaned_data[field])
+                        forms2.append(primer_form2.cleaned_data[field])  
 
                 # unpack variables for first form and save to db
                 (primer_name, gene, sequence, gc_percent, tm, buffer, pcr_program, arrival_date, status, 
-                location, snp_status, snp_date, snp_info, comments, forename, surname, chrom_no, 
+                location, snp_date, snp_info, comments, forename, surname, chrom_no, 
                 start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38) = forms1
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
@@ -864,23 +801,21 @@ def edit_pair(request, PrimerDetails_id):
                 new_coordinates, created = Models.Coordinates.objects.update_or_create(
                     start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
                     start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38,
-                    chrom_no = chrom_no
-                    )
+                    chrom_no = chrom_no)
 
                 new_primer =  Models.PrimerDetails.objects.update_or_create(
                     name = primer_name, defaults={
                         'gene' : gene, 'sequence': sequence, 
-                        # 'gc_percent': gcpercent, 'tm': tm,
                         'comments':  comments, 'arrival_date': arrival_date,'location': location, 
                         'status': new_status, 'scientist': new_scientist,'pcr_program': new_pcr, 
-                        'buffer': new_buffer, 'coordinates': new_coordinates, "snp_status": snp_status,
+                        'buffer': new_buffer, 'coordinates': new_coordinates,
                         "snp_date": snp_date, "snp_info": snp_info
                     }
                 )
 
                 # unpack variables for second form and save to db
                 (primer_name, gene, sequence, gc_percent, tm, buffer, pcr_program, arrival_date, status, 
-                location, snp_status, snp_date, snp_info, comments, forename, surname, chrom_no, 
+                location, snp_date, snp_info, comments, forename, surname, chrom_no, 
                 start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38) = forms2
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
@@ -895,16 +830,14 @@ def edit_pair(request, PrimerDetails_id):
                 new_coordinates, created = Models.Coordinates.objects.update_or_create(
                     start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
                     start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38,
-                    chrom_no = chrom_no
-                    )
+                    chrom_no = chrom_no)
 
                 new_primer =  Models.PrimerDetails.objects.update_or_create(
                     name = primer_name, defaults={
                         'gene' : gene, 'sequence': sequence, 
-                        # 'gc_percent': gcpercent, 'tm': tm,
                         'comments':  comments, 'arrival_date': arrival_date,'location': location, 
                         'status': new_status, 'scientist': new_scientist,'pcr_program': new_pcr, 
-                        'buffer': new_buffer, 'coordinates': new_coordinates, "snp_status": snp_status,
+                        'buffer': new_buffer, 'coordinates': new_coordinates,
                         "snp_date": snp_date, "snp_info": snp_info
                     }
                 )
@@ -919,40 +852,78 @@ def edit_pair(request, PrimerDetails_id):
 
                 return  redirect('/primer_db/')
 
-
             else:
                 # view for form with populated data from selected primer if form is invalid
 
-                ### needs changing for 2 primers and add error messages
+                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
+                primer_pair = primer.pairs_id
+                primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
 
-                print("form invalid")
-                print(primer_form1.errors)
+                for field in fields:
+                    if field == "sequence":
+                        if not sequence_form1.is_valid():
+                            error = sequence_form1.errors.as_data()
+                        if not sequence_form2.is_valid():
+                            error = sequence_form2.errors.as_data()
 
-                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+                    elif field == "status" or field == "location":
+                        if not status_loc_form1.is_valid():
+                            error = status_loc_form1.errors.as_data()
+                        if not status_loc_form2.is_valid():
+                            error = status_loc_form2.errors.as_data()
 
-                primer = primer[0]
+                    elif field == "arrival_date":
+                        if not arrival_date_form1.is_valid():
+                            error = arrival_date_form1.errors.as_data()
+                        if not arrival_date_form2.is_valid():
+                            error = arrival_date_form2.errors.as_data()
+
+                    elif field == "chrom_no":
+                        if not chrom_no_form1.is_valid():
+                            error = chrom_no_form1.errors.as_data()
+                        if not chrom_no_form2.is_valid():
+                            error = chrom_no_form2.errors.as_data()
+
+                    elif "snp" in field:
+                        if not snp_form1.is_valid():
+                            error = snp_form1.errors.as_data()
+                        if not snp_form2.is_valid():
+                            error = snp_form2.errors.as_data()
+
+                    elif "coordinate" in field:
+                        if not coordinate_form1.is_valid():
+                            error = coordinate_form1.errors.as_data()
+                        if not coordinate_form2.is_valid():
+                            error = coordinate_form2.errors.as_data()
+
+                    else:
+                        if not primer_form1.is_valid():
+                            error = primer_form1.errors.as_data()
+                        elif not primer_form2.is_valid():
+                            error = primer_form2.errors.as_data()
 
                 # data for first primer
-                context_dict["primer_form1"] = primer_name1
-                context_dict["sequence_form1"] = sequence1
-                context_dict["arrival_date_form1"] = arrival1
-                context_dict["chrom_no_form1"] = chrom1
-                context_dict["coordinate_form1"] = coor1
-                context_dict["primer1"] = primer1 
-                context_dict["status_loc_form1"] = status_loc1
-                context_dict["snp_form1"] = snp1
+                context_dict["primer_form1"] = primer_form1
+                context_dict["sequence_form1"] = sequence_form1
+                context_dict["arrival_date_form1"] = arrival_date_form1
+                context_dict["chrom_no_form1"] = chrom_no_form1
+                context_dict["coordinate_form1"] = coordinate_form1
+                context_dict["status_loc_form1"] = status_loc_form1
+                context_dict["snp_form1"] = snp_form1
 
                 # data for second primer
-                context_dict["primer_form2"] = primer_name2
-                context_dict["sequence_form2"] = sequence2
-                context_dict["arrival_date_form2"] = arrival2
-                context_dict["chrom_no_form2"] = chrom2
-                context_dict["coordinate_form2"] = coor2
-                context_dict["primer2"] = primer2 
-                context_dict["status_loc_form2"] = status_loc2
-                context_dict["snp_form2"] = snp2
+                context_dict["primer_form2"] = primer_form2
+                context_dict["sequence_form2"] = sequence_form2
+                context_dict["arrival_date_form2"] = arrival_date_form2
+                context_dict["chrom_no_form2"] = chrom_no_form2
+                context_dict["coordinate_form2"] = coordinate_form2
+                context_dict["status_loc_form2"] = status_loc_form2
+                context_dict["snp_form2"] = snp_form2
 
-                context_dict["coverage_form"] = Forms.CoverageForm(initial = model_to_dict(primer1.pairs))
+                context_dict["primer1"] = primer1
+                context_dict["primer2"] = primer2
+
+                messages.error(request, 'Invalid form: {}'.format(error), extra_tags='error')
                 
                 return render(request, 'primer_db/edit_pair.html', context_dict)
 
@@ -963,7 +934,6 @@ def edit_pair(request, PrimerDetails_id):
             primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
             primer[0].coordinates.delete()
             
-            # delete message passed to index.html after deleting
             messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
                 extra_tags="success")
 
@@ -990,16 +960,12 @@ def edit_pair(request, PrimerDetails_id):
 
         if primer.pairs_id:
             # if primer is from a pair and to be edited in pair form
-            print("pair id present")
             primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
         else:
             # if primer has no associated pair, render single edit page with selected primer
-            print("no pair id")
             return redirect('edit_primer', PrimerDetails_id = PrimerDetails_id)
 
-
         primer1_details_dict = {
-        # dict for 1st primer details
             'primer_name' : primer1.name, 'gene' : primer1.gene,
             'gc_percent' : primer1.gc_percent, 'tm' : primer1.tm,
             'comments' : primer1.comments, 'buffer' : primer1.buffer,
@@ -1008,7 +974,6 @@ def edit_pair(request, PrimerDetails_id):
         }
 
         primer2_details_dict = {
-            # dict for 2nd primer details
             'primer_name' : primer2.name, 'gene' : primer2.gene,
             'gc_percent' : primer2.gc_percent, 'tm' : primer2.tm,
             'comments' : primer2.comments, 'buffer' : primer2.buffer,
@@ -1016,48 +981,44 @@ def edit_pair(request, PrimerDetails_id):
             'surname' : primer2.scientist.surname
         }
 
-        primer_name1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
-        sequence1 = Forms.SequenceForm(initial = model_to_dict(primer1), prefix = "form1")
-        arrival1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
-        chrom1 = Forms.ChromNoForm(initial = model_to_dict(primer1.coordinates), prefix = "form1")
-        coor1 = Forms.CoordinateForm(initial = model_to_dict(primer1.coordinates), prefix = "form1")
-        status_loc1 = Forms.StatusLocationForm(initial = model_to_dict(primer1), prefix = "form1")
-        snp1 = Forms.SNPForm(initial = model_to_dict(primer1), prefix = "form1")
+        primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
+        sequence1_form = Forms.SequenceForm(initial = model_to_dict(primer1), prefix = "form1")
+        arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
+        chrom_no_form1 = Forms.ChromNoForm(initial = model_to_dict(primer1.coordinates), prefix = "form1")
+        coordinate_form1 = Forms.CoordinateForm(initial = model_to_dict(primer1.coordinates), prefix = "form1")
+        status_loc_form1 = Forms.StatusLocationForm(initial = model_to_dict(primer1), prefix = "form1")
+        snp_form1 = Forms.SNPForm(initial = model_to_dict(primer1), prefix = "form1")
 
         # data for second primer
-        primer_name2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
-        sequence2 = Forms.SequenceForm(initial = model_to_dict(primer2), prefix = "form2")
-        arrival2 = Forms.ArrivalDateForm(initial = model_to_dict(primer2), prefix = "form2")
-        chrom2 = Forms.ChromNoForm(initial = model_to_dict(primer2.coordinates), prefix = "form2")
-        coor2 = Forms.CoordinateForm(initial = model_to_dict(primer2.coordinates), prefix = "form2")
-        status_loc2 = Forms.StatusLocationForm(initial = model_to_dict(primer2), prefix = "form2")
-        snp2 = Forms.SNPForm(initial = model_to_dict(primer2), prefix = "form2")
+        primer_form2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
+        sequence_form2 = Forms.SequenceForm(initial = model_to_dict(primer2), prefix = "form2")
+        arrival_date_form2 = Forms.ArrivalDateForm(initial = model_to_dict(primer2), prefix = "form2")
+        chrom_no_form2 = Forms.ChromNoForm(initial = model_to_dict(primer2.coordinates), prefix = "form2")
+        coordinate_form2 = Forms.CoordinateForm(initial = model_to_dict(primer2.coordinates), prefix = "form2")
+        status_loc_form2 = Forms.StatusLocationForm(initial = model_to_dict(primer2), prefix = "form2")
+        snp_form2 = Forms.SNPForm(initial = model_to_dict(primer2), prefix = "form2")
 
     # data for first primer
-    context_dict["primer_form1"] = primer_name1
-    context_dict["sequence_form1"] = sequence1
-    context_dict["arrival_date_form1"] = arrival1
-    context_dict["chrom_no_form1"] = chrom1
-    context_dict["coordinate_form1"] = coor1
-    context_dict["primer1"] = primer1 
-    context_dict["status_loc_form1"] = status_loc1
-    context_dict["snp_form1"] = snp1
+    context_dict["primer_form1"] = primer_form1
+    context_dict["sequence_form1"] = sequence1_form
+    context_dict["arrival_date_form1"] = arrival_date_form1
+    context_dict["chrom_no_form1"] = chrom_no_form1
+    context_dict["coordinate_form1"] = coordinate_form1
+    context_dict["status_loc_form1"] = status_loc_form1
+    context_dict["snp_form1"] = snp_form1
 
     # data for second primer
-    context_dict["primer_form2"] = primer_name2
-    context_dict["sequence_form2"] = sequence2
-    context_dict["arrival_date_form2"] = arrival2
-    context_dict["chrom_no_form2"] = chrom2
-    context_dict["coordinate_form2"] = coor2
-    context_dict["primer2"] = primer2 
-    context_dict["status_loc_form2"] = status_loc2
-    context_dict["snp_form2"] = snp2
+    context_dict["primer_form2"] = primer_form2
+    context_dict["sequence_form2"] = sequence_form2
+    context_dict["arrival_date_form2"] = arrival_date_form2
+    context_dict["chrom_no_form2"] = chrom_no_form2
+    context_dict["coordinate_form2"] = coordinate_form2
+    context_dict["status_loc_form2"] = status_loc_form2
+    context_dict["snp_form2"] = snp_form2
 
     context_dict["primer1"] = primer1
     context_dict["primer2"] = primer2
     
-
     context_dict["coverage_form"] = Forms.CoverageForm(initial = model_to_dict(primer1.pairs))
     
-
     return render(request, 'primer_db/edit_pair.html', context_dict)
