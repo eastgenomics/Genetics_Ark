@@ -5,9 +5,9 @@
 Agreed upon modifications:
 - Add "blue" button (SNP check)
 - Add button for last date used (editing mode)
-- Editing primers make the SNP status value to go null --> modify behaviour
+- Editing primers make the SNP status value to go null --> modify behaviour --> done
 - Popup message for recalculating coverage
-- Fix refreshing page after filtering (it keep the previous filtering constraints)
+- Fix refreshing page after filtering (it keep the previous filtering constraints) --> done
 - Ordering of main table
 - Fluff stuff (padding, make it pretty)
 - Excel importing mess
