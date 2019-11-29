@@ -735,6 +735,34 @@ def edit_pair(request, PrimerDetails_id):
         coordinate_form2 = Forms.CoordinateForm(request.POST, prefix ="form2")
         snp_form2 = Forms.SNPForm(request.POST, prefix ="form2")
 
+        # data for first primer
+        context_dict["primer_form1"] = primer_form1
+        context_dict["sequence_form1"] = sequence_form1
+        context_dict["arrival_date_form1"] = arrival_date_form1
+        context_dict["chrom_no_form1"] = chrom_no_form1
+        context_dict["coordinate_form1"] = coordinate_form1
+        context_dict["status_loc_form1"] = status_loc_form1
+        context_dict["snp_form1"] = snp_form1
+
+        # data for second primer
+        context_dict["primer_form2"] = primer_form2
+        context_dict["sequence_form2"] = sequence_form2
+        context_dict["arrival_date_form2"] = arrival_date_form2
+        context_dict["chrom_no_form2"] = chrom_no_form2
+        context_dict["coordinate_form2"] = coordinate_form2
+        context_dict["status_loc_form2"] = status_loc_form2
+        context_dict["snp_form2"] = snp_form2
+
+        # check selected primer id
+        primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
+
+        if primer.pairs_id:
+            # if primer is from a pair and to be edited in pair form
+            primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+            context_dict["primer2"] = primer2        
+
+        context_dict["primer1"] = primer1
+
         fields = ["primer_name", "gene", "sequence", "gc_percent", "tm", "buffer", "pcr_program", "arrival_date", "status", 
         "location", "snp_date", "snp_info", "comments", "forename", "surname", "chrom_no", 
         "start_coordinate_37", "end_coordinate_37", "start_coordinate_38", "end_coordinate_38"]
@@ -854,7 +882,6 @@ def edit_pair(request, PrimerDetails_id):
 
             else:
                 # view for form with populated data from selected primer if form is invalid
-
                 primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
                 primer_pair = primer.pairs_id
                 primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
@@ -902,27 +929,6 @@ def edit_pair(request, PrimerDetails_id):
                         elif not primer_form2.is_valid():
                             error = primer_form2.errors.as_data()
 
-                # data for first primer
-                context_dict["primer_form1"] = primer_form1
-                context_dict["sequence_form1"] = sequence_form1
-                context_dict["arrival_date_form1"] = arrival_date_form1
-                context_dict["chrom_no_form1"] = chrom_no_form1
-                context_dict["coordinate_form1"] = coordinate_form1
-                context_dict["status_loc_form1"] = status_loc_form1
-                context_dict["snp_form1"] = snp_form1
-
-                # data for second primer
-                context_dict["primer_form2"] = primer_form2
-                context_dict["sequence_form2"] = sequence_form2
-                context_dict["arrival_date_form2"] = arrival_date_form2
-                context_dict["chrom_no_form2"] = chrom_no_form2
-                context_dict["coordinate_form2"] = coordinate_form2
-                context_dict["status_loc_form2"] = status_loc_form2
-                context_dict["snp_form2"] = snp_form2
-
-                context_dict["primer1"] = primer1
-                context_dict["primer2"] = primer2
-
                 messages.error(request, 'Invalid form: {}'.format(error), extra_tags='error')
                 
                 return render(request, 'primer_db/edit_pair.html', context_dict)
@@ -954,6 +960,21 @@ def edit_pair(request, PrimerDetails_id):
 
             return  redirect('/primer_db/')
 
+        elif request.POST.get("check_snp_primer1") or request.POST.get("check_snp_primer2"):
+            checked_primer1 = request.POST.get("check_snp_primer1", None)
+            checked_primer2 = request.POST.get("check_snp_primer2", None)
+
+            if checked_primer1:
+                primer = Models.PrimerDetails.objects.filter(name = checked_primer1)
+            elif checked_primer2:
+                primer = Models.PrimerDetails.objects.filter(name = checked_primer2)
+
+            print(primer[0])
+
+            primer.update(snp_status = 3)
+
+            return render(request, 'primer_db/edit_pair.html', context_dict)
+
     else:
         # check selected primer id
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
@@ -966,7 +987,7 @@ def edit_pair(request, PrimerDetails_id):
             return redirect('edit_primer', PrimerDetails_id = PrimerDetails_id)
 
         primer1_details_dict = {
-            'primer_name' : primer1.name, 'gene' : primer1.gene,
+            'name' : primer1.name, 'gene' : primer1.gene,
             'gc_percent' : primer1.gc_percent, 'tm' : primer1.tm,
             'comments' : primer1.comments, 'buffer' : primer1.buffer,
             'pcr_program' : primer1.pcr_program, 'forename' : primer1.scientist.forename,
@@ -974,7 +995,7 @@ def edit_pair(request, PrimerDetails_id):
         }
 
         primer2_details_dict = {
-            'primer_name' : primer2.name, 'gene' : primer2.gene,
+            'name' : primer2.name, 'gene' : primer2.gene,
             'gc_percent' : primer2.gc_percent, 'tm' : primer2.tm,
             'comments' : primer2.comments, 'buffer' : primer2.buffer,
             'pcr_program' : primer2.pcr_program, 'forename' : primer2.scientist.forename,
@@ -982,7 +1003,7 @@ def edit_pair(request, PrimerDetails_id):
         }
 
         primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
-        sequence1_form = Forms.SequenceForm(initial = model_to_dict(primer1), prefix = "form1")
+        sequence_form1 = Forms.SequenceForm(initial = model_to_dict(primer1), prefix = "form1")
         arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
         chrom_no_form1 = Forms.ChromNoForm(initial = model_to_dict(primer1.coordinates), prefix = "form1")
         coordinate_form1 = Forms.CoordinateForm(initial = model_to_dict(primer1.coordinates), prefix = "form1")
@@ -1000,7 +1021,7 @@ def edit_pair(request, PrimerDetails_id):
 
     # data for first primer
     context_dict["primer_form1"] = primer_form1
-    context_dict["sequence_form1"] = sequence1_form
+    context_dict["sequence_form1"] = sequence_form1
     context_dict["arrival_date_form1"] = arrival_date_form1
     context_dict["chrom_no_form1"] = chrom_no_form1
     context_dict["coordinate_form1"] = coordinate_form1

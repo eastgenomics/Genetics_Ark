@@ -36,8 +36,6 @@ table, td, th {
 </html>
 
 <body>
-
-
     <div style="float:left; width=50%">
 
         <h4>Editing primer: {{primer1.name}}</h4></br>
@@ -48,7 +46,7 @@ table, td, th {
         <table>
             <tr>
                 <td>Primer name:</td>
-                <td>{{ primer_form1.primer_name }}</td>
+                <td>{{ primer_form1.name }}</td>
             </tr>
             <tr>
                 <td>Gene name:</td>
@@ -152,7 +150,7 @@ table, td, th {
             <table>
                 <tr>
                     <td>Primer name:</td>
-                    <td>{{ primer_form2.primer_name }}</td>
+                    <td>{{ primer_form2.name }}</td>
                 </tr>
                 <tr>
                     <td>Gene name:</td>
@@ -242,8 +240,14 @@ table, td, th {
                     <td> {{ coverage_form.coverage_38 }} </td>
     
                 </tr>
-            </table></br>       
-
+            </table></br>
+            {% if primer1.snp_status == "2" %}
+                <button  type="submit" name = "check_snp_primer1" value={{ primer1.name }} class = "bt btn-primary" onclick="return confirm('Have you checked the primer?')">SNP Check {{ primer1.name }}</button>
+            {% endif %}
+            {% if primer2.snp_status == "2" %}
+                <button  type="submit" name = "check_snp_primer2" value={{ primer2.name }} class = "bt btn-primary" onclick="return confirm('Have you checked the primer?')">SNP Check {{ primer2.name }}</button>
+            {% endif %}
+            <br><br>
             <button  type="submit" name = "update_primers" value="Update primers" class = "bt btn-primary">Update primers</button>
             <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
         </form>
