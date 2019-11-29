@@ -5,7 +5,7 @@ from .models import PrimerDetails, Coordinates, Status, Scientist, PCRProgram, B
 from django.core.exceptions import ValidationError
 
 class PrimerForm(forms.Form):
-	primer_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
+	name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
 	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
 	gc_percent = forms.FloatField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
 	tm = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter melting temp', 'autocomplete': 'off'}))
