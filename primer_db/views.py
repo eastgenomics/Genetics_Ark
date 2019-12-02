@@ -763,7 +763,7 @@ def edit_pair(request, PrimerDetails_id):
 
         context_dict["primer1"] = primer1
 
-        fields = ["primer_name", "gene", "sequence", "gc_percent", "tm", "buffer", "pcr_program", "arrival_date", "status", 
+        fields = ["name", "gene", "sequence", "gc_percent", "tm", "buffer", "pcr_program", "arrival_date", "status", 
         "location", "snp_date", "snp_info", "comments", "forename", "surname", "chrom_no", 
         "start_coordinate_37", "end_coordinate_37", "start_coordinate_38", "end_coordinate_38"]
 
