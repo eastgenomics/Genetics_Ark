@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models
-import datetime
 from django.core.exceptions import ValidationError
 
 
@@ -22,6 +21,7 @@ class PrimerDetails(models.Model):
     snp_status = models.CharField(default=0, max_length=1, null=True, blank=False, verbose_name='SNP')
     snp_info = models.TextField(max_length=500, null=True, blank = False)
     snp_date = models.DateField(null = True, blank = True)
+    last_date_used = models.DateField(null = True, blank = True)
     status = models.ForeignKey("Status")
     scientist = models.ForeignKey("Scientist")
     pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program')
