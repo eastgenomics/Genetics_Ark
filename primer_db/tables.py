@@ -1,6 +1,7 @@
 import django_tables2 as tables
 from primer_db.models import PrimerDetails
 from primer_db.models import Coordinates
+from django.utils.html import format_html
 from django_tables2 import A
 
 
@@ -8,6 +9,7 @@ from django_tables2 import A
 
 class PrimerDetailsTable(tables.Table):
     name = tables.LinkColumn("edit_pair", args = [A('pk')])
+    primer_id = tables.Column(accessor = "id")
     tm = tables.Column()
     status = tables.Column()
     snp_status = tables.Column(default = ' ')
@@ -20,7 +22,7 @@ class PrimerDetailsTable(tables.Table):
     # end37 = tables.Column(accessor = "coordinates.end_coordinate_37")
     # start38 = tables.Column(accessor="coordinates.start_coordinate_38")
     # end38 = tables.Column(accessor = "coordinates.end_coordinate_38")
-    
+
     def render_tm(tm, value):
         # render tm to 2dp
         return '{:0.2f}'.format(value)
@@ -61,15 +63,17 @@ class PrimerDetailsTable(tables.Table):
         attrs = {"class": "paleblue"}
         template_name = 'django_tables2/bootstrap.html'
 
-        fields = ('name', 'gene', 'sequence', 'gc_percent', 
+        fields = ('primer_id', 'name', 'gene', 'sequence', 'gc_percent', 
                     'comments', 'arrival_date', 'status', 'tm',
                     'scientist', 'pcr_program', 'buffer', 'location', 
                     'snp_status', 'snp_date', 'snp_info')
 
-        sequence = ('check', 'name', 'gene', 'sequence', 'gc_percent', 
+        sequence = ('check', "primer_id", 'name', 'gene', 'sequence', 'gc_percent', 
                     'tm', 'chrom_no', 'buffer', 'coverage37', 'coverage38', 
                     'pcr_program', 'scientist', 'arrival_date', 'location', 'status', 'snp_status', 'comments')
 
         exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info')
 
         row_attrs = { 'data-status': lambda record: record.status}
+
+        order_by = ("-primer_id", "name")
