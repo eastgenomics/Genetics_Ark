@@ -39,7 +39,7 @@ table, td, th {
     <table>
         <tr>
             <td>Primer name: </td>
-            <td>{{ primer_form.primer_name }}</td>
+            <td>{{ primer_form.name }}</td>
         </tr>
         <tr>
             <td>Gene name: </td>
@@ -49,18 +49,6 @@ table, td, th {
             <td> Sequence:</td>
             <td>{{ sequence_form.sequence }} </td>
         </tr>
-<!--         <tr>
-            <td>GC %: </td>
-            <td>{{ primer_form.gc_percent }} </td>
-        </tr>
-        <tr>
-            <td>Tm: </td>
-            <td>{{ primer_form.tm }} </td>
-        </tr> -->
-<!--         <tr>
-            <td>Length: </td>
-            <td>{{ primer_form.length }} </td>
-        </tr> -->
         <tr>
             <td>Buffer: </td>
             <td>{{ primer_form.buffer }}</td>
@@ -81,20 +69,20 @@ table, td, th {
             <td>Storage location:</td>
             <td>{{ location_form.location}}</td>
             <td>
-            {% if location_form.non_field_errors %}
+            {% if status_form.non_field_errors %}
                 <div class="alert alert-danger" role="alert">
-                    <strong>{{ location_form.non_field_errors.0 }}</strong>
+                    <strong>{{ status_form.non_field_errors.0 }}</strong>
                 </div>
             {% endif %}
             </td>
         </tr>
         <tr>
             <td>SNP Check Date:</td>
-            <td>{{ snp_date_form.snp_date }}</td>
+            <td>{{ snp_form.snp_date }}</td>
         </tr>
         <tr>
             <td>SNP Info:</td>
-            <td>{{ snp_info_form.snp_info }}</td>
+            <td>{{ snp_form.snp_info }}</td>
         </tr>
         <tr>
             <td>Comments:</td>

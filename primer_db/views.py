@@ -262,14 +262,14 @@ def submit(request):
             arrival_date_form.is_valid() 
         ):
             # the form is valid
-            primer_name = primer_form.cleaned_data["name"]
+            name = primer_form.cleaned_data["name"]
             gene = primer_form.cleaned_data["gene"].upper() 
             sequence = sequence_form.cleaned_data["sequence"]
-            status = status_form.cleaned_data["name"]
+            status = status_form.cleaned_data["status"]
             comments = primer_form.cleaned_data["comments"]
             arrival_date = arrival_date_form.cleaned_data["arrival_date"]
-            buffer = primer_form.cleaned_data["name"].capitalize()
-            pcr_program = primer_form.cleaned_data["name"]
+            buffer = primer_form.cleaned_data["buffer"].capitalize()
+            pcr_program = primer_form.cleaned_data["pcr_program"]
             forename = primer_form.cleaned_data["forename"].capitalize()
             surname = primer_form.cleaned_data["surname"].capitalize()
             location = status_form.cleaned_data["location"]
@@ -292,7 +292,7 @@ def submit(request):
             new_pcr, created = Models.PCRProgram.objects.get_or_create(
                 name = pcr_program)
 
-            new_buffer, created = Models.Buffer.objects.get_or_create(buffer = buffer)
+            new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
 
 
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
@@ -302,7 +302,7 @@ def submit(request):
                 )
 
             new_primer =  Models.PrimerDetails.objects.create(
-                name = primer_name, gene = gene, sequence = sequence, 
+                name = name, gene = gene, sequence = sequence, 
                 gc_percent = gc_percent, tm = tm,
                 comments =  comments, arrival_date = arrival_date,
                 location = location, status = new_status, 
@@ -311,7 +311,7 @@ def submit(request):
 
             # success save message passed to submit.html
             messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
-                primer_name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="success")
+                name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="success")
         
             return redirect('submit')
 
@@ -334,7 +334,6 @@ def submit(request):
     context_dict["sequence_form"] = sequence_form
     context_dict["status_form"] = status_form
     context_dict["arrival_date_form"] = arrival_date_form
-
 
     return render(request, 'primer_db/submit.html', context_dict)
 
@@ -572,17 +571,18 @@ def edit_primer(request, PrimerDetails_id):
                 status_form.is_valid() and
                 arrival_date_form.is_valid() and
                 chrom_no_form.is_valid() and
-                coordinate_form.is_valid() 
+                coordinate_form.is_valid() and
+                snp_form.is_valid()
             ):
                 # the form is valid
                 primer_name = primer_form.cleaned_data["name"]
                 gene = primer_form.cleaned_data["gene"] 
                 sequence = sequence_form.cleaned_data["sequence"]
-                status = status_form.cleaned_data["name"]
+                status = status_form.cleaned_data["status"]
                 comments = primer_form.cleaned_data["comments"]
                 arrival_date = arrival_date_form.cleaned_data["arrival_date"]
-                buffer = primer_form.cleaned_data["name"].capitalize()
-                pcr_program = primer_form.cleaned_data["name"]
+                buffer = primer_form.cleaned_data["buffer"].capitalize()
+                pcr_program = primer_form.cleaned_data["pcr_program"]
                 forename = primer_form.cleaned_data["forename"].capitalize()
                 surname = primer_form.cleaned_data["surname"].capitalize()
                 chrom_no = chrom_no_form.cleaned_data["chrom_no"]
@@ -591,6 +591,9 @@ def edit_primer(request, PrimerDetails_id):
                 start_coordinate_38 = coordinate_form.cleaned_data["start_coordinate_38"]
                 end_coordinate_38 = coordinate_form.cleaned_data["end_coordinate_38"]
                 location = status_form.cleaned_data["location"]
+                print(location)
+                snp_date = snp_form.cleaned_data["snp_date"]
+                snp_info = snp_form.cleaned_data["snp_info"]
 
                 # save primer to database
                 new_status, created = Models.Status.objects.update_or_create(name = status)
@@ -617,7 +620,8 @@ def edit_primer(request, PrimerDetails_id):
                         'comments':  comments, 'arrival_date': arrival_date,
                         'location': location, 'status': new_status, 
                         'scientist': new_scientist,'pcr_program': new_pcr, 
-                        'buffer': new_buffer, 'coordinates': new_coordinates
+                        'buffer': new_buffer, 'coordinates': new_coordinates,
+                        'snp_date' : snp_date, 'snp_info' : snp_info
                 })
 
                 primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
@@ -626,6 +630,7 @@ def edit_primer(request, PrimerDetails_id):
                     extra_tags="success")
                
                 return  redirect('/primer_db/')
+
             else:
                 # view for form with populated data from selected primer if form is invalid
                 primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
@@ -643,6 +648,7 @@ def edit_primer(request, PrimerDetails_id):
 
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer"):
+            print("deleting primer")
 
             primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
             primer[0].coordinates.delete()
@@ -673,15 +679,18 @@ def edit_primer(request, PrimerDetails_id):
     status = primer.status
 
     primer_details_dict = {
-        'primer_name' : primer.primer_name,
+        'name' : primer.name,
         'gene' : primer.gene,
         'gc_percent' : primer.gc_percent,
         'tm' : primer.tm,
         'comments' : primer.comments,
+        'location' : primer.location,
         'buffer' : primer.buffer,
         'pcr_program' : primer.pcr_program,
         'forename' : primer.scientist.forename,
-        'surname' : primer.scientist.surname
+        'surname' : primer.scientist.surname,
+        'snp_date' : primer.snp_date,
+        'snp_info' : primer.snp_info
     }
 
     primer_form = Forms.PrimerForm(initial = primer_details_dict)
@@ -691,8 +700,8 @@ def edit_primer(request, PrimerDetails_id):
     chrom_no_form = Forms.ChromNoForm(initial = model_to_dict(coordinates))
     coordinate_form = Forms.CoordinateForm(initial = model_to_dict(coordinates))
     status_form =  Forms.StatusLocationForm(initial = model_to_dict(status))
-    snp_date_form = Forms.SNPForm(initial = model_to_dict(primer))
-    snp_info_form = Forms.SNPForm(initial = model_to_dict(primer))
+    snp_form = Forms.SNPForm(initial = model_to_dict(primer))
+    #snp_info_form = Forms.SNPForm(initial = model_to_dict(primer))
 
     context_dict["primer_form"] = primer_form
     context_dict["sequence_form"] = sequence_form
@@ -702,8 +711,8 @@ def edit_primer(request, PrimerDetails_id):
     context_dict["coordinate_form"] = coordinate_form
     context_dict["primer"] = primer
     context_dict["status_form"] = status_form
-    context_dict["snp_date_form"] = snp_date_form
-    context_dict["snp_info_form"] = snp_info_form
+    context_dict["snp_form"] = snp_form
+    #context_dict["snp_info_form"] = snp_info_form
 
     return render(request, 'primer_db/edit_primer.html', context_dict)
 
