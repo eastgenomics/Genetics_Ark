@@ -12,6 +12,7 @@ from django_tables2 import RequestConfig
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from itertools import chain
 
 import re
@@ -969,12 +970,24 @@ def edit_pair(request, PrimerDetails_id):
             elif checked_primer2:
                 primer = Models.PrimerDetails.objects.filter(name = checked_primer2)
 
-            print(primer[0])
-
             primer.update(snp_status = 3)
 
             return render(request, 'primer_db/edit_pair.html', context_dict)
 
+        elif request.POST.get("update_date"):
+            queryset_primer1 = Models.PrimerDetails.objects.filter(pk = primer1.id)
+            queryset_primer2 = Models.PrimerDetails.objects.filter(pk = primer2.id)
+
+            queryset_primer1.update(last_date_used = timezone.now())
+            queryset_primer2.update(last_date_used = timezone.now())
+            
+            messages.success(
+                request, 'Last date used for primer "{}" and "{}" successfully updated'.format(
+                    queryset_primer1[0], queryset_primer2[0]
+                    ),
+                extra_tags="success")
+
+            return  redirect('/primer_db/')
     else:
         # check selected primer id
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
