@@ -13,6 +13,7 @@ class PrimerDetailsTable(tables.Table):
     tm = tables.Column()
     status = tables.Column()
     snp_status = tables.Column(default = ' ')
+    last_date_used = tables.Column()
     reference = tables.Column(accessor = "coordinates.reference")
     chrom_no = tables.Column(accessor = "coordinates.chrom_no")
     coverage37 = tables.Column(accessor = "pairs.coverage_37")
@@ -66,11 +67,11 @@ class PrimerDetailsTable(tables.Table):
         fields = ('primer_id', 'name', 'gene', 'sequence', 'gc_percent', 
                     'comments', 'arrival_date', 'status', 'tm',
                     'scientist', 'pcr_program', 'buffer', 'location', 
-                    'snp_status', 'snp_date', 'snp_info')
+                    'snp_status', 'snp_date', 'snp_info', 'last_date_used')
 
         sequence = ('check', "primer_id", 'name', 'gene', 'sequence', 'gc_percent', 
                     'tm', 'chrom_no', 'buffer', 'coverage37', 'coverage38', 
-                    'pcr_program', 'scientist', 'arrival_date', 'location', 'status', 'snp_status', 'comments')
+                    'pcr_program', 'scientist', 'arrival_date', 'location', 'last_date_used', 'status', 'snp_status', 'comments')
 
         exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info')
 
