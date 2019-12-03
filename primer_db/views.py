@@ -404,7 +404,6 @@ def submit_pair(request):
             location2 = status_form2.cleaned_data["location"]
 
 
-
             # call functions to calculate gc % and tm
             gc_percent1 = gc_calculate(sequence1)
             tm1 = tm_calculate(sequence1)
@@ -421,12 +420,11 @@ def submit_pair(request):
             coverage, start_coordinate_37, end_coordinate_37, gene_chrom = mapper2(sequence1, gene, 37, sequence2)
 
             
-            start_coordinate_37, end_coordinate_37, gene_chrom = mapper2(sequence1, gene, 38, sequence2)
+            start_coordinate_38, end_coordinate_38, gene_chrom = mapper2(sequence1, gene, 38, sequence2)
 
             print("37 ", start_coordinate_37, end_coordinate_37)
             print("38 ", start_coordinate_38, end_coordinate_38)
             print("chrom no: ", gene_chrom)
-
 
 
             # save primer1 to database
