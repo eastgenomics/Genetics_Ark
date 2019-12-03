@@ -18,13 +18,17 @@ from itertools import chain
 import re
 import subprocess
 import sys
+import datetime
 
 import primer_db.forms as Forms
 import primer_db.models as Models
 
-# path to ampping script
+# path to mapping script
 sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/') 
 import primer_mapper_v2
+
+sys.path.insert(1, '/mnt/storage/home/kimy/projects/gnomAD_queries/') 
+import gnomAD_queries
 
 
 def mapper1(primer_seq1, gene, ref):
@@ -74,6 +78,25 @@ def tm_calculate(sequence):
     tm_calc = tm_calc.stdout.decode("ascii").strip()
 
     return tm_calc
+
+
+def snp_check(gene, ref, primer_start, primer_end):
+    """
+    Function to run SNP check script
+    """
+    print("checking SNPs")
+    snp_pos = []
+    snp_detail = []
+
+    total_snps = gnomAD_queries.snp_check_query(gene, ref)
+
+    if total_snps:
+        for snp in total_snps:
+            if primer_start <= snp['pos'] <= primer_end:
+                snp_pos.append(snp['pos'] - primer_start)
+                snp_detail.append(snp['variant_id'])
+
+    return snp_pos, snp_detail
 
 
 def index(request):
@@ -283,6 +306,32 @@ def submit(request):
             start_coordinate_37, end_coordinate_37, gene_chrom = mapper1(sequence, gene, 37)
             start_coordinate_38, end_coordinate_38, gene_chrom = mapper1(sequence, gene, 38)
 
+
+            # call function to check for SNPs
+            snp_pos_37, snp_detail_37 = snp_check(gene, "37", start_coordinate_37, end_coordinate_37)
+            snp_pos_38, snp_detail_38 = snp_check(gene, "38", start_coordinate_38, end_coordinate_38)
+
+            snp_pos = snp_pos_37 + snp_pos_38
+            snp_detail = snp_detail_37 + snp_detail_38
+
+            if snp_detail:
+                snp_info = ""
+
+                for i, snp in enumerate(snp_detail):
+
+                    snp_details = "SNP present at +{} within primer; {}. ".format(
+                        snp_pos[i], snp)
+                    
+                    print(snp_details)
+
+                    snp_info = snp_info + snp_details
+
+                print(snp_info)
+                snp_status = 2
+                snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
+                snp_info = snp_info
+
+
             # save primer to database
             new_status, created = Models.Status.objects.get_or_create(name = status)
 
@@ -305,9 +354,11 @@ def submit(request):
                 name = name, gene = gene, sequence = sequence, 
                 gc_percent = gc_percent, tm = tm,
                 comments =  comments, arrival_date = arrival_date,
-                location = location, status = new_status, 
-                scientist = new_scientist, pcr_program = new_pcr, 
-                buffer = new_buffer, coordinates = new_coordinates)
+                location = location, snp_status = snp_status,
+                snp_date = snp_date, snp_info = snp_info,
+                status = new_status, scientist = new_scientist, 
+                pcr_program = new_pcr, buffer = new_buffer, 
+                coordinates = new_coordinates)
 
             # success save message passed to submit.html
             messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
