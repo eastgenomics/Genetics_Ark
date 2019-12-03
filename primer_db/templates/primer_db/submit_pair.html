@@ -53,7 +53,7 @@ table, td, th {
         <table>
             <tr>
                 <td>Primer name: </td>
-                <td>{{ primer_form1.primer_name }}</td>
+                <td>{{ primer_form1.name }}</td>
             </tr>
             <tr>
                 <td>Gene name: </td>
@@ -63,18 +63,6 @@ table, td, th {
                 <td> Sequence:</td>
                 <td>{{ sequence_form1.sequence }} </td>
             </tr>
-           <!--  <tr>
-                <td>GC %: </td>
-                <td>{{ primer_form1.gc_percent }} </td>
-            </tr>
-            <tr>
-                <td>Tm: </td>
-                <td>{{ primer_form1.tm }} </td>
-            </tr> -->
-            <!-- <tr>
-                <td>Length: </td>
-                <td>{{ primer_form1.length }} </td>
-            </tr> -->
             <tr>
                 <td>Buffer: </td>
                 <td>{{ primer_form1.buffer }}</td>
@@ -114,22 +102,7 @@ table, td, th {
                 <td><p>Surname:</td>
                 <td>{{ primer_form1.surname }}</td>
             </tr>
-            <!-- <tr>
-                <td>Chromosome no.:</td>
-                <td>{{ chrom_no_form1.chrom_no }}</td>
-            </tr>
-            <tr>
-                <td>Reference build:</td>
-                <td>{{ reference_form1.reference }}</td>
-            </tr>
-            <tr>
-                <td>Start coordinate:</td>
-                <td>{{ submit_coordinate_form1.start_coordinate }}</td>
-            </tr>
-            <tr>
-                <td>End coordinate:</td>
-                <td>{{ submit_coordinate_form1.end_coordinate }}</td>
-            </tr> -->
+        
         </table></br>       
         <button  type="submit" name = "submit" class = "bt btn-primary">Submit primer</button>
         <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
@@ -144,7 +117,7 @@ table, td, th {
             <table>
                 <tr>
                     <td>Primer name: </td>
-                    <td>{{ primer_form2.primer_name }}</td>
+                    <td>{{ primer_form2.name }}</td>
                 </tr>
                 <tr>
                     <td>Gene name: </td>
@@ -154,18 +127,6 @@ table, td, th {
                     <td> Sequence:</td>
                     <td>{{ sequence_form2.sequence }} </td>
                 </tr>
-                <!-- <tr>
-                    <td>GC %: </td>
-                    <td>{{ primer_form2.gc_percent }} </td>
-                </tr>
-                <tr>
-                    <td>Tm: </td>
-                    <td>{{ primer_form2.tm }} </td>
-                </tr> -->
-             <!--    <tr>
-                    <td>Length: </td>
-                    <td>{{ primer_form2.length }} </td>
-                </tr> -->
                 <tr>
                     <td>Buffer: </td>
                     <td>{{ primer_form2.buffer }}</td>
@@ -197,30 +158,6 @@ table, td, th {
                     <td>Comments:</td>
                     <td>{{ primer_form2.comments }}</td>
                 </tr>
-                <!-- <tr>
-                    <td>Forename:</td>
-                    <td>{{ primer_form2.forename }}</td>
-                </tr>
-                <tr>
-                    <td><p>Surname:</td>
-                    <td>{{ primer_form2.surname }}</td>
-                </tr> -->
-               <!--  <tr>
-                    <td>Chromosome no.:</td>
-                    <td>{{ chrom_no_form2.chrom_no }}</td>
-                </tr>
-                <tr>
-                    <td>Reference build:</td>
-                    <td>{{ reference_form2.reference }}</td>
-                </tr>
-                <tr>
-                    <td>Start coordinate:</td>
-                    <td>{{ submit_coordinate_form2.start_coordinate }}</td>
-                </tr>
-                <tr>
-                    <td>End coordinate:</td>
-                    <td>{{ submit_coordinate_form2.end_coordinate }}</td>
-                </tr> -->
             </table></br>       
 
             </form>
