@@ -7,8 +7,6 @@ from django.core.exceptions import ValidationError
 class PrimerForm(forms.Form):
 	name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
 	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
-	# gc_percent = forms.FloatField(widget=forms.TextInput(attrs={'placeholder':'Enter GC %', 'autocomplete': 'off'}))
-	# tm = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter melting temp', 'autocomplete': 'off'}))
 	comments = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Other comments'}))
 	buffer = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Buffer'}), initial="Buffer D")
 	pcr_program = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'PCR Program'}), initial = "TD65_55")	
@@ -20,7 +18,7 @@ class SequenceForm(forms.Form):
 	sequence = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer sequence', 'autocomplete': 'off'}))
 
 	def clean(self):
-		data = self.cleaned_data
+		data = self.cleaned_data["sequence"]
 
 		for nucl in data:
 			nucl = nucl.upper()
@@ -28,7 +26,7 @@ class SequenceForm(forms.Form):
 			if nucl not in ["A", "T", "C", "G"]:
 				raise forms.ValidationError("Nucleotide sequence cannot contains anything other than ATCG")
 
-		return data
+		return self.cleaned_data
 
 
 class ArrivalDateForm(forms.Form):
