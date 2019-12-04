@@ -31,20 +31,15 @@ sys.path.insert(1, '/mnt/storage/home/kimy/projects/gnomAD_queries/')
 import gnomAD_queries
 
 
-def mapper1(primer_seq1, gene, ref):
+def mapper1(seq, gene, ref):
     """
     Function for calling primer mapper when submitting single primer
     """
-    res = primer_mapper_v2.main(primer_seq1, gene, ref)
+    mapping_result = primer_mapper_v2.main(seq, gene, ref)
 
-    print("gene: ", gene)
-    print(res)
+    primer_start, primer_end, gene_chrom = mapping_result
 
-    primer1_start = res[0]
-    primer1_end = res[1]
-    gene_chrom = res[2]
-
-    return primer1_start, primer1_end, gene_chrom 
+    return primer_start, primer_end, gene_chrom 
 
 
 def mapper2(primer_seq1, gene, ref, primer_2):
@@ -61,6 +56,7 @@ def gc_calculate(sequence):
     """
     Function for calculating GC % of submitted primer sequence
     """
+
     sequence = sequence.upper()
     gc_calc = round((((sequence.count('G') + sequence.count('C')) / len(sequence)) * 100), 2)
 
@@ -71,6 +67,7 @@ def tm_calculate(sequence):
     """
     Function for calculating Tm of submitted primer sequence
     """
+
     OLIGOTM = "/mnt/storage/apps/software/primer3_core/2.3.7/src/oligotm -sc 1 -tp 1 -n 0.6 -dv 1.5 "
 
     cmd = OLIGOTM + sequence
@@ -84,7 +81,7 @@ def snp_check(gene, ref, primer_start, primer_end):
     """
     Function to run SNP check script
     """
-    print("checking SNPs")
+
     snp_pos = []
     snp_detail = []
 
@@ -301,11 +298,9 @@ def submit(request):
             gc_percent = gc_calculate(sequence)
             tm = tm_calculate(sequence)
 
-
             # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
             start_coordinate_37, end_coordinate_37, gene_chrom = mapper1(sequence, gene, 37)
             start_coordinate_38, end_coordinate_38, gene_chrom = mapper1(sequence, gene, 38)
-
 
             # call function to check for SNPs
             snp_pos_37, snp_detail_37 = snp_check(gene, "37", start_coordinate_37, end_coordinate_37)
@@ -318,20 +313,14 @@ def submit(request):
                 snp_info = ""
 
                 for i, snp in enumerate(snp_detail):
-
                     snp_details = "SNP present at +{} within primer; {}. ".format(
                         snp_pos[i], snp)
                     
-                    print(snp_details)
-
                     snp_info = snp_info + snp_details
-
-                print(snp_info)
 
                 snp_status = 2
                 snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
                 snp_info = snp_info
-
 
             # save primer to database
             new_status, created = Models.Status.objects.get_or_create(name = status)
@@ -343,7 +332,6 @@ def submit(request):
                 name = pcr_program)
 
             new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
-
 
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
                 start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
@@ -376,11 +364,7 @@ def submit(request):
 
 
         else:
-            print("invalid form")
-            print(primer_form.errors)
-            print(sequence_form.errors)
-            print(status_form.errors)
-            print(arrival_date_form.errors)
+            messages.error(request, "The form had incorrect data", extra_tags="error")
 
     else:
         # if data is not sent, just display the form
