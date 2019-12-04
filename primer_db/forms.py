@@ -19,6 +19,17 @@ class PrimerForm(forms.Form):
 class SequenceForm(forms.Form):
 	sequence = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer sequence', 'autocomplete': 'off'}))
 
+	def clean(self):
+		data = self.cleaned_data
+
+		for nucl in data:
+			nucl = nucl.upper()
+
+			if nucl not in ["A", "T", "C", "G"]:
+				raise forms.ValidationError("Nucleotide sequence cannot contains anything other than ATCG")
+
+		return data
+
 
 class ArrivalDateForm(forms.Form):
 	this_year = datetime.now().year
