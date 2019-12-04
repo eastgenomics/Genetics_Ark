@@ -8,7 +8,6 @@
 <!-- success message when primer is saved -->
 {% if messages %} 
     {% for message in messages %}
-
         {% if 'error' in message.tags %}
             <div class="alert alert-danger" role="alert">
                 <strong>{{ message }}</strong> 
@@ -20,8 +19,6 @@
             <strong>{{ message }}</strong> 
         </div>
         {% endif %}
-
-
     {% endfor %} 
 {% endif %} 
 
