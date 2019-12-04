@@ -327,6 +327,7 @@ def submit(request):
                     snp_info = snp_info + snp_details
 
                 print(snp_info)
+
                 snp_status = 2
                 snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
                 snp_info = snp_info
@@ -364,7 +365,15 @@ def submit(request):
             messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
                 name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="success")
         
-            return redirect('submit')
+            # recreate empty form after submitting 
+            context_dict["primer_form"] = Forms.PrimerForm()
+            context_dict["sequence_form"] = Forms.SequenceForm()
+            context_dict["status_form"] = Forms.StatusLocationForm()
+            context_dict["arrival_date_form"] = Forms.ArrivalDateForm()
+
+            #return redirect('submit')
+            return render(request, 'primer_db/submit.html', context_dict)
+
 
         else:
             print("invalid form")
@@ -374,7 +383,7 @@ def submit(request):
             print(arrival_date_form.errors)
 
     else:
-            # if data is not sent, just display the form
+        # if data is not sent, just display the form
         primer_form = Forms.PrimerForm()
         sequence_form = Forms.SequenceForm()
         status_form = Forms.StatusLocationForm()
@@ -457,24 +466,18 @@ def submit_pair(request):
             # call functions to calculate gc % and tm
             gc_percent1 = gc_calculate(sequence1)
             tm1 = tm_calculate(sequence1)
-            print("primer1 gc: ", gc_percent1)
-            print("primer1 tm:: ", tm1)
 
             gc_percent2 = gc_calculate(sequence2)
             tm2 = tm_calculate(sequence2)
-            print("primer2 gc: ", gc_percent2)
-            print("primer2 tm:: ", tm2)
 
 
-            # call primer_mapper to map primer to bnoth 37 and 38, then return coords and chromosome number
+
+            # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
             coverage, start_coordinate_37, end_coordinate_37, gene_chrom = mapper2(sequence1, gene, 37, sequence2)
 
-            
-            start_coordinate_38, end_coordinate_38, gene_chrom = mapper2(sequence1, gene, 38, sequence2)
+            coverage, start_coordinate_38, end_coordinate_38, gene_chrom = mapper2(sequence1, gene, 38, sequence2)
 
-            print("37 ", start_coordinate_37, end_coordinate_37)
-            print("38 ", start_coordinate_38, end_coordinate_38)
-            print("chrom no: ", gene_chrom)
+            ### need to add saving coverage to db
 
 
             # save primer1 to database
