@@ -20,7 +20,14 @@ class PrimerDetailsTable(tables.Table):
     coverage37 = tables.Column(accessor = "pairs.coverage_37")
     coverage38 = tables.Column(accessor = "pairs.coverage_38")
     check = tables.CheckBoxColumn(verbose_name=" refewrf", accessor = 'pk')
+    comments = tables.Column()
 
+
+    def render_comments(comments, value):
+        if len(value) > 100:
+            return value[0:101] + "..."
+        else:
+            return value
 
     def render_tm(tm, value):
         # render tm to 2dp
