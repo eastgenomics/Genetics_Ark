@@ -104,34 +104,40 @@ table, td, th {
                 <td>SNP Check Date:</td>
                 <td> {{ primer2.snp_date }} </td>
             </tr>
-            {% if primer1.snp_info %}
-                <tr>
+            <tr>
+                {% if snp1 %}
                     <td>SNP Check Info:</td>
                     <td>
                         <table border="1">
-                            {% for snp in primer1.snps_as_list %}
-                                {% if snp %}
-                                    <tr>
-                                        <td>{{ snp }}</td>
-                                    </tr>
-                                {% endif %}
+                            {% for snp in snp1 %}
+                                <tr>
+                                    <td>{{ snp.0 }}</td>
+                                    <td><a href="https://gnomad.broadinstitute.org/variant/{{ snp.1 }}?{{ snp.2 }}">{{ snp.1 }}</td>
+                                </tr>
                             {% endfor %}
                         </table>
                     </td>
+                {% else %}
+                    <td>SNP Check Info:</td>
+                    <td>No SNPs found</td>
+                {% endif %}
+                {% if snp2 %}
                     <td>SNP Check Info:</td>
                     <td>
                         <table border="1">
-                            {% for snp in primer2.snps_as_list %}
-                                {% if snp %}
-                                    <tr>
-                                        <td>{{ snp }}</td>
-                                    </tr>
-                                {% endif %}
+                            {% for snp in snp2 %}
+                                <tr>
+                                    <td>{{ snp.0 }}</td>
+                                    <td><a href="https://gnomad.broadinstitute.org/variant/{{ snp.1 }}?{{ snp.2 }}">{{ snp.1 }}</td>
+                                </tr>
                             {% endfor %}
                         </table>
                     </td>
-                </tr>
-            {% endif %}
+                    {% else %}
+                    <td>SNP Check Info:</td>
+                    <td>No SNPs found</td>
+                {% endif %}
+            </tr>
             <tr>
                 <td>Comments:</td>
                 <td>{{ primer_form1.comments }}</td>
