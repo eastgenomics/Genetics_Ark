@@ -6,20 +6,12 @@
 
 
 <!-- success message when primer is saved -->
-{% if messages %} 
+{% if messages %}
     {% for message in messages %}
-        {% if 'error' in message.tags %}
-            <div class="alert alert-danger" role="alert">
-                <strong>{{ message }}</strong> 
-            </div>
-        {% endif %}
-
-        {% if 'success' in message.tags %}
-        <div class="alert alert-success" role="alert">
+        <div class="alert {{message.tags}}">
             <strong>{{ message }}</strong> 
         </div>
-        {% endif %}
-    {% endfor %} 
+    {% endfor %}
 {% endif %} 
 
 <body style="padding-top: 80px; padding-left: 80px">
