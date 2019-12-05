@@ -9,15 +9,13 @@
     <h1>Primer Database</h1>
     
     <!-- success message for updated primer being saved  -->
-    {% if messages %} 
-        {% for message in messages %}
+    {% if messages %}
         <div class="alert alert-danger" role="alert">
-            <strong>{{ message }}</strong> 
+            {% for message in messages %}
+                    <strong>{{ message }}</strong> 
+            {% endfor %} 
         </div>
-        {% endfor %} 
     {% endif %} 
-    
-
 
 <div class="row center-block">
 
@@ -97,22 +95,8 @@ table, td, th {
             <tr>
                 <td>Storage location:</td>
                 <td>{{ status_loc_form1.location}}</td>
-                {% if status_loc_form1.non_field_errors %}
-                    <td>
-                    <div class="alert alert-danger" role="alert">
-                        {{ status_loc_form1.non_field_errors.0 }}</> 
-                    </div>
-                    </td>
-                {% endif %}
                 <td>Storage location:</td>
                 <td>{{ status_loc_form2.location }}</td>
-                {% if status_loc_form2.non_field_errors %}
-                    <td>
-                    <div class="alert alert-danger" role="alert">
-                        {{ status_loc_form2.non_field_errors.0 }}</> 
-                    </div>
-                    </td>
-                {% endif %}
             </tr>
             <tr>
                 <td>SNP Check Date:</td>
