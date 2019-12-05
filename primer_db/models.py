@@ -32,6 +32,9 @@ class PrimerDetails(models.Model):
     def __str__(self):
         return self.name
 
+    def snps_as_list(self):
+        return self.snp_info.split(";")
+
 
 class Coordinates(models.Model):
     reference = models.CharField(max_length=6)
