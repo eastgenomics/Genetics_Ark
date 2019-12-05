@@ -31,28 +31,23 @@ sys.path.insert(1, '/mnt/storage/home/kimy/projects/gnomAD_queries/')
 import gnomAD_queries
 
 
-def mapper1(primer_seq1, gene, ref):
+def mapper1(seq, gene, ref):
     """
     Function for calling primer mapper when submitting single primer
     """
-    res = primer_mapper_v2.main(primer_seq1, gene, ref)
+    mapping_result = primer_mapper_v2.main(seq, gene, ref)
 
-    print("gene: ", gene)
-    print(res)
+    primer_start, primer_end, gene_chrom = mapping_result
 
-    primer1_start = res[0]
-    primer1_end = res[1]
-    gene_chrom = res[2]
-
-    return primer1_start, primer1_end, gene_chrom 
+    return primer_start, primer_end, gene_chrom 
 
 
-def mapper2(primer_seq1, gene, ref, primer_2):
+def mapper2(primer_seq1, gene, ref, primer_seq2):
     """
     Function for calling primer mapper when submitting pair of primers
     """
     (coverage, primer1_start, primer1_end,
-     primer2_start, primer2_end, gene_chrom) = primer_mapper_v2.main(primer_seq1, gene, ref, primer_2)
+     primer2_start, primer2_end, gene_chrom) = primer_mapper_v2.main(primer_seq1, gene, ref, primer_seq2)
 
     return coverage, primer1_start, primer1_end, primer2_start, primer2_end, gene_chrom
 
@@ -61,6 +56,7 @@ def gc_calculate(sequence):
     """
     Function for calculating GC % of submitted primer sequence
     """
+
     sequence = sequence.upper()
     gc_calc = round((((sequence.count('G') + sequence.count('C')) / len(sequence)) * 100), 2)
 
@@ -71,6 +67,7 @@ def tm_calculate(sequence):
     """
     Function for calculating Tm of submitted primer sequence
     """
+
     OLIGOTM = "/mnt/storage/apps/software/primer3_core/2.3.7/src/oligotm -sc 1 -tp 1 -n 0.6 -dv 1.5 "
 
     cmd = OLIGOTM + sequence
@@ -80,23 +77,45 @@ def tm_calculate(sequence):
     return tm_calc
 
 
-def snp_check(gene, ref, primer_start, primer_end):
+def snp_check(
+    gene, primer_start_37, primer_end_37,
+    primer_start_38, primer_end_38
+):
     """
     Function to run SNP check script
     """
-    print("checking SNPs")
-    snp_pos = []
-    snp_detail = []
 
-    total_snps = gnomAD_queries.snp_check_query(gene, ref)
+    for ref in ["37", "38"]:
+        snp_pos = []
+        snp_detail = []
 
-    if total_snps:
-        for snp in total_snps:
-            if primer_start <= snp['pos'] <= primer_end:
-                snp_pos.append(snp['pos'] - primer_start)
-                snp_detail.append(snp['variant_id'])
+        total_snps = gnomAD_queries.snp_check_query(gene, ref)
 
-    return snp_pos, snp_detail
+        if total_snps:
+            for snp in total_snps:
+                if ref == "37":
+                    if primer_start_37 <= snp['pos'] <= primer_end_37:
+                        snp_pos.append(snp['pos'] - primer_start_37)
+                        snp_detail.append(snp['variant_id'])
+                elif ref == "38":
+                    if primer_start_38 <= snp['pos'] <= primer_end_38:
+                        snp_pos.append(snp['pos'] - primer_start_38)
+                        snp_detail.append(snp['variant_id'])
+
+    if snp_detail:
+        snp_info = ""
+
+        for i, snp in enumerate(snp_detail):
+            snp_details = "+{}:{}. , ".format(
+                snp_pos[i], snp)
+            
+            snp_info += snp_details
+
+        snp_status = 2
+        snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        snp_info = snp_info
+
+    return snp_status, snp_date, snp_info
 
 
 def index(request):
@@ -301,11 +320,9 @@ def submit(request):
             gc_percent = gc_calculate(sequence)
             tm = tm_calculate(sequence)
 
-
             # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
             start_coordinate_37, end_coordinate_37, gene_chrom = mapper1(sequence, gene, 37)
             start_coordinate_38, end_coordinate_38, gene_chrom = mapper1(sequence, gene, 38)
-
 
             # call function to check for SNPs
             snp_pos_37, snp_detail_37 = snp_check(gene, "37", start_coordinate_37, end_coordinate_37)
@@ -318,20 +335,14 @@ def submit(request):
                 snp_info = ""
 
                 for i, snp in enumerate(snp_detail):
-
                     snp_details = "SNP present at +{} within primer; {}. ".format(
                         snp_pos[i], snp)
                     
-                    print(snp_details)
-
                     snp_info = snp_info + snp_details
-
-                print(snp_info)
 
                 snp_status = 2
                 snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
                 snp_info = snp_info
-
 
             # save primer to database
             new_status, created = Models.Status.objects.get_or_create(name = status)
@@ -344,14 +355,13 @@ def submit(request):
 
             new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
 
-
             new_coordinates, created = Models.Coordinates.objects.get_or_create(
                 start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
                 start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
                 chrom_no = gene_chrom
                 )
 
-            new_primer =  Models.PrimerDetails.objects.create(
+            new_primer = Models.PrimerDetails.objects.create(
                 name = name, gene = gene, sequence = sequence, 
                 gc_percent = gc_percent, tm = tm,
                 comments =  comments, arrival_date = arrival_date,
@@ -376,11 +386,7 @@ def submit(request):
 
 
         else:
-            print("invalid form")
-            print(primer_form.errors)
-            print(sequence_form.errors)
-            print(status_form.errors)
-            print(arrival_date_form.errors)
+            messages.error(request, "The form had incorrect data", extra_tags="error")
 
     else:
         # if data is not sent, just display the form
@@ -407,21 +413,25 @@ def submit_pair(request):
 
     template = loader.get_template('primer_db/submit_pair.html')
 
-
     context_dict = {}
 
     if request.method == "POST":
-        # data is sent
-        primer_form1 = Forms.PrimerForm(request.POST, prefix ="primer_form1")
-        sequence_form1 = Forms.SequenceForm(request.POST, prefix= "sequence_form1")
-        status_form1 = Forms.StatusLocationForm(request.POST, prefix = "status_form1")
-        arrival_date_form1 = Forms.ArrivalDateForm(request.POST, prefix = "arrival_date_form1")
-        
-        primer_form2 = Forms.PrimerForm(request.POST, prefix="primer_form2")
-        sequence_form2 = Forms.SequenceForm(request.POST, prefix = "sequence_form2")
-        status_form2 = Forms.StatusLocationForm(request.POST, prefix = "status_form2")
-        arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix = "arrival_date_form2")
+        # trick to fool form2
+        data = request.POST.copy()
+        data["form2-gene"] = data["form1-gene"]
+        data["form2-forename"] = data["form1-forename"]
+        data["form2-surname"] = data["form1-surname"]
 
+        # data is sent
+        primer_form1 = Forms.PrimerForm(request.POST, prefix = "form1")
+        sequence_form1 = Forms.SequenceForm(request.POST, prefix = "form1")
+        status_form1 = Forms.StatusLocationForm(request.POST, prefix = "form1")
+        arrival_date_form1 = Forms.ArrivalDateForm(request.POST, prefix = "form1")
+        
+        primer_form2 = Forms.PrimerForm(data, prefix = "form2")
+        sequence_form2 = Forms.SequenceForm(request.POST, prefix = "form2")
+        status_form2 = Forms.StatusLocationForm(request.POST, prefix = "form2")
+        arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix = "form2")
 
         # check if data input to each form is valid
         if (primer_form1.is_valid() and 
@@ -432,36 +442,28 @@ def submit_pair(request):
             sequence_form2.is_valid() and
             status_form2.is_valid() and
             arrival_date_form2.is_valid()
-            ):
-            print("pair data valid")
-
-
+        ):
             # the form is valid
             primer_name1 = primer_form1.cleaned_data["name"]
-            gene1 = primer_form1.cleaned_data["gene"].upper() 
+            gene = primer_form1.cleaned_data["gene"].upper() 
             sequence1 = sequence_form1.cleaned_data["sequence"]
-            status1 = status_form1.cleaned_data["name"]
+            status1 = status_form1.cleaned_data["status"]
             comments1 = primer_form1.cleaned_data["comments"]
             arrival_date1 = arrival_date_form1.cleaned_data["arrival_date"]
-            buffer1 = primer_form1.cleaned_data["name"].capitalize()
-            pcr_program1 = primer_form1.cleaned_data["name"]
-            forename1 = primer_form1.cleaned_data["forename"].capitalize()
-            surname1 = primer_form1.cleaned_data["surname"].capitalize()
+            buffer1 = primer_form1.cleaned_data["buffer"].capitalize()
+            pcr_program1 = primer_form1.cleaned_data["pcr_program"]
+            forename = primer_form1.cleaned_data["forename"].capitalize()
+            surname = primer_form1.cleaned_data["surname"].capitalize()
             location1 = status_form1.cleaned_data["location"]
 
-
             primer_name2 = primer_form2.cleaned_data["name"]
-            gene2 = primer_form2.cleaned_data["gene"].upper() 
             sequence2 = sequence_form2.cleaned_data["sequence"]
-            status2 = status_form2.cleaned_data["name"]
+            status2 = status_form2.cleaned_data["status"]
             comments2 = primer_form2.cleaned_data["comments"]
             arrival_date2 = arrival_date_form2.cleaned_data["arrival_date"]
-            buffer2 = primer_form2.cleaned_data["name"].capitalize()
-            pcr_program2 = primer_form2.cleaned_data["name"]
-            forename2 = primer_form2.cleaned_data["forename"].capitalize()
-            surname2 = primer_form2.cleaned_data["surname"].capitalize()
+            buffer2 = primer_form2.cleaned_data["buffer"].capitalize()
+            pcr_program2 = primer_form2.cleaned_data["pcr_program"]
             location2 = status_form2.cleaned_data["location"]
-
 
             # call functions to calculate gc % and tm
             gc_percent1 = gc_calculate(sequence1)
@@ -470,78 +472,74 @@ def submit_pair(request):
             gc_percent2 = gc_calculate(sequence2)
             tm2 = tm_calculate(sequence2)
 
-
-
             # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
-            coverage, start_coordinate_37, end_coordinate_37, gene_chrom = mapper2(sequence1, gene, 37, sequence2)
+            (coverage_37, primer1_start_37, primer1_end_37,
+             primer2_start_37, primer2_end_37, gene_chrom_37) = mapper2(sequence1, gene, 37, sequence2)
+            (coverage_38, primer1_start_38, primer1_end_38,
+             primer2_start_38, primer2_end_38, gene_chrom_38) = mapper2(sequence1, gene, 38, sequence2)
 
-            coverage, start_coordinate_38, end_coordinate_38, gene_chrom = mapper2(sequence1, gene, 38, sequence2)
+            snp_status1, snp_date1, snp_info1 = snp_check(
+                gene, primer1_start_37, primer1_end_37,
+                primer1_start_38, primer1_end_38
+            )
+            snp_status2, snp_date2, snp_info2 = snp_check(
+                gene, primer2_start_37, primer2_end_37,
+                primer2_start_38, primer2_end_38
+            )
+            
+            print(coverage_37, coverage_38)
 
-            ### need to add saving coverage to db
-
+            new_pair = Models.Pairs.objects.create(
+                coverage_37 = coverage_37, coverage_38 = coverage_38
+            )
 
             # save primer1 to database
-            print("saving primer1")
-
             new_status1, created = Models.Status.objects.get_or_create(name = status1)
 
-            new_scientist1, created = Models.Scientist.objects.get_or_create(
-                forename = forename1, surname = surname1)
+            new_scientist, created = Models.Scientist.objects.get_or_create(
+                forename = forename, surname = surname)
 
             new_pcr1, created = Models.PCRProgram.objects.get_or_create(
                 name = pcr_program1)
 
             new_buffer1, created = Models.Buffer.objects.get_or_create(name = buffer1)
 
-            new_coordinates1, created = Models.Coordinates.objects.get_or_create(
-                start_coordinate_37 = start_coordinate_37_1, end_coordinate_37 = end_coordinate_37_1,
-                start_coordinate_38 = start_coordinate_38_1, end_coordinate_38 = end_coordinate_38_1,
-                reference = reference1, chrom_no = chrom_no1
+            new_coordinates, created = Models.Coordinates.objects.get_or_create(
+                start_coordinate_37 = primer1_start_37, end_coordinate_37 = primer1_end_37,
+                start_coordinate_38 = primer1_start_38, end_coordinate_38 = primer1_end_38,
+                chrom_no = gene_chrom_37
                 )
 
-            print(primer_name1)
-
             new_primer1 =  Models.PrimerDetails.objects.create(
-                name = primer_name1, gene = gene1, sequence = sequence1, 
-                gc_percent = gc_percent1, tm = tm1, 
+                name = primer_name1, gene = gene, sequence = sequence1, 
+                gc_percent = gc_percent1, tm = tm1, pairs = new_pair,
                 comments =  comments1, arrival_date = arrival_date1,
                 location = location1, status = new_status1, 
-                scientist = new_scientist1, pcr_program = new_pcr1, 
-                buffer = new_buffer1, coordinates = new_coordinates1)
-            print("saved primer1")
-
+                scientist = new_scientist, pcr_program = new_pcr1, 
+                buffer = new_buffer1, coordinates = new_coordinates,
+                snp_status = snp_status1, snp_info = snp_info1, snp_date = snp_date1
+            )
 
             # save primer 2 to database
-            print("saving primer2")
-
             new_status2, created = Models.Status.objects.get_or_create(name = status2)
-
-            new_scientist2, created = Models.Scientist.objects.get_or_create(
-                forename = forename2, surname = surname2)
 
             new_pcr2, created = Models.PCRProgram.objects.get_or_create(
                 name = pcr_program2)
 
             new_buffer2, created = Models.Buffer.objects.get_or_create(name = buffer2)
 
-            new_coordinates2, created = Models.Coordinates.objects.get_or_create(
-                start_coordinate_37 = start_coordinate_37_2, end_coordinate_37 = end_coordinate_37_2,
-                start_coordinate_38 = start_coordinate_38_2, end_coordinate_38 = end_coordinate_38_2,
-                reference = reference2, chrom_no = chrom_no2
-                )
-
             new_primer2 =  Models.PrimerDetails.objects.create(
-                name = primer_name2, gene = gene2, sequence = sequence2, 
-                gc_percent = gc_percent2, tm = tm2,
+                name = primer_name2, gene = gene, sequence = sequence2, 
+                gc_percent = gc_percent2, tm = tm2, pairs = new_pair,
                 comments =  comments2, arrival_date = arrival_date2,
-                location = location2,status = new_status2, 
-                scientist = new_scientist2,pcr_program = new_pcr2, 
-                buffer = new_buffer2, coordinates = new_coordinates2)
+                location = location2, status = new_status2, 
+                scientist = new_scientist, pcr_program = new_pcr2, 
+                buffer = new_buffer2, coordinates = new_coordinates,
+                snp_status = snp_status2, snp_info = snp_info2, snp_date = snp_date2
+             )
 
-            print("saved primer2")
             # success save message passed to submit.html
             messages.success(request, 'Primers successfully saved', extra_tags="success")
-        
 
             # recreate the empty forms
             primer_form1 = Forms.PrimerForm()
@@ -553,38 +551,22 @@ def submit_pair(request):
             sequence_form2 = Forms.SequenceForm()
             status_form2 = Forms.StatusLocationForm()
             arrival_date_form2 = Forms.ArrivalDateForm()
-            reference_form2 = Forms.ReferenceForm()
-            chrom_no_form2 = Forms.ChromNoForm()
-            submit_coordinate_form2 = Forms.SubmitCoordinateForm()
 
-
-            context_dict["primer_form1"] = primer_form1
-            context_dict["sequence_form1"] = sequence_form1
-            context_dict["status_form1"] = status_form1
-            context_dict["arrival_date_form1"] = arrival_date_form1
-
-            context_dict["primer_form2"] = primer_form2
-            context_dict["sequence_form2"] = sequence_form2
-            context_dict["status_form2"] = status_form2
-            context_dict["arrival_date_form2"] = arrival_date_form2
-
-
-
-            # return the submit page
-            return render(request, 'primer_db/submit_pair.html', context_dict)
+        else:
+            messages.error(request, "At least one of the forms is invalid", extra_tags="error")
 
     else:
-            print("just displaying form, data not sent")
-            # if data is not sent, just display the form
-            primer_form1 = Forms.PrimerForm()
-            sequence_form1 = Forms.SequenceForm()
-            status_form1 = Forms.StatusLocationForm()
-            arrival_date_form1 = Forms.ArrivalDateForm()
+        print("just displaying form, data not sent")
+        # if data is not sent, just display the form
+        primer_form1 = Forms.PrimerForm(prefix = "form1")
+        sequence_form1 = Forms.SequenceForm(prefix = "form1")
+        status_form1 = Forms.StatusLocationForm(prefix = "form1")
+        arrival_date_form1 = Forms.ArrivalDateForm(prefix = "form1")
 
-            primer_form2 = Forms.PrimerForm()
-            sequence_form2 = Forms.SequenceForm()
-            status_form2 = Forms.StatusLocationForm()
-            arrival_date_form2 = Forms.ArrivalDateForm()
+        primer_form2 = Forms.PrimerForm(prefix = "form2")
+        sequence_form2 = Forms.SequenceForm(prefix = "form2")
+        status_form2 = Forms.StatusLocationForm(prefix = "form2")
+        arrival_date_form2 = Forms.ArrivalDateForm(prefix = "form2")
 
             
     context_dict["primer_form1"] = primer_form1
