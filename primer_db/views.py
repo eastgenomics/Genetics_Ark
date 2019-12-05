@@ -298,6 +298,13 @@ def submit(request):
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
+        list_forms = [primer_form, sequence_form, status_form, arrival_date_form]
+
+        context_dict["primer_form"] = Forms.PrimerForm()
+        context_dict["sequence_form"] = Forms.SequenceForm()
+        context_dict["status_form"] = Forms.StatusLocationForm()
+        context_dict["arrival_date_form"] = Forms.ArrivalDateForm()
+
         # check if data input to each form is valid
         if (primer_form.is_valid() and 
             sequence_form.is_valid() and
@@ -325,69 +332,62 @@ def submit(request):
             start_coordinate_37, end_coordinate_37, gene_chrom = mapper1(sequence, gene, 37)
             start_coordinate_38, end_coordinate_38, gene_chrom = mapper1(sequence, gene, 38)
 
-            # call function to check for SNPs
-            snp_pos_37, snp_detail_37 = snp_check(gene, "37", start_coordinate_37, end_coordinate_37)
-            snp_pos_38, snp_detail_38 = snp_check(gene, "38", start_coordinate_38, end_coordinate_38)
-
-            snp_pos = snp_pos_37 + snp_pos_38
-            snp_detail = snp_detail_37 + snp_detail_38
-
-            if snp_detail:
-                snp_info = ""
-
-                for i, snp in enumerate(snp_detail):
-                    snp_details = "SNP present at +{} within primer; {}. ".format(
-                        snp_pos[i], snp)
-                    
-                    snp_info = snp_info + snp_details
-
-                snp_status = 2
-                snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
-                snp_info = snp_info
-
-            # save primer to database
-            new_status, created = Models.Status.objects.get_or_create(name = status)
-
-            new_scientist, created = Models.Scientist.objects.get_or_create(
-                forename = forename, surname = surname)
-
-            new_pcr, created = Models.PCRProgram.objects.get_or_create(
-                name = pcr_program)
-
-            new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
-
-            new_coordinates, created = Models.Coordinates.objects.get_or_create(
-                start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
-                start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
-                chrom_no = gene_chrom
+            if all((start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38)):
+                # call function to check for SNPs
+                snp_status, snp_date, snp_info = snp_check(
+                    gene, start_coordinate_37, end_coordinate_37,
+                    start_coordinate_38, end_coordinate_38
                 )
 
-            new_primer = Models.PrimerDetails.objects.create(
-                name = name, gene = gene, sequence = sequence, 
-                gc_percent = gc_percent, tm = tm,
-                comments =  comments, arrival_date = arrival_date,
-                location = location, snp_status = snp_status,
-                snp_date = snp_date, snp_info = snp_info,
-                status = new_status, scientist = new_scientist, 
-                pcr_program = new_pcr, buffer = new_buffer, 
-                coordinates = new_coordinates)
+                # save primer to database
+                new_status, created = Models.Status.objects.get_or_create(name = status)
 
-            # success save message passed to submit.html
-            messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
-                name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="success")
-        
-            # recreate empty form after submitting 
-            context_dict["primer_form"] = Forms.PrimerForm()
-            context_dict["sequence_form"] = Forms.SequenceForm()
-            context_dict["status_form"] = Forms.StatusLocationForm()
-            context_dict["arrival_date_form"] = Forms.ArrivalDateForm()
+                new_scientist, created = Models.Scientist.objects.get_or_create(
+                    forename = forename, surname = surname)
 
-            #return redirect('submit')
-            return render(request, 'primer_db/submit.html', context_dict)
+                new_pcr, created = Models.PCRProgram.objects.get_or_create(
+                    name = pcr_program)
 
+                new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
+
+                new_coordinates, created = Models.Coordinates.objects.get_or_create(
+                    start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
+                    start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
+                    chrom_no = gene_chrom
+                    )
+
+                new_primer = Models.PrimerDetails.objects.create(
+                    name = name, gene = gene, sequence = sequence, 
+                    gc_percent = gc_percent, tm = tm,
+                    comments =  comments, arrival_date = arrival_date,
+                    location = location, snp_status = snp_status,
+                    snp_date = snp_date, snp_info = snp_info,
+                    status = new_status, scientist = new_scientist, 
+                    pcr_program = new_pcr, buffer = new_buffer, 
+                    coordinates = new_coordinates)
+
+                # success save message passed to submit.html
+                messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
+                    name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="success")
+            
+                #return redirect('submit')
+                return render(request, 'primer_db/submit.html', context_dict)
+
+            else:
+                messages.error(request, "The sequence provided didn't map to gene provided", extra_tags="error")
 
         else:
-            messages.error(request, "The form had incorrect data", extra_tags="error")
+            for form in list_forms:
+                if not form.is_valid():
+                    error = form.errors["__all__"]
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        error,
+                        extra_tags='alert-danger'
+                    )
+
+            return render(request, 'primer_db/submit.html', context_dict)
 
     else:
         # if data is not sent, just display the form
@@ -784,6 +784,9 @@ def edit_pair(request, PrimerDetails_id):
         status_loc_form2 = Forms.StatusLocationForm(request.POST, prefix ="form2")
         arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix ="form2")
 
+        list_forms = [primer_form1, sequence_form1, status_loc_form1, arrival_date_form1,
+                      primer_form2, sequence_form2, status_loc_form2, arrival_date_form2]
+
         # data for first primer
         context_dict["primer_form1"] = primer_form1
         context_dict["sequence_form1"] = sequence_form1
@@ -895,38 +898,16 @@ def edit_pair(request, PrimerDetails_id):
                 return  redirect('/primer_db/')
 
             else:
-                # view for form with populated data from selected primer if form is invalid
-                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
-                primer_pair = primer.pairs_id
-                primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+                for form in list_forms:
+                    if not form.is_valid():
+                        error = form.errors["__all__"]
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            error,
+                            extra_tags='error'
+                        )
 
-                for field in fields:
-                    if field == "sequence":
-                        if not sequence_form1.is_valid():
-                            error = sequence_form1.errors.as_data()
-                        if not sequence_form2.is_valid():
-                            error = sequence_form2.errors.as_data()
-
-                    elif field == "status" or field == "location":
-                        if not status_loc_form1.is_valid():
-                            error = status_loc_form1.errors.as_data()
-                        if not status_loc_form2.is_valid():
-                            error = status_loc_form2.errors.as_data()
-
-                    elif field == "arrival_date":
-                        if not arrival_date_form1.is_valid():
-                            error = arrival_date_form1.errors.as_data()
-                        if not arrival_date_form2.is_valid():
-                            error = arrival_date_form2.errors.as_data()
-
-                    else:
-                        if not primer_form1.is_valid():
-                            error = primer_form1.errors.as_data()
-                        elif not primer_form2.is_valid():
-                            error = primer_form2.errors.as_data()
-
-                messages.error(request, 'Invalid form: {}'.format(error), extra_tags='error')
-                
                 return render(request, 'primer_db/edit_pair.html', context_dict)
 
 
