@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 class PrimerForm(forms.Form):
 	name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
 	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
-	comments = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder':'Other comments'}))
+	comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'placeholder':'Other comments', "cols": 50}))
 	buffer = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Buffer'}), initial="Buffer D")
 	pcr_program = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'PCR Program'}), initial = "TD65_55")	
 	forename = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Scientist Forename'}))
@@ -15,7 +15,9 @@ class PrimerForm(forms.Form):
 
 
 class SequenceForm(forms.Form):
-	sequence = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer sequence', 'autocomplete': 'off'}))
+	sequence = forms.CharField(widget=forms.Textarea(attrs={
+		'placeholder':'Enter primer sequence',
+		'autocomplete': 'off', "rows": 1, "cols": 50}))
 
 	def clean(self):
 		data = self.cleaned_data["sequence"]
@@ -24,7 +26,7 @@ class SequenceForm(forms.Form):
 			nucl = nucl.upper()
 
 			if nucl not in ["A", "T", "C", "G"]:
-				raise forms.ValidationError("Nucleotide sequence cannot contains anything other than ATCG")
+				raise forms.ValidationError("Nucleotide sequence cannot contain anything other than ATCG")
 
 		return self.cleaned_data
 
