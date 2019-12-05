@@ -6,6 +6,7 @@ from django_tables2 import A
 
 
 # table used in index view for displaying all primers
+  
 
 class PrimerDetailsTable(tables.Table):
     name = tables.LinkColumn("edit_pair", args = [A('pk')])
@@ -19,14 +20,19 @@ class PrimerDetailsTable(tables.Table):
     coverage37 = tables.Column(accessor = "pairs.coverage_37")
     coverage38 = tables.Column(accessor = "pairs.coverage_38")
     check = tables.CheckBoxColumn(verbose_name=" refewrf", accessor = 'pk')
-    # start37 = tables.Column(accessor="coordinates.start_coordinate_37")
-    # end37 = tables.Column(accessor = "coordinates.end_coordinate_37")
-    # start38 = tables.Column(accessor="coordinates.start_coordinate_38")
-    # end38 = tables.Column(accessor = "coordinates.end_coordinate_38")
+
 
     def render_tm(tm, value):
         # render tm to 2dp
         return '{:0.2f}'.format(value)
+
+    def render_coverage37(coverage, value):
+         return format_html('<a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position={coverage}&hgsid=781179863_cVWc0XeuejyAZPhWCcXyCDrFkfDC"target="_blank">{coverage}</a>',
+         coverage=value)
+    
+    def render_coverage38(coverage, value):
+         return format_html('<a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position={coverage}&hgsid=781192615_bQjbSysSF20VOBWn7VphryYc7GO8"target="_blank">{coverage}</a>',
+         coverage=value)
 
     def render_status(status, value, column):
         # render status cell colour dependent on status
