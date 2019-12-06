@@ -1051,6 +1051,13 @@ def edit_pair(request, PrimerDetails_id):
         context_dict["arrival_date_form2"] = arrival_date_form2
         context_dict["status_loc_form2"] = status_loc_form2
 
+        logger.info("Editing primer pair")
+        logger.info("Data submitted by scientist:")
+
+        for field, value in data.items():
+            if field != "csrfmiddlewaretoken" or "button" not in field:
+                logger.info(" - {}: {}".format(field, value))
+
         # check selected primer id
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
 
@@ -1066,7 +1073,7 @@ def edit_pair(request, PrimerDetails_id):
         ]
 
         # when update button is pressed, save updates made to current primer
-        if request.POST.get("update_primers"):
+        if request.POST.get("update_primers_button"):
             if (primer_form1.is_valid() and 
                 sequence_form1.is_valid() and
                 status_loc_form1.is_valid() and
@@ -1099,14 +1106,32 @@ def edit_pair(request, PrimerDetails_id):
                 (primer_name, gene, sequence, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms1
 
+                logger.info("Updating {}".format(primer1[0]))
+
                 new_status, created = Models.Status.objects.update_or_create(name = status)
+                logger.info("Using status: {}".format(new_status))
 
                 new_scientist, created = Models.Scientist.objects.update_or_create(
                     forename = forename, surname = surname)
 
+                if created:
+                    logger.info("New scientist added to db: {}".format(new_scientist))
+                else:
+                    logger.info("Scientist who submitted primer: {}".format(new_scientist))
+
                 new_pcr, created = Models.PCRProgram.objects.update_or_create(name = pcr_program)
 
+                if created:
+                    logger.info("New pcr program added to db: {}".format(new_pcr))
+                else:
+                    logger.info("Using pcr program: {}".format(new_pcr))
+
                 new_buffer, created = Models.Buffer.objects.update_or_create(name = buffer)
+
+                if created:
+                    logger.info("New buffer added to db: {}".format(new_buffer))
+                else:
+                    logger.info("Using buffer: {}".format(new_buffer))
 
                 new_primer =  Models.PrimerDetails.objects.update_or_create(
                     name = primer_name, defaults={
@@ -1116,12 +1141,21 @@ def edit_pair(request, PrimerDetails_id):
                         'buffer': new_buffer
                     }
                 )
+
+                logger.info("Updating primer: {} {}".format(new_primer.id, new_primer))
+                logger.info(" - Primer gene: {}".format(new_primer.gene))
+                logger.info(" - Primer sequence: {}".format(new_primer.sequence))
+                logger.info(" - Primer gc %: {}".format(new_primer.gc_percent))
+                logger.info(" - Primer tm: {}".format(new_primer.tm))
 
                 # unpack variables for second form and save to db
                 (primer_name, gene, sequence, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms2
 
+                logger.info("Updating {}".format(primer2[0]))
+
                 new_status, created = Models.Status.objects.update_or_create(name = status)
+                logger.info("Using status: {}".format(new_status))
 
                 new_scientist, created = Models.Scientist.objects.update_or_create(
                     forename = forename, surname = surname)
@@ -1138,6 +1172,12 @@ def edit_pair(request, PrimerDetails_id):
                         'buffer': new_buffer
                     }
                 )
+
+                logger.info("Updating primer: {} {}".format(new_primer.id, new_primer))
+                logger.info(" - Primer gene: {}".format(new_primer.gene))
+                logger.info(" - Primer sequence: {}".format(new_primer.sequence))
+                logger.info(" - Primer gc %: {}".format(new_primer.gc_percent))
+                logger.info(" - Primer tm: {}".format(new_primer.tm))
 
                 # for displaying success message
                 primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
@@ -1162,50 +1202,25 @@ def edit_pair(request, PrimerDetails_id):
 
                 return render(request, 'primer_db/edit_pair.html', context_dict)
 
-
-        # when delete button is pressed, delete current primer
-        elif request.POST.get("delete_primer"):
-
-            primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-            primer[0].coordinates.delete()
-            
-            messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
-                extra_tags="success")
-
-            context_dict = {}
-            table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
-   
-            # returns primer totals filtered by status
-            total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
-            total_bank = Models.PrimerDetails.objects.filter(status__name__icontains="bank").count()
-            total_order = Models.PrimerDetails.objects.filter(status__name__icontains="order").count()
-
-            context_dict["table"] = table
-            context_dict["total_archived"] = total_archived
-            context_dict["total_bank"] = total_bank
-            context_dict["total_order"] = total_order
-
-            RequestConfig(request, paginate={'per_page': 50}).configure(table)
-
-            return  redirect('/primer_db/')
-
-        elif request.POST.get("check_snp_primer1") or request.POST.get("check_snp_primer2"):
-            checked_primer1 = request.POST.get("check_snp_primer1", None)
-            checked_primer2 = request.POST.get("check_snp_primer2", None)
+        elif request.POST.get("check_snp_primer1_button") or request.POST.get("check_snp_primer2_button"):
+            checked_primer1 = request.POST.get("check_snp_primer1_button", None)
+            checked_primer2 = request.POST.get("check_snp_primer2_button", None)
 
             if checked_primer1:
                 primer = Models.PrimerDetails.objects.filter(name = checked_primer1)
             elif checked_primer2:
                 primer = Models.PrimerDetails.objects.filter(name = checked_primer2)
 
+            logger.info("SNP checking {}".format(primer[0]))
+
             primer.update(snp_status = 3)
             primer.update(snp_date = timezone.now())
 
-            return render(request, 'primer_db/edit_pair.html', context_dict)
-
-        elif request.POST.get("update_date"):
+        elif request.POST.get("update_date_button"):
             queryset_primer1 = Models.PrimerDetails.objects.filter(pk = primer1.id)
             queryset_primer2 = Models.PrimerDetails.objects.filter(pk = primer2.id)
+
+            logger.info("Updating last date used for {} and {}".format(queryset_primer1[0], queryset_primer2[0]))
 
             queryset_primer1.update(last_date_used = timezone.now())
             queryset_primer2.update(last_date_used = timezone.now())
@@ -1217,41 +1232,41 @@ def edit_pair(request, PrimerDetails_id):
                 extra_tags="success")
 
             return redirect('/primer_db/')
+
+    # check selected primer id
+    primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
+
+    if primer.pairs_id:
+        # if primer is from a pair and to be edited in pair form
+        primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
     else:
-        # check selected primer id
-        primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
+        # if primer has no associated pair, render single edit page with selected primer
+        return redirect('edit_primer', PrimerDetails_id = PrimerDetails_id)
 
-        if primer.pairs_id:
-            # if primer is from a pair and to be edited in pair form
-            primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
-        else:
-            # if primer has no associated pair, render single edit page with selected primer
-            return redirect('edit_primer', PrimerDetails_id = PrimerDetails_id)
+    primer1_details_dict = {
+        'name' : primer1.name, 'gene' : primer1.gene,
+        'comments' : primer1.comments, 'buffer' : primer1.buffer,
+        'pcr_program' : primer1.pcr_program, 'forename' : primer1.scientist.forename,
+        'surname' : primer1.scientist.surname
+    }
 
-        primer1_details_dict = {
-            'name' : primer1.name, 'gene' : primer1.gene,
-            'comments' : primer1.comments, 'buffer' : primer1.buffer,
-            'pcr_program' : primer1.pcr_program, 'forename' : primer1.scientist.forename,
-            'surname' : primer1.scientist.surname
-        }
+    primer2_details_dict = {
+        'name' : primer2.name, 'gene' : primer2.gene,
+        'comments' : primer2.comments, 'buffer' : primer2.buffer,
+        'pcr_program' : primer2.pcr_program, 'forename' : primer2.scientist.forename,
+        'surname' : primer2.scientist.surname
+    }
 
-        primer2_details_dict = {
-            'name' : primer2.name, 'gene' : primer2.gene,
-            'comments' : primer2.comments, 'buffer' : primer2.buffer,
-            'pcr_program' : primer2.pcr_program, 'forename' : primer2.scientist.forename,
-            'surname' : primer2.scientist.surname
-        }
+    primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
+    sequence_form1 = Forms.SequenceForm(initial = model_to_dict(primer1), prefix = "form1")
+    arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
+    status_loc_form1 = Forms.StatusLocationForm(initial = model_to_dict(primer1), prefix = "form1")
 
-        primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
-        sequence_form1 = Forms.SequenceForm(initial = model_to_dict(primer1), prefix = "form1")
-        arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
-        status_loc_form1 = Forms.StatusLocationForm(initial = model_to_dict(primer1), prefix = "form1")
-
-        # data for second primer
-        primer_form2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
-        sequence_form2 = Forms.SequenceForm(initial = model_to_dict(primer2), prefix = "form2")
-        arrival_date_form2 = Forms.ArrivalDateForm(initial = model_to_dict(primer2), prefix = "form2")
-        status_loc_form2 = Forms.StatusLocationForm(initial = model_to_dict(primer2), prefix = "form2")
+    # data for second primer
+    primer_form2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
+    sequence_form2 = Forms.SequenceForm(initial = model_to_dict(primer2), prefix = "form2")
+    arrival_date_form2 = Forms.ArrivalDateForm(initial = model_to_dict(primer2), prefix = "form2")
+    status_loc_form2 = Forms.StatusLocationForm(initial = model_to_dict(primer2), prefix = "form2")
 
     # data for first primer
     context_dict["primer_form1"] = primer_form1
