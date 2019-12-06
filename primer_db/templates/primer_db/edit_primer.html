@@ -49,6 +49,14 @@ table, td, th {
             <td>{{ sequence_form.sequence }} </td>
         </tr>
         <tr>
+            <td>GRCh37 coordinates:</td>
+            <td>{{ primer.coordinates.start_coordinate_37 }}-{{ primer.coordinates.end_coordinate_37 }} {{ primer.coordinates.strand }}</td>
+        </tr>
+        <tr>
+            <td>GRCh38 coordinates:</td>
+            <td>{{ primer.coordinates.start_coordinate_38 }}-{{ primer.coordinates.end_coordinate_38 }} {{ primer.coordinates.strand }}</td>
+        </tr>
+        <tr>
             <td>Buffer: </td>
             <td>{{ primer_form.buffer }}</td>
         </tr>
