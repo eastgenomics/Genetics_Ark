@@ -67,26 +67,28 @@ table, td, th {
         </tr>
         <tr>
             <td>Storage location:</td>
-            <td>{{ location_form.location}}</td>
-            <td>
-            {% if status_form.non_field_errors %}
-                <div class="alert alert-danger" role="alert">
-                    <strong>{{ status_form.non_field_errors.0 }}</strong>
-                </div>
-            {% endif %}
-            </td>
+            <td>{{ location_form.location }}</td>
         </tr>
         <tr>
             <td>SNP Check Date:</td>
-            <td>{{ snp_form.snp_date }}</td>
+            <td>{{ primer.snp_date }}</td>
         </tr>
         <tr>
             <td>SNP Info:</td>
-            <td>
-                <textarea rows="8" cols="75">
-                    {{ snp_form.snp_info }}
-                </textarea>
-            </td>
+            {% if snps %}
+                <td>
+                    <table border="1">
+                        {% for snp in snps %}
+                            <tr>
+                                <td>{{ snp.0 }}</td>
+                                <td><a href="https://gnomad.broadinstitute.org/variant/{{ snp.1 }}?{{ snp.2 }}">{{ snp.1 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            {% else %}
+                <td>No SNPs found</td>
+            {% endif %}
         </tr>
         <tr>
             <td>Comments:</td>
@@ -99,26 +101,6 @@ table, td, th {
         <tr>
             <td><p>Surname:</td>
             <td>{{ primer_form.surname }}</td>
-        </tr>
-        <tr>
-            <td>Chromosome number:</td>
-            <td>{{ chrom_no_form.chrom_no }}</td>
-        </tr>
-        <tr>
-            <td>GRCh37 Start coordinate:</td>
-            <td>{{ coordinate_form.start_coordinate_37 }}</td>
-        </tr>
-        <tr>
-            <td>GRCh37 End coordinate:</td>
-            <td>{{ coordinate_form.end_coordinate_37 }}</td>
-        </tr>
-        <tr>
-            <td>GRCh38 Start coordinate:</td>
-            <td>{{ coordinate_form.start_coordinate_38 }}</td>
-        </tr>
-        <tr>
-            <td>GRCh38 End coordinate:</td>
-            <td>{{ coordinate_form.end_coordinate_38 }}</td>
         </tr>
     </table></br> 
     <!--update and delete buttons when editing a primer  -->
