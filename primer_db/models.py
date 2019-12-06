@@ -22,6 +22,7 @@ class PrimerDetails(models.Model):
     snp_info = models.TextField(max_length=500, null=True, blank = False)
     snp_date = models.DateField(null = True, blank = True)
     last_date_used = models.DateField(null = True, blank = True)
+    strand = models.CharField(null = True, blank = True, max_length = 1)
     status = models.ForeignKey("Status")
     scientist = models.ForeignKey("Scientist")
     pcr_program = models.ForeignKey("PCRProgram", verbose_name='PCR Program')
@@ -34,7 +35,6 @@ class PrimerDetails(models.Model):
 
 
 class Coordinates(models.Model):
-    reference = models.CharField(max_length=6)
     chrom_no = models.CharField(max_length=2)
     start_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 Start', null=True)
     end_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 End', null=True)
