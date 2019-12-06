@@ -812,6 +812,8 @@ def edit_primer(request, PrimerDetails_id):
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
+        primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer"):
             if (primer_form.is_valid() and 
@@ -854,9 +856,7 @@ def edit_primer(request, PrimerDetails_id):
                         'buffer': new_buffer
                 })
 
-                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-
-                messages.success(request, 'Primer "{}" successfully updated'.format(primer),
+                messages.success(request, 'Primer "{}" successfully updated'.format(new_primer),
                     extra_tags="success")
                
                 return  redirect('/primer_db/')
@@ -876,9 +876,7 @@ def edit_primer(request, PrimerDetails_id):
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer"):
             print("deleting primer")
-
-            primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
-            primer[0].coordinates.delete()
+            primer[0].delete()
             
             # delete message passed to index.html after deleting
             messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
@@ -901,6 +899,20 @@ def edit_primer(request, PrimerDetails_id):
 
             return  redirect('/primer_db/')
     
+        elif request.POST.get("check_snp_primer"):
+            primer.update(snp_status = 3)
+            primer.update(snp_date = timezone.now())
+
+        elif request.POST.get("update_date"):
+            primer.update(last_date_used = timezone.now())
+            
+            messages.success(
+                request, 'Last date used for primer "{}" successfully updated'.format(primer[0]),
+                extra_tags="success"
+            )
+
+            return redirect('/primer_db/')
+
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
     coordinates = primer.coordinates
     status = primer.status
@@ -1161,7 +1173,7 @@ def edit_pair(request, PrimerDetails_id):
                     ),
                 extra_tags="success")
 
-            return  redirect('/primer_db/')
+            return redirect('/primer_db/')
     else:
         # check selected primer id
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
