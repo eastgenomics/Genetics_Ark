@@ -767,3 +767,124 @@ Traceback (most recent call last):
   File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/utils/datastructures.py", line 85, in __getitem__
     raise MultiValueDictKeyError(repr(key))
 django.utils.datastructures.MultiValueDictKeyError: "'form1-gene'"
+2019-12-06 15:34:06,453 django.request ERROR    Internal Server Error: /primer_db/submit_pair/
+Traceback (most recent call last):
+  File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/utils/datastructures.py", line 83, in __getitem__
+    list_ = super(MultiValueDict, self).__getitem__(key)
+KeyError: 'form1-gene'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/core/handlers/exception.py", line 41, in inner
+    response = get_response(request)
+  File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/core/handlers/base.py", line 249, in _legacy_get_response
+    response = self._get_response(request)
+  File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/core/handlers/base.py", line 187, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/core/handlers/base.py", line 185, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/storage/home/rainfoj/Projects/genetics_ark_django/primer_db/views.py", line 575, in submit_pair
+    data["form2-gene"] = data["form1-gene"]
+  File "/mnt/storage/apps/software/django/1.11.5/lib/python2.7/site-packages/django/utils/datastructures.py", line 85, in __getitem__
+    raise MultiValueDictKeyError(repr(key))
+django.utils.datastructures.MultiValueDictKeyError: "'form1-gene'"
+2019-12-06 15:34:56,519 primer_db.views INFO     Data submitted by scientist:
+2019-12-06 15:34:56,599 primer_db.views INFO     Submitting primer
+2019-12-06 15:34:56,814 primer_db.views INFO     Common info for primers:
+2019-12-06 15:34:56,817 primer_db.views INFO     Pair created, id: 1417
+2019-12-06 15:34:56,820 primer_db.views INFO     New scientist added to db: Primer Primer
+2019-12-06 15:34:56,832 primer_db.views INFO     Using pcr program: TD65_55
+2019-12-06 15:34:56,833 primer_db.views INFO     Using buffer: Buffer D
+2019-12-06 15:34:56,840 primer_db.views INFO     Data for primer1:
+2019-12-06 15:34:56,853 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:34:58,617 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:34:59,106 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:35:00,027 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:35:00,246 primer_db.views INFO     SNPs detected in primer
+2019-12-06 15:35:00,248 primer_db.views INFO     Status of primer: On order
+2019-12-06 15:35:00,252 primer_db.views INFO     New coordinates added to db: 2 179396531 179396551 178531804 178531824
+2019-12-06 15:35:00,265 primer_db.views INFO     Created primer: 2311 primer_f
+2019-12-06 15:35:00,266 primer_db.views INFO     Primer gene: TTN
+2019-12-06 15:35:00,266 primer_db.views INFO     Primer sequence: tgtaaaacgacggccagtTGTGAAAGGCTGCTGACTCA
+2019-12-06 15:35:00,273 primer_db.views INFO     Primer gc %: 50.0
+2019-12-06 15:35:00,282 primer_db.views INFO     Primer tm: 74.330685
+2019-12-06 15:35:00,290 primer_db.views INFO     Data for primer2
+2019-12-06 15:35:00,301 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:35:01,951 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:35:02,276 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:35:03,137 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:35:03,335 primer_db.views INFO     SNPs detected in primer
+2019-12-06 15:35:03,337 primer_db.views INFO     Status of primer2: On order
+2019-12-06 15:35:03,340 primer_db.views INFO     New coordinates added to db: 2 179397009 179397029 178532282 178532302
+2019-12-06 15:35:03,355 primer_db.views INFO     Created primer: 2312 primer_r
+2019-12-06 15:35:03,359 primer_db.views INFO     Primer gene: TTN
+2019-12-06 15:35:03,360 primer_db.views INFO     Primer sequence: AGAGTTGCTTCGCCCAGTTA
+2019-12-06 15:35:03,403 primer_db.views INFO     Primer gc %: 50.0
+2019-12-06 15:35:03,407 primer_db.views INFO     Primer tm: 59.314903
+2019-12-06 15:38:31,915 primer_db.views INFO     Data submitted by scientist:
+2019-12-06 15:38:31,939 primer_db.views INFO     Submitting primer
+2019-12-06 15:38:32,431 primer_db.views INFO     Common info for primers:
+2019-12-06 15:38:32,435 primer_db.views INFO     Pair created, id: 1418
+2019-12-06 15:38:32,438 primer_db.views INFO     New scientist added to db: Kqjg Kljh
+2019-12-06 15:38:32,453 primer_db.views INFO     Using pcr program: TD65_55
+2019-12-06 15:38:32,461 primer_db.views INFO     Using buffer: Buffer D
+2019-12-06 15:38:32,469 primer_db.views INFO     Data for primer1:
+2019-12-06 15:38:32,481 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:38:33,994 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:38:34,496 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:38:35,515 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:38:35,773 primer_db.views INFO     SNPs detected in primer
+2019-12-06 15:38:35,775 primer_db.views INFO     Status of primer: On order
+2019-12-06 15:38:35,794 primer_db.views INFO     Using coordinates: 2 179528048 179528066 178663321 178663339
+2019-12-06 15:38:35,801 primer_db.views INFO     Created primer: 2313 ttn2f
+2019-12-06 15:38:35,802 primer_db.views INFO     Primer gene: TTN
+2019-12-06 15:38:35,810 primer_db.views INFO     Primer sequence: tgtaaaacgacggccagtTGGGACAGCTGCCTTTGG
+2019-12-06 15:38:35,819 primer_db.views INFO     Primer gc %: 55.56
+2019-12-06 15:38:35,828 primer_db.views INFO     Primer tm: 75.307668
+2019-12-06 15:38:35,835 primer_db.views INFO     Data for primer2
+2019-12-06 15:38:35,838 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:38:37,645 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:38:40,254 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:38:41,159 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:38:41,549 primer_db.views INFO     No SNPs detected in primer
+2019-12-06 15:38:41,551 primer_db.views INFO     Status of primer2: On order
+2019-12-06 15:38:41,553 primer_db.views INFO     Using coordinates: 2 179524290 179524310 178659563 178659583
+2019-12-06 15:38:41,562 primer_db.views INFO     Created primer: 2314 ttn2r
+2019-12-06 15:38:41,569 primer_db.views INFO     Primer gene: TTN
+2019-12-06 15:38:41,577 primer_db.views INFO     Primer sequence: ACTGGCTGTGGGTTTGTCAT
+2019-12-06 15:38:41,586 primer_db.views INFO     Primer gc %: 50.0
+2019-12-06 15:38:41,594 primer_db.views INFO     Primer tm: 59.814099
+2019-12-06 15:41:48,062 primer_db.views INFO     Data submitted by scientist:
+2019-12-06 15:41:48,133 primer_db.views INFO     Submitting primer
+2019-12-06 15:41:48,353 primer_db.views INFO     Common info for primers:
+2019-12-06 15:41:48,357 primer_db.views INFO     Pair created, id: 1419
+2019-12-06 15:41:48,362 primer_db.views INFO     New scientist added to db: Man Science
+2019-12-06 15:41:48,481 primer_db.views INFO     Using pcr program: TD65_55
+2019-12-06 15:41:48,483 primer_db.views INFO     Using buffer: Buffer D
+2019-12-06 15:41:48,498 primer_db.views INFO     Data for primer1:
+2019-12-06 15:41:48,511 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:41:49,895 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:41:50,328 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:41:51,228 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:41:51,488 primer_db.views INFO     SNPs detected in primer
+2019-12-06 15:41:51,489 primer_db.views INFO     Status of primer: On order
+2019-12-06 15:41:51,508 primer_db.views INFO     Using coordinates: 2 179528048 179528066 178663321 178663339
+2019-12-06 15:41:51,527 primer_db.views INFO     Created primer: 2315 ttnf3
+2019-12-06 15:41:51,527 primer_db.views INFO     Primer gene: TTN
+2019-12-06 15:41:51,527 primer_db.views INFO     Primer sequence: tgtaaaacgacggccagtTGGGACAGCTGCCTTTGG
+2019-12-06 15:41:51,531 primer_db.views INFO     Primer gc %: 55.56
+2019-12-06 15:41:51,539 primer_db.views INFO     Primer tm: 75.307668
+2019-12-06 15:41:51,547 primer_db.views INFO     Data for primer2
+2019-12-06 15:41:51,558 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:41:52,917 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:41:53,225 urllib3.connectionpool DEBUG    Starting new HTTPS connection (1): gnomad.broadinstitute.org:443
+2019-12-06 15:41:54,074 urllib3.connectionpool DEBUG    https://gnomad.broadinstitute.org:443 "POST /api HTTP/1.1" 200 None
+2019-12-06 15:41:54,355 primer_db.views INFO     No SNPs detected in primer
+2019-12-06 15:41:54,357 primer_db.views INFO     Status of primer2: On order
+2019-12-06 15:41:54,360 primer_db.views INFO     Using coordinates: 2 179524290 179524310 178659563 178659583
+2019-12-06 15:41:54,392 primer_db.views INFO     Created primer: 2316 ttnr3
+2019-12-06 15:41:54,396 primer_db.views INFO     Primer gene: TTN
+2019-12-06 15:41:54,398 primer_db.views INFO     Primer sequence: ACTGGCTGTGGGTTTGTCAT
+2019-12-06 15:41:54,406 primer_db.views INFO     Primer gc %: 50.0
+2019-12-06 15:41:54,414 primer_db.views INFO     Primer tm: 59.814099
