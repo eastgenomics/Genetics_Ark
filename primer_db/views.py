@@ -82,20 +82,21 @@ def mapper2(primer_seq1, gene, ref, primer_seq2):
     return coverage, primer1_start, primer1_end, primer2_start, primer2_end, gene_chrom, primer1_strand, primer2_strand
 
 
-def multiple_mapping(sequence1, sequence2, gene_chrom):
+def multiple_mapping(sequence1, sequence2, chrom):
     """
     Function to run SMALT to check for multiple mapping 
     """
-	print("checking for multiple mapping")
 
-	primers_file = "primers.fasta"
+    print("checking for multiple mapping")
+
+    primers_file = "primers.fasta"
 
     with open(primers_file, 'w+') as primer_fasta:
         # add forward and reverse sequences to temp. file for running smalt
         print("opening file")
 
-        primer_fasta.write(">{}\n{}\n".format("f"), sequence1.strip()))
-        primer_fasta.write(">{}\n{}\n".format("r", sequence2.strip()))
+        primer_fasta.write(">{}\n{}\n".format("f"), sequence1.strip())
+        primer_fasta.write(">{}\n{}\n".format("r"), sequence2.strip())
 
         primer_fasta.close()
 
@@ -144,12 +145,7 @@ def multiple_mapping(sequence1, sequence2, gene_chrom):
                 if match <= 5:
                     match_list2.append(match)
         
-    
-
-				
-
-
-
+        
 def gc_calculate(sequence):
     """
     Function for calculating GC % of submitted primer sequence
