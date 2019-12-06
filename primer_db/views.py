@@ -176,33 +176,27 @@ def index(request):
 
         if var_pos:
             filtering = True
-            primers37_id = []
-            primers38_id = []
+            primers37 = []
+            primers38 = []
 
             var_pos = int(var_pos)
 
             # get the id and coverage for all primers on given chromosome
-            chrom_list = Models.PrimerDetails.objects.filter(coordinates__chrom_no = chrom_no).values_list(
-                'id', 'pairs__coverage_37', 'pairs__coverage_38')
+            position_filtered_primers = Models.PrimerDetails.objects.filter(coordinates__chrom_no = chrom_no)
+            
+            for primer in position_filtered_primers:
+                coordinates = primer.coordinates
 
-            for row in chrom_list:
-                # loop through list of coverage and calculates if variant position is inside the coverage
-                start_37 = int(re.search(r":(\d+)", row[1]).group().strip(":"))
-                end_37 = int(re.search(r"\+(\d+)", row[1]).group().strip("+"))
+                if coordinates.start_coordinate_37 <= var_pos <= coordinates.end_coordinate_37:
+                    primers37.append(primer.id)
 
-                start_38 = int(re.search(r":(\d+)", row[2]).group().strip(":"))
-                end_38 = int(re.search(r"\+(\d+)", row[2]).group().strip("+"))
-               
-                if start_37 <= var_pos <= end_37:
-                    primers37_id.append(row[0])
-
-                if start_38 <= var_pos <= end_38:
-                    primers38_id.append(row[0])
+                if coordinates.start_coordinate_38 <= var_pos <= coordinates.end_coordinate_38:
+                    primers38.append(primer.id)
 
             # get query set for primer IDs that cover the variant position
-            filter_grch37 = Models.PrimerDetails.objects.filter(pk__in=primers37_id)
-            filter_grch38 = Models.PrimerDetails.objects.filter(pk__in=primers38_id)
-                
+            filter_grch37 = Models.PrimerDetails.objects.filter(pk__in=primers37)
+            filter_grch38 = Models.PrimerDetails.objects.filter(pk__in=primers38)
+
         if name_filter:
             filtering = True
             filter_name = Models.PrimerDetails.objects.filter(name__icontains=name_filter)
@@ -224,7 +218,8 @@ def index(request):
         else:
             # original table not filtered
             table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
-            request.session = {}
+            if request.session.get("filtered_dict", None):
+                del request.session["filtered_dict"]
 
     # function for changing handling check boxes
     elif request.method == 'POST':
@@ -288,11 +283,11 @@ def index(request):
                     print(name)
 
                 table = PrimerDetailsTable(name)
-                RequestConfig(request, paginate={'per_page': 50}).configure(table)
 
-                context_dict["table"] = table
-
-            return render(request, 'primer_db/index.html', context_dict)
+            else:
+                table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
+                if request.session.get("filtered_dict", None):
+                    del request.session["filtered_dict"]
 
     # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
@@ -555,10 +550,10 @@ def submit_pair(request):
 
                 # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
                 (coverage_37, primer1_start_37, primer1_end_37,
-                 primer2_start_37, primer2_end_37, gene_chrom_37,
+                 primer2_start_37, primer2_end_37, gene_chrom,
                  primer1_strand_37, primer2_strand_37) = mapper2(sequence1, gene, 37, sequence2)
                 (coverage_38, primer1_start_38, primer1_end_38,
-                 primer2_start_38, primer2_end_38, gene_chrom_38,
+                 primer2_start_38, primer2_end_38, gene_chrom,
                  primer1_strand_37, primer2_strand_37) = mapper2(sequence1, gene, 38, sequence2)
 
                 if all((primer1_start_37, primer1_end_37, primer2_start_37, primer2_start_37,
@@ -595,17 +590,6 @@ def submit_pair(request):
                     else:
                         logger.info("Using buffer: {}".format(new_buffer))
 
-                    new_coordinates, created_coordinates = Models.Coordinates.objects.get_or_create(
-                        start_coordinate_37 = primer1_start_37, end_coordinate_37 = primer1_end_37,
-                        start_coordinate_38 = primer1_start_38, end_coordinate_38 = primer1_end_38,
-                        chrom_no = gene_chrom_37
-                        )
-
-                    if created:
-                        logger.info("New coordinates added to db: {}".format(new_coordinates))
-                    else:
-                        logger.info("Using coordinates: {}".format(new_coordinates))
-
                     #############################################################
 
                     logger.info("Data for primer1:")
@@ -624,13 +608,24 @@ def submit_pair(request):
 
                     logger.info("Status of primer: {}".format(new_status1))
 
+                    new_coordinates1, created = Models.Coordinates.objects.get_or_create(
+                        start_coordinate_37 = primer1_start_37, end_coordinate_37 = primer1_end_37,
+                        start_coordinate_38 = primer1_start_38, end_coordinate_38 = primer1_end_38,
+                        chrom_no = gene_chrom
+                        )
+
+                    if created:
+                        logger.info("New coordinates added to db: {}".format(new_coordinates1))
+                    else:
+                        logger.info("Using coordinates: {}".format(new_coordinates1))
+
                     new_primer1 =  Models.PrimerDetails.objects.create(
                         name = primer_name1, gene = gene, sequence = sequence1, 
                         gc_percent = gc_percent1, tm = tm1, pairs = new_pair,
                         comments =  comments1, arrival_date = arrival_date1,
                         location = location1, status = new_status1, 
                         scientist = new_scientist, pcr_program = new_pcr, 
-                        buffer = new_buffer, coordinates = new_coordinates,
+                        buffer = new_buffer, coordinates = new_coordinates1,
                         snp_status = snp_status1, snp_info = ";".join(snp_info1), snp_date = snp_date1
                     )
                     
@@ -659,13 +654,24 @@ def submit_pair(request):
 
                     logger.info("Status of primer2: {}".format(new_status2))
 
+                    new_coordinates2, created = Models.Coordinates.objects.get_or_create(
+                        start_coordinate_37 = primer2_start_37, end_coordinate_37 = primer2_end_37,
+                        start_coordinate_38 = primer2_start_38, end_coordinate_38 = primer2_end_38,
+                        chrom_no = gene_chrom
+                        )
+
+                    if created:
+                        logger.info("New coordinates added to db: {}".format(new_coordinates2))
+                    else:
+                        logger.info("Using coordinates: {}".format(new_coordinates2))
+
                     new_primer2 =  Models.PrimerDetails.objects.create(
                         name = primer_name2, gene = gene, sequence = sequence2, 
                         gc_percent = gc_percent2, tm = tm2, pairs = new_pair,
                         comments =  comments2, arrival_date = arrival_date2,
                         location = location2, status = new_status2, 
                         scientist = new_scientist, pcr_program = new_pcr, 
-                        buffer = new_buffer, coordinates = new_coordinates,
+                        buffer = new_buffer, coordinates = new_coordinates2,
                         snp_status = snp_status2, snp_info = ";".join(snp_info2), snp_date = snp_date2
                     )
                     
