@@ -105,8 +105,8 @@ table, td, th {
                 <td> {{ primer2.snp_date }} </td>
             </tr>
             <tr>
+                <td>SNP Check Info:</td>
                 {% if snp1 %}
-                    <td>SNP Check Info:</td>
                     <td>
                         <table border="1">
                             {% for snp in snp1 %}
@@ -118,11 +118,10 @@ table, td, th {
                         </table>
                     </td>
                 {% else %}
-                    <td>SNP Check Info:</td>
                     <td>No SNPs found</td>
                 {% endif %}
+                <td>SNP Check Info:</td>
                 {% if snp2 %}
-                    <td>SNP Check Info:</td>
                     <td>
                         <table border="1">
                             {% for snp in snp2 %}
@@ -134,7 +133,6 @@ table, td, th {
                         </table>
                     </td>
                     {% else %}
-                    <td>SNP Check Info:</td>
                     <td>No SNPs found</td>
                 {% endif %}
             </tr>
