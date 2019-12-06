@@ -61,6 +61,26 @@ table, td, th {
                 <td>{{ sequence_form2.sequence }} </td>
             </tr>
             <tr>
+                <td>GRCh37 coordinates:</td>
+                <td>{{ primer1.coordinates.start_coordinate_37 }}-{{ primer1.coordinates.end_coordinate_37 }} {{ primer1.coordinates.strand }}</td>
+                <td>GRCh37 coordinates</td>
+                <td>{{ primer2.coordinates.start_coordinate_37 }}-{{ primer2.coordinates.end_coordinate_37 }} {{ primer2.coordinates.strand }}</td>
+            </tr>
+            <tr>
+                <td>GRCh38 coordinates:</td>
+                <td>{{ primer1.coordinates.start_coordinate_38 }}-{{ primer1.coordinates.end_coordinate_38 }} {{ primer1.coordinates.strand }}</td>
+                <td>GRCh38 coordinates</td>
+                <td>{{ primer2.coordinates.start_coordinate_38 }}-{{ primer2.coordinates.end_coordinate_38 }} {{ primer2.coordinates.strand }}</td>
+            </tr>
+            <tr>
+                <td>GRCh37 Coverage:</td>
+                <td>{{ primer1.pairs.coverage_37 }}</td>
+            </tr>
+            <tr>
+                <td>GRCh38 Coverage:</td>
+                <td>{{ primer1.pairs.coverage_38 }}</td>
+            </tr>      
+            <tr>
                 <td>GC %:</td>
                 <td>{{ primer1.gc_percent }} </td>
                 <td>GC %:</td>
@@ -149,14 +169,6 @@ table, td, th {
             <tr>
                 <td><p>Surname:</td>
                 <td>{{ primer_form1.surname }}</td>
-            </tr>
-            <tr>
-                <td>GRCh37 Coverage:</td>
-                <td>{{ primer1.pairs.coverage_37 }}</td>
-            </tr>
-            <tr>
-                <td>GRCh38 Coverage:</td>
-                <td>{{ primer1.pairs.coverage_38 }}</td>
             </tr>
         </table></br>       
 

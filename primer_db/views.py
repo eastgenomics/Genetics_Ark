@@ -444,8 +444,8 @@ def submit(request):
             tm = tm_calculate(sequence)
 
             # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
-            start_coordinate_37, end_coordinate_37, gene_chrom, strand_37 = mapper1(sequence, gene, 37)
-            start_coordinate_38, end_coordinate_38, gene_chrom, strand_38 = mapper1(sequence, gene, 38)
+            start_coordinate_37, end_coordinate_37, gene_chrom, strand = mapper1(sequence, gene, 37)
+            start_coordinate_38, end_coordinate_38, gene_chrom, strand = mapper1(sequence, gene, 38)
 
             if all((start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38)):
                 # call function to check for SNPs
@@ -490,7 +490,7 @@ def submit(request):
                 new_coordinates, created = Models.Coordinates.objects.get_or_create(
                     start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
                     start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
-                    chrom_no = gene_chrom
+                    chrom_no = gene_chrom, strand = strand
                     )
 
                 if created:
@@ -635,11 +635,11 @@ def submit_pair(request):
                 # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
                 (coverage_37, primer1_start_37, primer1_end_37,
                  primer2_start_37, primer2_end_37, gene_chrom,
-                 primer1_strand_37, primer2_strand_37) = mapper2(sequence1, gene, 37, sequence2)
+                 primer1_strand, primer2_strand) = mapper2(sequence1, gene, 37, sequence2)
 
                 (coverage_38, primer1_start_38, primer1_end_38,
                  primer2_start_38, primer2_end_38, gene_chrom,
-                 primer1_strand_37, primer2_strand_37) = mapper2(sequence1, gene, 38, sequence2)
+                 primer1_strand, primer2_strand) = mapper2(sequence1, gene, 38, sequence2)
 
                 if all((primer1_start_37, primer1_end_37, primer2_start_37, primer2_start_37,
                         primer1_start_38, primer1_end_38, primer2_start_38, primer2_end_38)
@@ -696,7 +696,7 @@ def submit_pair(request):
                     new_coordinates1, created = Models.Coordinates.objects.get_or_create(
                         start_coordinate_37 = primer1_start_37, end_coordinate_37 = primer1_end_37,
                         start_coordinate_38 = primer1_start_38, end_coordinate_38 = primer1_end_38,
-                        chrom_no = gene_chrom
+                        chrom_no = gene_chrom, strand = primer1_strand
                         )
 
                     if created:
@@ -742,7 +742,7 @@ def submit_pair(request):
                     new_coordinates2, created = Models.Coordinates.objects.get_or_create(
                         start_coordinate_37 = primer2_start_37, end_coordinate_37 = primer2_end_37,
                         start_coordinate_38 = primer2_start_38, end_coordinate_38 = primer2_end_38,
-                        chrom_no = gene_chrom
+                        chrom_no = gene_chrom, strand = primer2_strand
                         )
 
                     if created:
