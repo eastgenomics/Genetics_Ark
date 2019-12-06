@@ -147,11 +147,7 @@ def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
         # multiple mapping detected, adding new comment
         comment = "Multiple mapping detected, check before use"
 
-<<<<<<< HEAD
-        if new_primer1.comments1 or new_primer2.comments2:
-=======
         if new_primer1.comments or new_primer2.comments:
->>>>>>> 9f486669d69f0ec5e0d5b551cfd9239416fa6086
             # comments already exist, add to them
                 print(new_primer1.comments)
                 new_primer1_comments = new_primer1.comments + "\n Multiple mapping detected, check before use"
@@ -161,16 +157,11 @@ def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
                 new_primer2.update(comments = new_primer2_comments)
         
         else:
-<<<<<<< HEAD
-            new_primer1.update(comments = comment)
-            new_primer2.update(comments = comment)
-=======
             new_primer1.comments = comment
             new_primer2.comments = comment
             print("no comment")
             new_primer1.update()
             new_primer2.update()
->>>>>>> 9f486669d69f0ec5e0d5b551cfd9239416fa6086
 
         
 def gc_calculate(sequence):
