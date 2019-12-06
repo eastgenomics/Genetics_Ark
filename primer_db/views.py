@@ -145,6 +145,17 @@ def multiple_mapping(sequence1, sequence2, chrom):
                 if match <= 5:
                     match_list2.append(match)
         
+            if len(match_list) > 2 or len(match_list2) > 2:
+        
+        # multiple mapping detected, adding new comment
+        comment = "Multiple mapping detected, check before use"
+
+        if new_primer1.comments1:
+            # comments already exist, add to them
+                comment = primer1.comments1 + "\n Multiple mapping detected, check before use"
+                    print(comment)
+        new_primer1.update(comments = comment)
+
         
 def gc_calculate(sequence):
     """
