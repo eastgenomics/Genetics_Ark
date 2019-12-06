@@ -412,13 +412,13 @@ def submit(request):
         context_dict["status_form"] = Forms.StatusLocationForm()
         context_dict["arrival_date_form"] = Forms.ArrivalDateForm()
 
+        logger.info("Submitting primer")
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field not in ["csrfmiddlewaretoken", "submit"]:
-                logger.info(field, value)
+            if field != "csrfmiddlewaretoken" or "button" not in field:
+                logger.info(" - {}: {}".format(field, value))
 
-        logger.info("Submitting primer")
 
         # check if data input to each form is valid
         if (primer_form.is_valid() and 
@@ -509,10 +509,10 @@ def submit(request):
                     coordinates = new_coordinates)
 
                 logger.info("Created primer: {} {}".format(new_primer.id, new_primer))
-                logger.info("Primer gene: {}".format(new_primer.gene))
-                logger.info("Primer sequence: {}".format(new_primer.sequence))
-                logger.info("Primer gc %: {}".format(new_primer.gc_percent))
-                logger.info("Primer tm: {}".format(new_primer.tm))
+                logger.info(" - Primer gene: {}".format(new_primer.gene))
+                logger.info(" - Primer sequence: {}".format(new_primer.sequence))
+                logger.info(" - Primer gc %: {}".format(new_primer.gc_percent))
+                logger.info(" - Primer tm: {}".format(new_primer.tm))
 
                 # success save message passed to submit.html
                 messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
@@ -586,13 +586,12 @@ def submit_pair(request):
         status_form2 = Forms.StatusLocationForm(request.POST, prefix = "form2")
         arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix = "form2")
 
+        logger.info("Submitting primer")
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field not in ["csrfmiddlewaretoken", "submit"]:
-                logger.info(field, value)
-
-        logger.info("Submitting primer")
+            if field != "csrfmiddlewaretoken" or "button" not in field:
+                logger.info(" - {}: {}".format(field, value))
 
         # check if data input to each form is valid
         if (primer_form1.is_valid() and 
@@ -716,10 +715,10 @@ def submit_pair(request):
                     )
                     
                     logger.info("Created primer: {} {}".format(new_primer1.id, new_primer1))
-                    logger.info("Primer gene: {}".format(new_primer1.gene))
-                    logger.info("Primer sequence: {}".format(new_primer1.sequence))
-                    logger.info("Primer gc %: {}".format(new_primer1.gc_percent))
-                    logger.info("Primer tm: {}".format(new_primer1.tm))
+                    logger.info(" - Primer gene: {}".format(new_primer1.gene))
+                    logger.info(" - Primer sequence: {}".format(new_primer1.sequence))
+                    logger.info(" - Primer gc %: {}".format(new_primer1.gc_percent))
+                    logger.info(" - Primer tm: {}".format(new_primer1.tm))
 
                     #############################################################
 
@@ -762,10 +761,10 @@ def submit_pair(request):
                     )
                     
                     logger.info("Created primer: {} {}".format(new_primer2.id, new_primer2))
-                    logger.info("Primer gene: {}".format(new_primer2.gene))
-                    logger.info("Primer sequence: {}".format(new_primer2.sequence))
-                    logger.info("Primer gc %: {}".format(new_primer2.gc_percent))
-                    logger.info("Primer tm: {}".format(new_primer2.tm))
+                    logger.info(" - Primer gene: {}".format(new_primer2.gene))
+                    logger.info(" - Primer sequence: {}".format(new_primer2.sequence))
+                    logger.info(" - Primer gc %: {}".format(new_primer2.gc_percent))
+                    logger.info(" - Primer tm: {}".format(new_primer2.tm))
 
                     # success save message passed to submit.html
                     messages.success(request, 'Primers successfully saved', extra_tags="success")
@@ -837,8 +836,15 @@ def edit_primer(request, PrimerDetails_id):
 
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
 
+        logger.info("Editing primer")
+        logger.info("Data submitted by scientist:")
+
+        for field, value in request.POST.items():
+            if field != "csrfmiddlewaretoken" or "button" not in field:
+                logger.info(" - {}: {}".format(field, value))
+
         # when update button is pressed, save updates made to current primer
-        if request.POST.get("update_primer"):
+        if request.POST.get("update_primer_button"):
             if (primer_form.is_valid() and 
                 sequence_form.is_valid() and
                 status_form.is_valid() and
@@ -859,25 +865,46 @@ def edit_primer(request, PrimerDetails_id):
 
                 # save primer to database
                 new_status, created = Models.Status.objects.update_or_create(name = status)
+                logger.info("Using status: {}".format(new_status))
 
                 new_scientist, created = Models.Scientist.objects.update_or_create(
                     forename = forename, surname = surname)
 
+                if created:
+                    logger.info("New scientist added to db: {}".format(new_scientist))
+                else:
+                    logger.info("Scientist submitting primer: {}".format(new_scientist))
+
                 new_pcr, created = Models.PCRProgram.objects.update_or_create(
                     name = pcr_program)
 
+                if created:
+                    logger.info("New pcr program added to db: {}".format(new_pcr))
+                else:
+                    logger.info("Using pcr program: {}".format(new_pcr))
+
                 new_buffer, created = Models.Buffer.objects.update_or_create(name = buffer)
 
+                if created:
+                    logger.info("New buffer added to db: {}".format(new_buffer))
+                else:
+                    logger.info("Using buffer: {}".format(new_buffer))
+
                 # if primer is present updates, if not creates new instance in database
-                new_primer =  Models.PrimerDetails.objects.update_or_create(
+                new_primer, created =  Models.PrimerDetails.objects.update_or_create(
                     name = primer_name, defaults={
                         'gene' : gene, 'sequence': sequence, 
-                        # 'gc_percent': gcpercent, 'tm': tm,
                         'comments':  comments, 'arrival_date': arrival_date,
                         'location': location, 'status': new_status, 
                         'scientist': new_scientist,'pcr_program': new_pcr, 
                         'buffer': new_buffer
                 })
+
+                logger.info("Updating primer: {} {}".format(new_primer.id, new_primer))
+                logger.info(" - Primer gene: {}".format(new_primer.gene))
+                logger.info(" - Primer sequence: {}".format(new_primer.sequence))
+                logger.info(" - Primer gc %: {}".format(new_primer.gc_percent))
+                logger.info(" - Primer tm: {}".format(new_primer.tm))
 
                 messages.success(request, 'Primer "{}" successfully updated'.format(new_primer),
                     extra_tags="success")
@@ -895,39 +922,34 @@ def edit_primer(request, PrimerDetails_id):
 
                 return render(request, 'primer_db/edit_primer.html', context_dict)
 
-
         # when delete button is pressed, delete current primer
-        elif request.POST.get("delete_primer"):
-            print("deleting primer")
-            primer[0].delete()
-            
-            # delete message passed to index.html after deleting
-            messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
+        elif request.POST.get("delete_primer_button"):
+            messages.success(request, 'Primer "{}" successfully deleted'.format(primer[0]),
                 extra_tags="success")
 
-            context_dict = {}
-            table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
-   
-            # returns primer totals filtered by status
-            total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
-            total_bank = Models.PrimerDetails.objects.filter(status__name__icontains="bank").count()
-            total_order = Models.PrimerDetails.objects.filter(status__name__icontains="order").count()
-
-            context_dict["table"] = table
-            context_dict["total_archived"] = total_archived
-            context_dict["total_bank"] = total_bank
-            context_dict["total_order"] = total_order
-
-            RequestConfig(request, paginate={'per_page': 50}).configure(table)
+            logger.info("Deleting {}".format(primer[0]))
+            
+            primer[0].delete()
 
             return  redirect('/primer_db/')
     
-        elif request.POST.get("check_snp_primer"):
+        elif request.POST.get("check_snp_primer_button"):
             primer.update(snp_status = 3)
             primer.update(snp_date = timezone.now())
 
-        elif request.POST.get("update_date"):
+            logger.info("SNP checking: {}".format(primer[0]))
+
+            messages.success(
+                request, 'SNP checked primer "{}"'.format(primer[0]),
+                extra_tags="success"
+            )
+
+            return redirect('/primer_db/')
+
+        elif request.POST.get("update_date_button"):
             primer.update(last_date_used = timezone.now())
+
+            logger.info("Updating last date used: {}".format(primer[0]))
             
             messages.success(
                 request, 'Last date used for primer "{}" successfully updated'.format(primer[0]),
