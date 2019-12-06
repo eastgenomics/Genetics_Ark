@@ -82,7 +82,7 @@ def mapper2(primer_seq1, gene, ref, primer_seq2):
     return coverage, primer1_start, primer1_end, primer2_start, primer2_end, gene_chrom, primer1_strand, primer2_strand
 
 
-def multiple_mapping(sequence1, sequence2, chrom):
+def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom):
     """
     Function to run SMALT to check for multiple mapping 
     """
@@ -95,8 +95,8 @@ def multiple_mapping(sequence1, sequence2, chrom):
         # add forward and reverse sequences to temp. file for running smalt
         print("opening file")
 
-        primer_fasta.write(">{}\n{}\n".format("f"), sequence1.strip())
-        primer_fasta.write(">{}\n{}\n".format("r"), sequence2.strip())
+        primer_fasta.write(">{}\n{}\n".format("f", sequence1.strip()))
+        primer_fasta.write(">{}\n{}\n".format("r", sequence2.strip()))
 
         primer_fasta.close()
 
@@ -116,11 +116,8 @@ def multiple_mapping(sequence1, sequence2, chrom):
     for line in smalt_out_37:
         line = line.split('\t')
 
-        if chrom == line[2]:
+        if gene_chrom == line[2]:
             # get just primers on correct chromosome
-
-            print("chrom no is: ", chrom)
-            print("smalt chrome no: ", line[2])
 
             match = int(len(line[9]) - int(line[12].split(':')[2]))
 
@@ -138,7 +135,7 @@ def multiple_mapping(sequence1, sequence2, chrom):
             line = line.split('\t')
             match = 0
 
-            if chrom == line[2]:
+            if gene_chrom == line[2]:
                 # get just primers on correct chromosome
                 match = int(len(line[9]) - int(line[12].split(':')[2]))
             
@@ -150,15 +147,21 @@ def multiple_mapping(sequence1, sequence2, chrom):
         # multiple mapping detected, adding new comment
         comment = "Multiple mapping detected, check before use"
 
-        if new_primer1.comments1 or if new_primer2.comments2:
+        if new_primer1.comments or new_primer2.comments:
             # comments already exist, add to them
-                comment1 = primer1.comments1 + "\n Multiple mapping detected, check before use"
-                comment2 = primer2.comments2 + "\n Multiple mapping detected, check before use"
-                print(comment)
+                print(new_primer1.comments)
+                new_primer1_comments = new_primer1.comments + "\n Multiple mapping detected, check before use"
+                new_primer2_comments = new_primer2.comments + "\n Multiple mapping detected, check before use"
+                
+                new_primer1.update(comments = new_primer1_comments)
+                new_primer2.update(comments = new_primer2_comments)
+        
         else:
-            new_primer1.update(comments = comment)
-            new_primer2.update(comments = comment)
-
+            new_primer1.comments = comment
+            new_primer2.comments = comment
+            print("no comment")
+            new_primer1.update()
+            new_primer2.update()
 
         
 def gc_calculate(sequence):
@@ -563,6 +566,7 @@ def submit_pair(request):
     if request.method == "POST":
         # trick to fool form2
         data = request.POST.copy()
+        print(data)
         data["form2-gene"] = data["form1-gene"]
         data["form2-forename"] = data["form1-forename"]
         data["form2-surname"] = data["form1-surname"]
@@ -699,7 +703,7 @@ def submit_pair(request):
                     else:
                         logger.info("Using coordinates: {}".format(new_coordinates1))
 
-                    new_primer1 =  Models.PrimerDetails.objects.create(
+                    new_primer1, created =  Models.PrimerDetails.objects.update_or_create(
                         name = primer_name1, gene = gene, sequence = sequence1, 
                         gc_percent = gc_percent1, tm = tm1, pairs = new_pair,
                         comments =  comments1, arrival_date = arrival_date1,
@@ -745,7 +749,7 @@ def submit_pair(request):
                     else:
                         logger.info("Using coordinates: {}".format(new_coordinates2))
 
-                    new_primer2 =  Models.PrimerDetails.objects.create(
+                    new_primer2, created =  Models.PrimerDetails.objects.update_or_create(
                         name = primer_name2, gene = gene, sequence = sequence2, 
                         gc_percent = gc_percent2, tm = tm2, pairs = new_pair,
                         comments =  comments2, arrival_date = arrival_date2,
@@ -763,6 +767,8 @@ def submit_pair(request):
 
                     # success save message passed to submit.html
                     messages.success(request, 'Primers successfully saved', extra_tags="success")
+
+                    multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
 
                     # recreate the empty forms
                     primer_form1 = Forms.PrimerForm()
