@@ -149,19 +149,21 @@ def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
 
         if new_primer1.comments or new_primer2.comments:
             # comments already exist, add to them
-                print(new_primer1.comments)
-                new_primer1_comments = new_primer1.comments + "\n Multiple mapping detected, check before use"
-                new_primer2_comments = new_primer2.comments + "\n Multiple mapping detected, check before use"
-                
-                new_primer1.update(comments = new_primer1_comments)
-                new_primer2.update(comments = new_primer2_comments)
+                new_primer1_comments = new_primer1.comments + "\nMultiple mapping detected, check before use"
+                new_primer2_comments = new_primer2.comments + "\nMultiple mapping detected, check before use"
+
+                Models.PrimerDetails.objects.update_or_create(
+                    name = new_primer1.name, defaults={'comments' : new_primer1_comments})
+                Models.PrimerDetails.objects.update_or_create(
+                    name = new_primer2.name, defaults={'comments' : new_primer2_comments})
+
         
         else:
-            new_primer1.comments = comment
-            new_primer2.comments = comment
-            print("no comment")
-            new_primer1.update()
-            new_primer2.update()
+            # just add comment
+            Models.PrimerDetails.objects.update_or_create(
+                name = new_primer1.name, defaults={'comments' : comment})
+            Models.PrimerDetails.objects.update_or_create(
+                name = new_primer2.name, defaults={'comments' : comment})
 
         
 def gc_calculate(sequence):
