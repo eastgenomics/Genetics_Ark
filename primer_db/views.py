@@ -113,6 +113,8 @@ def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
     match_list = []
     match_list2 = []
 
+    print(smalt_out_37)
+
     for line in smalt_out_37:
         line = line.split('\t')
 
@@ -243,6 +245,8 @@ def index(request):
     filtered_dict = {}
     filtering = False
 
+    table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
+
     # function for filtering primers that have coverage for the given variant position  
     if request.method == 'GET':
         var_pos = request.GET.get('var_pos', None)
@@ -301,7 +305,6 @@ def index(request):
             table = PrimerDetailsTable(filtered_primers)
         else:
             # original table not filtered
-            table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
             if request.session.get("filtered_dict", None):
                 del request.session["filtered_dict"]
 
@@ -311,12 +314,15 @@ def index(request):
         pks = request.POST.getlist('check')
 
         if 'recalc' in request.POST:
-            # recalculating coverage from 2 selected primers
-
             print("recalculating")
+
+            amplicon_length_37 = None
+            amplicon_length_38 = None
+            popup_msg = []
 
             if len(pks) != 2:
                 messages.error(request, '{} primers selected, please select 2 primers'.format(len(pks)), extra_tags='error')
+                return redirect('/primer_db/')
 
             gene1 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[0])
             gene2 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[1])
@@ -324,28 +330,59 @@ def index(request):
             if gene1 != gene2:
                 msg = "2 different genes ({}, {}) for the primer coverage calculation".format(gene1, gene2)
                 messages.error(request, msg, extra_tags='error')
+                return redirect('/primer_db/')
 
-            primer1 = Models.PrimerDetails.objects.values_list('name', flat=True).get(pk=pks[0]).split("_")[-1]
-            primer2 = Models.PrimerDetails.objects.values_list('name', flat=True).get(pk=pks[1]).split("_")[-1]
+            primer1 = Models.PrimerDetails.objects.get(pk = pks[0])
+            primer2 = Models.PrimerDetails.objects.get(pk = pks[1])
 
-            if primer1[0] == "F" and primer2[0] == "R":
-                f_start37 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_37').get(pk=pks[0])[0]
-                r_end37 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_37').get(pk=pks[1])[0]
-                f_start38 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_38').get(pk=pks[0])[0]
-                r_end38 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_38').get(pk=pks[1])[0]
+            popup_msg.append("Selected primers: {} and {}".format(primer1, primer2))
 
-            elif primer1[0] == "R" and primer2[0] == "F":
-                f_start37 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_37').get(pk=pks[1])[0]
-                r_end37 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_37').get(pk=pks[0])[0]
-                f_start38 = Models.PrimerDetails.objects.values_list('coordinates__start_coordinate_38').get(pk=pks[1])[0]
-                r_end38 = Models.PrimerDetails.objects.values_list('coordinates__end_coordinate_38').get(pk=pks[0])[0]
+            if primer1.coordinates.strand == "+" and primer2.coordinates.strand == "-":
+                f_start37 = primer1.coordinates.start_coordinate_37
+                r_end37 = primer2.coordinates.end_coordinate_37
+                f_start38 = primer1.coordinates.start_coordinate_38
+                r_end38 = primer2.coordinates.end_coordinate_38
+
+                amplicon_length_37 = r_end37 - f_start37
+                amplicon_length_38 = r_end38 - f_start38
+
+            elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
+                f_start37 = primer2.coordinates.start_coordinate_37
+                r_end37 = primer1.coordinates.end_coordinate_37
+                f_start38 = primer2.coordinates.start_coordinate_38
+                r_end38 = primer1.coordinates.end_coordinate_38
+
+                amplicon_length_37 = r_end37 - f_start37
+                amplicon_length_38 = r_end38 - f_start38
+
+                popup_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
 
             else:
                 msg = "You need a forward and a reverse primer"
                 messages.error(request, msg, extra_tags='error')
+                return redirect('/primer_db/')
 
-            # need to calculate coverage from coordinates and display in a window
+            popup_msg.append("Recalculated coverage for GRCh37 is: {}:{}-{}".format(
+                primer1.coordinates.chrom_no,
+                f_start37, r_end37
+                )
+            )
+            popup_msg.append("Recalculated coverage for GRCh38 is: {}:{}-{}".format(
+                primer1.coordinates.chrom_no,
+                f_start38, r_end38
+                )
+            )
 
+            if amplicon_length_37 < 0:
+                popup_msg.append("Amplification not possible in GRCh37 with this pair of primer")
+
+            if amplicon_length_38 < 0:
+                popup_msg.append("Amplification not possible in GRCh38 with this pair of primer")
+
+            popup_msg.append("Amplicon length in GRCh37 is: {}".format(amplicon_length_37))
+            popup_msg.append("Amplicon length in GRCh38 is: {}".format(amplicon_length_38))
+
+            context_dict["recalc"] = popup_msg
 
         elif 'new_status' in request.POST and 'recalc' not in request.POST:
             new_status = request.POST.get('new_status') # get status to change to from POST data
@@ -369,7 +406,6 @@ def index(request):
                 table = PrimerDetailsTable(name)
 
             else:
-                table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
                 if request.session.get("filtered_dict", None):
                     del request.session["filtered_dict"]
 
@@ -909,7 +945,7 @@ def edit_primer(request, PrimerDetails_id):
                 messages.success(request, 'Primer "{}" successfully updated'.format(new_primer),
                     extra_tags="success")
                
-                return  redirect('/primer_db/')
+                return redirect('/primer_db/')
 
             else:
                 # view for form with populated data from selected primer if form is invalid
