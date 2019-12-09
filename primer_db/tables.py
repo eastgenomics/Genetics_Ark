@@ -34,7 +34,7 @@ class PrimerDetailsTable(tables.Table):
         return '{:0.2f}'.format(value)
 
     def render_coverage37(coverage, value):
-         return format_html('<a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position={coverage}&hgsid=781179863_cVWc0XeuejyAZPhWCcXyCDrFkfDC"target="_blank">{coverage}</a>',
+         return format_html('<a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&lastVirtModeType=default&lastVirtModeExtraState=&virtModeType=default&virtMode=0&nonVirtPosition=&position={coverage}&hgsid=781179863_cVWc0XeuejyAZPhWCcXyCDrFkfDC" target="_blank">{coverage}</a>',
          coverage=value)
     
     def render_coverage38(coverage, value):
