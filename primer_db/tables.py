@@ -15,7 +15,7 @@ class PrimerDetailsTable(tables.Table):
     status = tables.Column()
     snp_status = tables.Column(default = ' ', orderable=False)
     last_date_used = tables.Column()
-    reference = tables.Column(accessor = "coordinates.reference")
+    strand = tables.Column(accessor = "coordinates.strand")
     chrom_no = tables.Column(accessor = "coordinates.chrom_no")
     coverage37 = tables.Column(accessor = "pairs.coverage_37")
     coverage38 = tables.Column(accessor = "pairs.coverage_38")
@@ -78,13 +78,13 @@ class PrimerDetailsTable(tables.Table):
         template_name = 'django_tables2/bootstrap.html'
 
         fields = ('primer_id', 'name', 'gene', 'sequence', 'gc_percent', 
-                    'comments', 'arrival_date', 'status', 'tm',
+                    'comments', 'arrival_date', 'status', 'tm', "strand",
                     'scientist', 'pcr_program', 'buffer', 'location', 
                     'snp_status', 'snp_date', 'snp_info', 'last_date_used')
 
         sequence = ('check', "primer_id", 'name', 'gene', 'sequence', 'gc_percent', 
-                    'tm', 'chrom_no', 'buffer', 'coverage37', 'coverage38', 
-                    'pcr_program', 'scientist', 'arrival_date', 'location', 'last_date_used', 'status', 'snp_status', 'comments')
+                    'tm', 'chrom_no', 'coverage37', 'coverage38', "strand",
+                    'buffer', 'pcr_program', 'scientist', 'arrival_date', 'location', 'last_date_used', 'status', 'snp_status', 'comments')
 
         exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info')
 
