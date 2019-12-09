@@ -12,7 +12,6 @@
 
 {% if messages %} 
     {% for message in messages %}
-
         {% if 'error' in message.tags %}
             <div class="alert alert-danger" role="alert">
                 <strong>{{ message }}</strong> 
@@ -24,9 +23,7 @@
             <strong>{{ message }}</strong> 
         </div>
         {% endif %}
-
-
-    {% endfor %} 
+    {% endfor %}
 {% endif %} 
 
 
@@ -45,9 +42,8 @@
 <form type="get" action="" style="padding-top:10px;">
     <input type="text" name="name_filter" placeholder="Search primer name">
     <button id="search_submit" type="submit">Submit</button>&nbsp;&nbsp;&nbsp;
-<!-- </form>
     
-<form type="get" action="" style="padding-top:10px;"> -->
+<form type="get" action="" style="padding-top:10px;">
     <input type="text" name="gene_filter" placeholder="Search exact gene name">
     <button id="search_submit" type="submit">Submit</button>
 </form></br>
@@ -86,27 +82,9 @@
     <button id="search_submit" type="submit">Submit</button>
 </form></br>
 
-
-
 {% if var_pos and chrom_no %}
-  Showing results for position {{ var_pos }} on chromosome {{ chrom_no}} </br></br>
+  Showing results for position {{ var_pos }} on chromosome {{ chrom_no }} </br></br>
 {% endif %}
-
-
-
-
-<!-- 
-<form action="" method="POST">
-
-    {% csrf_token %}
-
-    Select primer pair to recalculate coverage: 
-
-    <input type="submit" name="recalc"/></br></br>
-
-
-</form>
- -->
 
 
 <form action="" method="post">
@@ -127,16 +105,25 @@
     Select primer pair to recalculate coverage: 
 
     <input type="submit" name="recalc" value="Recalculate"></br></br>
+    
+    {% if recalc %}
+        <ul>
+            {% for ele in recalc %}
+                <li>{{ ele }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
     {% render_table table %}
 
 </form>
 
 
-  
 </html>
 </body>
 </br>
+
+
 
 
 <a href="/primer_db/"><button type="button" class = "bt btn-primary">View all</button></a></br></br>
