@@ -30,7 +30,7 @@ import primer_db.models as Models
 sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/') 
 import primer_mapper_v2
 
-sys.path.insert(1, '/mnt/storage/home/kimy/projects/gnomAD_queries/') 
+sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
 import gnomAD_queries
 
 logging.config.dictConfig({
