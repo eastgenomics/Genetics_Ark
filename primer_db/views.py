@@ -43,7 +43,7 @@ logging.config.dictConfig({
     },
     'handlers': {
         'file': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'file',
             'filename': 'primer_db/logs/views.log',
@@ -409,51 +409,6 @@ def index(request):
             else:
                 if request.session.get("filtered_dict", None):
                     del request.session["filtered_dict"]
-
-        elif "snp_check" in request.POST:
-            print("run snp check")
-            primers = Models.PrimerDetails.objects.all()
-
-            for primer in primers:
-                print(primer)
-                coordinates = primer.coordinates
-                snp_status = primer.snp_status
-                snp_info = primer.snp_info
-
-                new_snp_status, new_snp_date, new_snp_info = snp_check(
-                    primer.gene,
-                    coordinates.start_coordinate_37,
-                    coordinates.end_coordinate_37,
-                    coordinates.start_coordinate_38,
-                    coordinates.end_coordinate_38
-                )
-
-                print(snp_info)
-                print(new_snp_info)
-
-                if snp_info:
-                    current_snps = snp_info.split(",")
-                else:
-                    current_snps = None
-
-                if new_snp_info:
-                    new_snps = new_snp_info.split(",")
-                else:
-                    new_snps = None
-
-                if snp_status != 0 and snp_status != new_snp_status:
-                    print("New snps detected")
-
-                for new_snp in new_snps:
-                    if snp_status == new_snp_status and new_snp not in current_snps:
-                        print("Different snps detected")
-
-                current_snp_not_in_new = [snp for snp in current_snps if snp not in new_snps]
-
-                if any(current_snp_not_in_new):
-                    print("current snp not in new")
-
-                time.sleep(1)
 
     # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
