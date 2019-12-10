@@ -61,16 +61,22 @@ table, td, th {
                 <td>{{ sequence_form2.sequence }} </td>
             </tr>
             <tr>
+                <td>Strand:</td>
+                <td>{{ primer1.coordinates.strand }} </td>
+                <td>Strand:</td>
+                <td>{{ primer2.coordinates.strand }}</td>
+            </tr>
+            <tr>
                 <td>GRCh37 coordinates:</td>
-                <td>{{ primer1.coordinates.start_coordinate_37 }}-{{ primer1.coordinates.end_coordinate_37 }} {{ primer1.coordinates.strand }}</td>
+                <td>{{ primer1.coordinates.start_coordinate_37 }}-{{ primer1.coordinates.end_coordinate_37 }} </td>
                 <td>GRCh37 coordinates</td>
-                <td>{{ primer2.coordinates.start_coordinate_37 }}-{{ primer2.coordinates.end_coordinate_37 }} {{ primer2.coordinates.strand }}</td>
+                <td>{{ primer2.coordinates.start_coordinate_37 }}-{{ primer2.coordinates.end_coordinate_37 }} </td>
             </tr>
             <tr>
                 <td>GRCh38 coordinates:</td>
-                <td>{{ primer1.coordinates.start_coordinate_38 }}-{{ primer1.coordinates.end_coordinate_38 }} {{ primer1.coordinates.strand }}</td>
+                <td>{{ primer1.coordinates.start_coordinate_38 }}-{{ primer1.coordinates.end_coordinate_38 }} </td>
                 <td>GRCh38 coordinates</td>
-                <td>{{ primer2.coordinates.start_coordinate_38 }}-{{ primer2.coordinates.end_coordinate_38 }} {{ primer2.coordinates.strand }}</td>
+                <td>{{ primer2.coordinates.start_coordinate_38 }}-{{ primer2.coordinates.end_coordinate_38 }} </td>
             </tr>
             <tr>
                 <td>GRCh37 Coverage:</td>
