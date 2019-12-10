@@ -32,6 +32,7 @@ import primer_mapper_v2
 
 sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
 import gnomAD_queries
+import snp_check
 
 logging.config.dictConfig({
     'version': 1,
@@ -190,46 +191,6 @@ def tm_calculate(sequence):
     tm_calc = tm_calc.stdout.decode("ascii").strip()
 
     return tm_calc
-
-
-def snp_check(
-    gene, primer_start_37, primer_end_37,
-    primer_start_38, primer_end_38
-):
-    """
-    Function to run SNP check script
-    """
-
-    snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    snp_info = []
-
-    for ref in ["37", "38"]:
-        snp_pos = []
-        snp_detail = []
-
-        total_snps = gnomAD_queries.snp_check_query(gene, ref)
-
-        if total_snps:
-            for snp in total_snps:
-                if ref == "37":
-                    if primer_start_37 <= snp['pos'] <= primer_end_37:
-                        snp_pos.append(snp['pos'] - primer_start_37)
-                        snp_detail.append("{}?dataset=gnomad_r2_1".format(snp['variant_id']))
-                elif ref == "38":
-                    if primer_start_38 <= snp['pos'] <= primer_end_38:
-                        snp_pos.append(snp['pos'] - primer_start_38)
-                        snp_detail.append("{}?dataset=gnomad_r3".format(snp['variant_id']))
-
-    if snp_detail:
-        for i, snp in enumerate(snp_detail):
-            snp_info.append("+{}, {}".format(
-                snp_pos[i], snp))
-
-        snp_status = 2
-    else:
-        snp_status = 1
-
-    return snp_status, snp_date, snp_info
 
 
 def index(request):
@@ -486,7 +447,7 @@ def submit(request):
 
             if all((start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38)):
                 # call function to check for SNPs
-                snp_status, snp_date, snp_info = snp_check(
+                snp_status, snp_date, snp_info = snp_check.main(
                     gene, start_coordinate_37, end_coordinate_37,
                     start_coordinate_38, end_coordinate_38
                 )
