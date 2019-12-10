@@ -21,6 +21,7 @@ import sys
 import datetime
 import os
 import logging
+import time
 
 import primer_db.forms as Forms
 import primer_db.models as Models
@@ -310,12 +311,9 @@ def index(request):
 
     # function for changing handling check boxes
     elif request.method == 'POST':
-
         pks = request.POST.getlist('check')
 
         if 'recalc' in request.POST:
-            print("recalculating")
-
             amplicon_length_37 = None
             amplicon_length_38 = None
             popup_msg = []
@@ -345,6 +343,8 @@ def index(request):
 
                 amplicon_length_37 = r_end37 - f_start37
                 amplicon_length_38 = r_end38 - f_start38
+
+                popup_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
                 f_start37 = primer2.coordinates.start_coordinate_37
@@ -384,7 +384,7 @@ def index(request):
 
             context_dict["recalc"] = popup_msg
 
-        elif 'new_status' in request.POST and 'recalc' not in request.POST:
+        elif 'change_status' in request.POST and 'recalc' not in request.POST:
             new_status = request.POST.get('new_status') # get status to change to from POST data
 
             for pk in pks:
@@ -408,6 +408,51 @@ def index(request):
             else:
                 if request.session.get("filtered_dict", None):
                     del request.session["filtered_dict"]
+
+        elif "snp_check" in request.POST:
+            print("run snp check")
+            primers = Models.PrimerDetails.objects.all()
+
+            for primer in primers:
+                print(primer)
+                coordinates = primer.coordinates
+                snp_status = primer.snp_status
+                snp_info = primer.snp_info
+
+                new_snp_status, new_snp_date, new_snp_info = snp_check(
+                    primer.gene,
+                    coordinates.start_coordinate_37,
+                    coordinates.end_coordinate_37,
+                    coordinates.start_coordinate_38,
+                    coordinates.end_coordinate_38
+                )
+
+                print(snp_info)
+                print(new_snp_info)
+
+                if snp_info:
+                    current_snps = snp_info.split(",")
+                else:
+                    current_snps = None
+
+                if new_snp_info:
+                    new_snps = new_snp_info.split(",")
+                else:
+                    new_snps = None
+
+                if snp_status != 0 and snp_status != new_snp_status:
+                    print("New snps detected")
+
+                for new_snp in new_snps:
+                    if snp_status == new_snp_status and new_snp not in current_snps:
+                        print("Different snps detected")
+
+                current_snp_not_in_new = [snp for snp in current_snps if snp not in new_snps]
+
+                if any(current_snp_not_in_new):
+                    print("current snp not in new")
+
+                time.sleep(1)
 
     # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
@@ -1144,7 +1189,7 @@ def edit_pair(request, PrimerDetails_id):
                 (primer_name, gene, sequence, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms1
 
-                logger.info("Updating {}".format(primer1[0]))
+                logger.info("Updating {}".format(primer1))
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
                 logger.info("Using status: {}".format(new_status))
@@ -1171,7 +1216,7 @@ def edit_pair(request, PrimerDetails_id):
                 else:
                     logger.info("Using buffer: {}".format(new_buffer))
 
-                new_primer =  Models.PrimerDetails.objects.update_or_create(
+                new_primer, created =  Models.PrimerDetails.objects.update_or_create(
                     name = primer_name, defaults={
                         'gene' : gene, 'sequence': sequence, 
                         'comments':  comments, 'arrival_date': arrival_date,'location': location, 
@@ -1190,7 +1235,7 @@ def edit_pair(request, PrimerDetails_id):
                 (primer_name, gene, sequence, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms2
 
-                logger.info("Updating {}".format(primer2[0]))
+                logger.info("Updating {}".format(primer2))
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
                 logger.info("Using status: {}".format(new_status))
@@ -1202,7 +1247,7 @@ def edit_pair(request, PrimerDetails_id):
 
                 new_buffer, created = Models.Buffer.objects.update_or_create(name = buffer)
 
-                new_primer =  Models.PrimerDetails.objects.update_or_create(
+                new_primer, created =  Models.PrimerDetails.objects.update_or_create(
                     name = primer_name, defaults={
                         'gene' : gene, 'sequence': sequence, 
                         'comments':  comments, 'arrival_date': arrival_date,'location': location, 
