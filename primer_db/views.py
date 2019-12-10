@@ -244,7 +244,7 @@ def index(request):
     filtered_dict = {}
     filtering = False
 
-
+    table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
 
     # function for filtering primers that have coverage for the given variant position  
     if request.method == 'GET':
@@ -341,6 +341,8 @@ def index(request):
 
                 amplicon_length_37 = r_end37 - f_start37
                 amplicon_length_38 = r_end38 - f_start38
+
+                popup_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
                 f_start37 = primer2.coordinates.start_coordinate_37
