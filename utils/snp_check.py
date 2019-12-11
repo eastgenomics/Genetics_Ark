@@ -1,3 +1,15 @@
+""" SNP check individual primers (main web interface) or every primers (only console)
+
+Example:
+To check every primer:
+
+cd genetics_ark_django/utils
+ml django
+python snp_check.py
+
+
+"""
+
 import datetime
 import django
 import logging
@@ -45,7 +57,6 @@ if __name__ == "__main__":
     primers = Models.PrimerDetails.objects.all()
 
     for primer in primers:
-        print(primer)
         current_snp_status = primer.snp_status
         current_snp_info = primer.snp_info
         
@@ -62,18 +73,17 @@ if __name__ == "__main__":
             primer.coordinates.end_coordinate_38
         )
 
-        modifications_detected = False
-        new_snps = set(current_snp_info)
+        new_snps = current_snp_info
 
         for new_snp in new_snp_info:
             if current_snp_status == 0:
-                new_snps.add(new_snp)
+                new_snps.append(new_snp)
             else:
                 if new_snp not in current_snp_info:
-                    modifications_detected = True
-                    new_snps.add(new_snp)
+                    new_snps.append(new_snp)
 
         if new_snps:
+            new_snps = ";".join(set(new_snps))
             primer.snp_status = "2"
         else:
             new_snps = ""
