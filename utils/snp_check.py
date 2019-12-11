@@ -43,7 +43,7 @@ def get_snp(ref, snp, primer_start, primer_end):
 
                 pop_af = pop["ac"] / pop["an"]
 
-                if pop_af <= ALLELE_FREQUENCY_THRESHOLD and pop_af != 0:
+                if pop_af >= ALLELE_FREQUENCY_THRESHOLD and pop_af != 0:
                     snp_pos = snp['pos'] - primer_start
                     gnomad_link = "{}?dataset=gnomad_{}".format(snp['variant_id'], ref2gnomad[ref])
                     true_snps.append("+{}, {}".format(snp_pos, gnomad_link))
