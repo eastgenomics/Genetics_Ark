@@ -25,7 +25,16 @@ def snp_check_query(gene_symbol, ref):
                     pos
                     variant_id: variantId
                     exome {{
-                        af
+                        populations {{
+                            ac
+                            an
+                        }}
+                    }}
+                    genome {{
+                        populations {{
+                            ac
+                            an
+                        }}
                     }}
                 }}
             }}
@@ -41,8 +50,17 @@ def snp_check_query(gene_symbol, ref):
                     pos
                     variant_id: variantId
                     exome {{
-                        af
-                    }}                    
+                        populations {{
+                            ac
+                            an
+                        }}
+                    }}                
+                    genome {{
+                        populations {{
+                            ac
+                            an
+                        }}
+                    }}                        
                 }}
             }}
         }}
