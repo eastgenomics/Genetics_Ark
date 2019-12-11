@@ -181,10 +181,22 @@ table, td, th {
 
 
         {% if primer1.snp_status == "2" %}
-            <button  type="submit" name = "check_snp_primer1_button" value={{ primer1.name }} class = "bt btn-primary" onclick="return confirm('Have you checked the primer?')">SNP Check {{ primer1.name }}</button>
+            <button
+                type="submit"
+                name = "check_snp_primer1_button"
+                value={{ primer1.name }}
+                class = "bt btn-primary"
+                onclick="return confirm('Have you checked the primer?')"
+            >SNP Check {{ primer1.name }}</button>
         {% endif %}
         {% if primer2.snp_status == "2" %}
-            <button  type="submit" name = "check_snp_primer2_button" value={{ primer2.name }} class = "bt btn-primary" onclick="return confirm('Have you checked the primer?')">SNP Check {{ primer2.name }}</button>
+            <button
+                type="submit"
+                name = "check_snp_primer2_button"
+                value={{ primer2.name }}
+                class = "bt btn-primary"
+                onclick="return confirm('Have you checked the primer?')"
+            >SNP Check {{ primer2.name }}</button>
         {% endif %}
 
         <button  type="submit" name = "update_date_button" value="update_date_used" class = "bt btn-primary">Update date used</button>
@@ -193,6 +205,30 @@ table, td, th {
 
         <button  type="submit" name = "update_primers_button" value="Update primers" class = "bt btn-primary">Update primers</button>
         <a href="/primer_db/"><button type="button" class = "bt btn-primary">Return to primers</button></a></br></br>
+
+        <button 
+            type="submit" 
+            name = "delete_primer1_button" 
+            value={{ primer1.id }} 
+            class="bt btn-danger" 
+            onclick="return confirm('Do you want to delete {{ primer1.name }}?')"
+        >Delete {{ primer1.name }}</button>
+
+        <button 
+            type="submit" 
+            name = "delete_primer2_button"
+            value={{ primer2.id }}
+            class="bt btn-danger"
+            onclick="return confirm('Do you want to delete {{ primer2.name }}?')"
+        >Delete {{ primer2.name }}</button>
+
+        <button
+            type="submit"
+            name = "delete_pair_button"
+            value="delete_pair"
+            class="bt btn-danger"
+            onclick="return confirm('Do you want to delete this pair of primers?')"
+        >Delete primer pair</button>
     </form>
 </body>
 

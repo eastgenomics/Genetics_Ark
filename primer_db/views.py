@@ -32,6 +32,7 @@ import primer_mapper_v2
 
 sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
 import gnomAD_queries
+import snp_check
 
 logging.config.dictConfig({
     'version': 1,
@@ -190,46 +191,6 @@ def tm_calculate(sequence):
     tm_calc = tm_calc.stdout.decode("ascii").strip()
 
     return tm_calc
-
-
-def snp_check(
-    gene, primer_start_37, primer_end_37,
-    primer_start_38, primer_end_38
-):
-    """
-    Function to run SNP check script
-    """
-
-    snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    snp_info = []
-
-    for ref in ["37", "38"]:
-        snp_pos = []
-        snp_detail = []
-
-        total_snps = gnomAD_queries.snp_check_query(gene, ref)
-
-        if total_snps:
-            for snp in total_snps:
-                if ref == "37":
-                    if primer_start_37 <= snp['pos'] <= primer_end_37:
-                        snp_pos.append(snp['pos'] - primer_start_37)
-                        snp_detail.append("{}?dataset=gnomad_r2_1".format(snp['variant_id']))
-                elif ref == "38":
-                    if primer_start_38 <= snp['pos'] <= primer_end_38:
-                        snp_pos.append(snp['pos'] - primer_start_38)
-                        snp_detail.append("{}?dataset=gnomad_r3".format(snp['variant_id']))
-
-    if snp_detail:
-        for i, snp in enumerate(snp_detail):
-            snp_info.append("+{}, {}".format(
-                snp_pos[i], snp))
-
-        snp_status = 2
-    else:
-        snp_status = 1
-
-    return snp_status, snp_date, snp_info
 
 
 def index(request):
@@ -453,7 +414,7 @@ def submit(request):
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
 
@@ -486,7 +447,7 @@ def submit(request):
 
             if all((start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38)):
                 # call function to check for SNPs
-                snp_status, snp_date, snp_info = snp_check(
+                snp_status, snp_date, snp_info = snp_check.main(
                     gene, start_coordinate_37, end_coordinate_37,
                     start_coordinate_38, end_coordinate_38
                 )
@@ -627,7 +588,7 @@ def submit_pair(request):
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
         # check if data input to each form is valid
@@ -877,7 +838,7 @@ def edit_primer(request, PrimerDetails_id):
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
         # when update button is pressed, save updates made to current primer
@@ -1092,7 +1053,7 @@ def edit_pair(request, PrimerDetails_id):
         logger.info("Data submitted by scientist:")
 
         for field, value in data.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
         # check selected primer id
@@ -1269,6 +1230,50 @@ def edit_pair(request, PrimerDetails_id):
                 extra_tags="success")
 
             return redirect('/primer_db/')
+
+        elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
+            delete_primer1 = request.POST.get("delete_primer1_button", None)
+            delete_primer2 = request.POST.get("delete_primer2_button", None)
+            delete_pair = request.POST.get("delete_pair_button", None)
+
+            if delete_pair:
+                pair_to_delete = primer1.pairs
+
+                messages.success(request, 'Pair with "{}" "{}" successfully deleted'.format(primer1, primer2),
+                    extra_tags="success")
+
+                logger.info("Deleting {}".format(primer1))
+                logger.info("Deleting {}".format(primer2))
+                logger.info("Deleting pair id: {}".format(pair_to_delete.id))
+
+                primer1.delete()
+                primer2.delete()
+                pair_to_delete.delete()
+
+                return redirect("/primer_db/")
+
+            if delete_primer1:
+                primer = Models.PrimerDetails.objects.get(pk = delete_primer1)
+            elif delete_primer2:
+                primer = Models.PrimerDetails.objects.get(pk = delete_primer2)
+            
+            pair_to_delete = primer.pairs
+
+            paired_primer = Models.PrimerDetails.objects.filter(pairs__id = pair_to_delete.id).exclude(name = primer.name)[0]
+            paired_primer.pairs_id = None
+            paired_primer.save()
+
+            messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
+                extra_tags="success")
+
+            logger.info("Deleting {}".format(primer))
+            logger.info("Deleting pair id: {}".format(pair_to_delete.id))
+            logger.info("Primer {} left without pair".format(paired_primer))
+            
+            pair_to_delete.delete()
+            primer.delete()
+
+            return  redirect('/primer_db/')
 
     # check selected primer id
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
