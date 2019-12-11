@@ -677,7 +677,7 @@ def submit_pair(request):
 
                     logger.info("Data for primer1:")
 
-                    snp_status1, snp_date1, snp_info1 = snp_check(
+                    snp_status1, snp_date1, snp_info1 = snp_check.main(
                         gene, primer1_start_37, primer1_end_37,
                         primer1_start_38, primer1_end_38
                     )
@@ -722,7 +722,7 @@ def submit_pair(request):
 
                     logger.info("Data for primer2")
 
-                    snp_status2, snp_date2, snp_info2 = snp_check(
+                    snp_status2, snp_date2, snp_info2 = snp_check.main(
                         gene, primer2_start_37, primer2_end_37,
                         primer2_start_38, primer2_end_38
                     )
