@@ -96,7 +96,7 @@ table, td, th {
                         {% for snp in snps %}
                             <tr>
                                 <td>{{ snp.0 }}</td>
-                                <td><a href="https://gnomad.broadinstitute.org/variant/{{ snp.1 }}?{{ snp.2 }}">{{ snp.1 }}</td>
+                                <td><a href="https://gnomad.broadinstitute.org/variant/{{ snp.1 }}?{{ snp.2 }}" target="_blank">{{ snp.1 }}</td>
                             </tr>
                         {% endfor %}
                     </table>
