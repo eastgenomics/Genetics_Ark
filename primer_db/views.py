@@ -414,7 +414,7 @@ def submit(request):
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
 
@@ -588,7 +588,7 @@ def submit_pair(request):
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
         # check if data input to each form is valid
@@ -838,7 +838,7 @@ def edit_primer(request, PrimerDetails_id):
         logger.info("Data submitted by scientist:")
 
         for field, value in request.POST.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
         # when update button is pressed, save updates made to current primer
@@ -1053,7 +1053,7 @@ def edit_pair(request, PrimerDetails_id):
         logger.info("Data submitted by scientist:")
 
         for field, value in data.items():
-            if field != "csrfmiddlewaretoken" or "button" not in field:
+            if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger.info(" - {}: {}".format(field, value))
 
         # check selected primer id
@@ -1230,6 +1230,50 @@ def edit_pair(request, PrimerDetails_id):
                 extra_tags="success")
 
             return redirect('/primer_db/')
+
+        elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
+            delete_primer1 = request.POST.get("delete_primer1_button", None)
+            delete_primer2 = request.POST.get("delete_primer2_button", None)
+            delete_pair = request.POST.get("delete_pair_button", None)
+
+            if delete_pair:
+                pair_to_delete = primer1.pairs
+
+                messages.success(request, 'Pair with "{}" "{}" successfully deleted'.format(primer1, primer2),
+                    extra_tags="success")
+
+                logger.info("Deleting {}".format(primer1))
+                logger.info("Deleting {}".format(primer2))
+                logger.info("Deleting pair id: {}".format(pair_to_delete.id))
+
+                primer1.delete()
+                primer2.delete()
+                pair_to_delete.delete()
+
+                return redirect("/primer_db/")
+
+            if delete_primer1:
+                primer = Models.PrimerDetails.objects.get(pk = delete_primer1)
+            elif delete_primer2:
+                primer = Models.PrimerDetails.objects.get(pk = delete_primer2)
+            
+            pair_to_delete = primer.pairs
+
+            paired_primer = Models.PrimerDetails.objects.filter(pairs__id = pair_to_delete.id).exclude(name = primer.name)[0]
+            paired_primer.pairs_id = None
+            paired_primer.save()
+
+            messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
+                extra_tags="success")
+
+            logger.info("Deleting {}".format(primer))
+            logger.info("Deleting pair id: {}".format(pair_to_delete.id))
+            logger.info("Primer {} left without pair".format(paired_primer))
+            
+            pair_to_delete.delete()
+            primer.delete()
+
+            return  redirect('/primer_db/')
 
     # check selected primer id
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
