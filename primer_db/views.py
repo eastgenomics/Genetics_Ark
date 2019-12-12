@@ -321,23 +321,23 @@ def index(request):
         if 'recalc' in request.POST:
             amplicon_length_37 = None
             amplicon_length_38 = None
-            popup_msg = []
+            recalc_msg = []
 
             if len(pks) != 2:
-                messages.error(request, '{} primers selected, please select 2 primers'.format(len(pks)), extra_tags='error')
+                messages.error(request, '{} primers selected, please select 2 primers'.format(len(pks)), extra_tags='alert-danger')
 
             gene1 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[0])
             gene2 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[1])
 
             if gene1 != gene2:
                 msg = "2 different genes ({}, {}) for the primer coverage calculation".format(gene1, gene2)
-                messages.error(request, msg, extra_tags='error')
+                messages.error(request, msg, extra_tags='alert-danger')
                 return redirect('/primer_db/')
 
             primer1 = Models.PrimerDetails.objects.get(pk = pks[0])
             primer2 = Models.PrimerDetails.objects.get(pk = pks[1])
 
-            popup_msg.append("Selected primers: {} and {}".format(primer1, primer2))
+            recalc_msg.append("Selected primers: {} and {}".format(primer1, primer2))
 
             if primer1.coordinates.strand == "+" and primer2.coordinates.strand == "-":
                 f_start37 = primer1.coordinates.start_coordinate_37
@@ -348,7 +348,7 @@ def index(request):
                 amplicon_length_37 = r_end37 - f_start37
                 amplicon_length_38 = r_end38 - f_start38
 
-                popup_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
+                recalc_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
                 f_start37 = primer2.coordinates.start_coordinate_37
@@ -359,36 +359,36 @@ def index(request):
                 amplicon_length_37 = r_end37 - f_start37
                 amplicon_length_38 = r_end38 - f_start38
 
-                popup_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
+                recalc_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
 
             else:
                 msg = "You need a forward and a reverse primer"
-                messages.error(request, msg, extra_tags='error')
+                messages.error(request, msg, extra_tags='alert-danger')
                 return redirect('/primer_db/')
 
-            popup_msg.append("Recalculated coverage for GRCh37 is: {}:{}-{}".format(
+            recalc_msg.append("Recalculated coverage for GRCh37 is: {}:{}-{}".format(
                 primer1.coordinates.chrom_no,
                 f_start37, r_end37
                 )
             )
-            popup_msg.append("Recalculated coverage for GRCh38 is: {}:{}-{}".format(
+            recalc_msg.append("Recalculated coverage for GRCh38 is: {}:{}-{}".format(
                 primer1.coordinates.chrom_no,
                 f_start38, r_end38
                 )
             )
 
             if amplicon_length_37 < 0:
-                popup_msg.append("Amplification not possible in GRCh37 with this pair of primer")
+                recalc_msg.append("Amplification not possible in GRCh37 with this pair of primer")
 
             if amplicon_length_38 < 0:
-                popup_msg.append("Amplification not possible in GRCh38 with this pair of primer")
+                recalc_msg.append("Amplification not possible in GRCh38 with this pair of primer")
 
-            popup_msg.append("Amplicon length in GRCh37 is: {}".format(amplicon_length_37))
-            popup_msg.append("Amplicon length in GRCh38 is: {}".format(amplicon_length_38))
+            recalc_msg.append("Amplicon length in GRCh37 is: {}".format(amplicon_length_37))
+            recalc_msg.append("Amplicon length in GRCh38 is: {}".format(amplicon_length_38))
 
             logger_index.info("Recalculating for {} and {}".format(primer1, primer2))
 
-            context_dict["recalc"] = popup_msg
+            context_dict["recalc"] = recalc_msg
 
             # need to calculate coverage from coordinates and display in a window
 
@@ -397,9 +397,19 @@ def index(request):
             new_status = request.POST.get('new_status') # get status to change to from POST data
 
             for pk in pks:
-                update_status = Models.Status.objects.get_or_create(name=new_status)
-                status_id = Models.Status.objects.filter(name__icontains=new_status).first().id
-                Models.PrimerDetails.objects.filter(pk=pk).update(status=status_id)
+                update_status, created = Models.Status.objects.get_or_create(name=new_status)
+                primer = Models.PrimerDetails.objects.get(pk=pk)
+                primer.status = update_status
+                primer.save()
+
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    "Updating {} status to {}".format(primer, new_status),
+                    extra_tags='alert-success'
+                )
+
+                logger_index.info("Changing status for {} to {}".format(primer, update_status))
 
             filtered_dict = request.session.get('filtered_dict', None)
 
@@ -408,13 +418,9 @@ def index(request):
 
                 if len(name) == 0:
                     # if filtered by primer name, length from gene name dict will be 0
-                    print("primer name filtered")
                     name = Models.PrimerDetails.objects.filter(name__icontains = filtered_dict["name"])
-                    print(name)
 
                 table = PrimerDetailsTable(name)
-            
-                logger_index.info("Changing status for {}".format(name))
 
             else:
                 if request.session.get("filtered_dict", None):
