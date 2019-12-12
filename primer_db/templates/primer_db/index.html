@@ -8,23 +8,14 @@
 <body style="padding-top: 80px; padding-left: 80px">
 
 <!-- success message when primer is deleted from edit_primer and returns to index -->
-
-
 {% if messages %} 
     {% for message in messages %}
-        {% if 'error' in message.tags %}
-            <div class="alert alert-danger" role="alert">
-                <strong>{{ message }}</strong> 
-            </div>
-        {% endif %}
-
-        {% if 'success' in message.tags %}
-        <div class="alert alert-success" role="alert">
+        <div class="alert {{ message.tags }}" role="alert">
             <strong>{{ message }}</strong> 
         </div>
-        {% endif %}
-    {% endfor %}
+    {% endfor %} 
 {% endif %} 
+
 
 
 <span style="float:right;">
