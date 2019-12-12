@@ -34,6 +34,7 @@ sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark
 import gnomAD_queries
 import snp_check
 
+
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
@@ -44,7 +45,7 @@ logging.config.dictConfig({
     },
     'handlers': {
         'submitting': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'normal',
             'filename': 'primer_db/logs/submitting.log',
@@ -53,7 +54,7 @@ logging.config.dictConfig({
             'backupCount': 5,
         },
         'editing': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'normal',
             'filename': 'primer_db/logs/editing.log',
@@ -62,7 +63,7 @@ logging.config.dictConfig({
             'backupCount': 5,
         },
         'deleting': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'normal',
             'filename': 'primer_db/logs/deleting.log',
@@ -71,7 +72,7 @@ logging.config.dictConfig({
             'backupCount': 5,
         },
         'index': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'normal',
             'filename': 'primer_db/logs/index.log',
@@ -813,7 +814,8 @@ def submit_pair(request):
                     logger_submit.info(" - Primer tm: {}".format(new_primer2.tm))
 
                     # success save message passed to submit.html
-                    messages.success(request, 'Primers successfully saved', extra_tags="success")
+                    messages.success(request, 'Primers {} and {} successfully saved'.format(new_primer1, new_primer2),
+                        extra_tags="alert-success")
 
                     multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
 
@@ -829,15 +831,15 @@ def submit_pair(request):
                     arrival_date_form2 = Forms.ArrivalDateForm()
 
                 else:
-                    messages.error(request, "One of the primers didn't map", extra_tags="error")
+                    messages.error(request, "One of the primers didn't map", extra_tags="alert-danger")
                     logger_submit.error("One of the primers didn't map")
 
             else:
-                messages.error(request, "Can't have the same names for both primers", extra_tags="error")
+                messages.error(request, "Can't have the same names for both primers", extra_tags="alert-danger")
                 logger_submit.error("Can't have same names for both primers")
 
         else:
-            messages.error(request, "At least one of the forms is invalid", extra_tags="error")
+            messages.error(request, "At least one of the forms is invalid", extra_tags="alert-danger")
             logger_submit.error("At least one of the forms is invalid")
 
     else:
@@ -953,9 +955,10 @@ def edit_primer(request, PrimerDetails_id):
                 logger_editing.info(" - Primer tm: {}".format(new_primer.tm))
 
                 messages.success(request, 'Primer "{}" successfully updated'.format(new_primer),
-                    extra_tags="success")
+                    extra_tags="alert-success")
                
             else:
+                messages.error(request, "One of the forms is invalid", extra_tags="alert-danger")
                 # view for form with populated data from selected primer if form is invalid
                 primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
 
@@ -969,7 +972,7 @@ def edit_primer(request, PrimerDetails_id):
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer_button"):
             messages.success(request, 'Primer "{}" successfully deleted'.format(primer[0]),
-                extra_tags="success")
+                extra_tags="alert-success")
 
             logger_deleting.info("Deleting {}".format(primer[0]))
             
@@ -985,7 +988,7 @@ def edit_primer(request, PrimerDetails_id):
 
             messages.success(
                 request, 'SNP checked primer "{}"'.format(primer[0]),
-                extra_tags="success"
+                extra_tags="alert-success"
             )
 
             return redirect('/primer_db/')
@@ -997,10 +1000,8 @@ def edit_primer(request, PrimerDetails_id):
             
             messages.success(
                 request, 'Last date used for primer "{}" successfully updated'.format(primer[0]),
-                extra_tags="success"
+                extra_tags="alert-success"
             )
-
-            return redirect('/primer_db/')
 
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
     coordinates = primer.coordinates
@@ -1228,7 +1229,7 @@ def edit_pair(request, PrimerDetails_id):
                 logger_editing.info(" - Primer tm: {}".format(new_primer.tm))
 
                 messages.success(request, 'Primer "{}" and "{}" successfully updated'.format(primer1, primer2),
-                    extra_tags="success")
+                    extra_tags="alert-success")
 
                 return  redirect('/primer_db/')
 
@@ -1240,7 +1241,7 @@ def edit_pair(request, PrimerDetails_id):
                             request,
                             messages.ERROR,
                             error,
-                            extra_tags='error'
+                            extra_tags='alert-danger'
                         )
 
                 return render(request, 'primer_db/edit_pair.html', context_dict)
@@ -1253,6 +1254,9 @@ def edit_pair(request, PrimerDetails_id):
                 primer = Models.PrimerDetails.objects.filter(name = checked_primer1)
             elif checked_primer2:
                 primer = Models.PrimerDetails.objects.filter(name = checked_primer2)
+
+            messages.success(request, 'Primer "{}" successfully snp checked'.format(primer[0]),
+                extra_tags="alert-success")
 
             logger_editing.info("SNP checking {}".format(primer[0]))
 
@@ -1271,10 +1275,8 @@ def edit_pair(request, PrimerDetails_id):
             messages.success(
                 request, 'Last date used for primer "{}" and "{}" successfully updated'.format(
                     queryset_primer1[0], queryset_primer2[0]
-                    ),
-                extra_tags="success")
-
-            return redirect('/primer_db/')
+                ),
+                extra_tags="alert-success")
 
         elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
             delete_primer1 = request.POST.get("delete_primer1_button", None)
@@ -1285,7 +1287,7 @@ def edit_pair(request, PrimerDetails_id):
                 pair_to_delete = primer1.pairs
 
                 messages.success(request, 'Pair with "{}" "{}" successfully deleted'.format(primer1, primer2),
-                    extra_tags="success")
+                    extra_tags="alert-success")
 
                 logger_deleting.info("Deleting {}".format(primer1))
                 logger_deleting.info("Deleting {}".format(primer2))
@@ -1309,7 +1311,7 @@ def edit_pair(request, PrimerDetails_id):
             paired_primer.save()
 
             messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
-                extra_tags="success")
+                extra_tags="alert-success")
 
             logger_deleting.info("Deleting {}".format(primer))
             logger_deleting.info("Deleting pair id: {}".format(pair_to_delete.id))
