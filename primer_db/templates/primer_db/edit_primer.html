@@ -8,17 +8,15 @@
 
 <h1>Primer Database</h1>
 
-<!-- success message for updated primer being saved  -->
-{% if messages %} 
+{% if messages %}
     {% for message in messages %}
-    <div class="alert alert-success" role="alert">
-        <strong>{{ message }}</strong> 
-    </div>
-    {% endfor %} 
+        <div class="alert {{message.tags}}">
+            <strong>{{ message }}</strong> 
+        </div>
+    {% endfor %}
 {% endif %} 
 
 <h3>Editing primer: {{primer.primer_name}}</h3></br>
-
 
 <html>
 <head>
@@ -31,7 +29,6 @@ table, td, th {
 
 </style>
 </head>
-
     <form action = "" method = "POST">
     {% csrf_token %}
 
@@ -73,7 +70,7 @@ table, td, th {
             <td>{{ arrival_date_form.arrival_date }}</td>
         </tr>
         <tr>
-            <td>Last day used:</td>
+            <td>Last date used:</td>
             <td>{{ primer.last_date_used }}</td>
         </tr>
         <tr>
@@ -118,14 +115,41 @@ table, td, th {
             <td>{{ primer_form.surname }}</td>
         </tr>
     </table></br> 
+    
     <!--update and delete buttons when editing a primer  -->
     {% if primer.snp_status == "2" %}
-        <button  type="submit" name = "check_snp_primer_button" value={{ primer.name }} class = "bt btn-primary" onclick="return confirm('Have you checked the primer?')">SNP Check {{ primer1.name }}</button>
+        <button
+            type="submit"
+            name = "check_snp_primer_button"
+            value={{ primer.name }}
+            class = "bt btn-primary"
+            onclick="return confirm('Have you checked the primer?')"
+        >SNP Check {{ primer1.name }}</button>
     {% endif %}
-    <button  type="submit" name = "update_date_button" value="update_date_used" class = "bt btn-primary">Update date used</button>
+
+    <button
+        type="submit"
+        name = "update_date_button"
+        value="update_date_used"
+        class = "bt btn-primary"
+    >Update date used</button>
+
     <br><br>
-    <input  type="submit" name="update_primer_button" value="Update primer" class = "bt btn-primary"></input>&nbsp;&nbsp;
-    <input type="submit" name="delete_primer_button" value="Delete primer" class = "bt btn-danger" onclick="return confirm('Are you sure you want to delete the primer?')"></input>
+
+    <input
+        type="submit"
+        name="update_primer_button"
+        value="Update primer"
+        class = "bt btn-primary"
+    ></input>&nbsp;&nbsp;
+
+    <input
+        type="submit"
+        name="delete_primer_button"
+        value="Delete primer"
+        class = "bt btn-danger"
+        onclick="return confirm('Are you sure you want to delete the primer?')"
+    ></input>
 
 
     </form>
