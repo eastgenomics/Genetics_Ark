@@ -15,12 +15,12 @@ class PrimerDetailsTable(tables.Table):
     status = tables.Column()
     snp_status = tables.Column(default = ' ', orderable=False)
     last_date_used = tables.Column()
-    strand = tables.Column(accessor = "coordinates.strand")
+    strand = tables.Column(accessor = "coordinates.strand", orderable = False)
     chrom_no = tables.Column(accessor = "coordinates.chrom_no")
     coverage37 = tables.Column(accessor = "pairs.coverage_37")
     coverage38 = tables.Column(accessor = "pairs.coverage_38")
     check = tables.CheckBoxColumn(verbose_name=" refewrf", accessor = 'pk')
-    comments = tables.Column()
+    comments = tables.Column(orderable=False)
 
 
     def render_comments(comments, value):
@@ -71,11 +71,9 @@ class PrimerDetailsTable(tables.Table):
 
         return value
 
-    class Meta:	
-
+    class Meta:
         model = PrimerDetails
         attrs = {"class": "paleblue"}
-        template_name = 'django_tables2/bootstrap.html'
 
         fields = ('primer_id', 'name', 'gene', 'sequence', 'gc_percent', 
                     'comments', 'arrival_date', 'status', 'tm', "strand",

@@ -34,12 +34,12 @@ class PrimerDetails(models.Model):
 
 
 class Coordinates(models.Model):
-    chrom_no = models.CharField(max_length=2)
+    chrom_no = models.CharField(max_length=2, verbose_name = "Chr")
     start_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 Start', null=True)
     end_coordinate_37 = models.IntegerField(verbose_name = 'GRCh37 End', null=True)
     start_coordinate_38 = models.IntegerField(verbose_name = 'GRCh38 Start', null=True)
     end_coordinate_38 = models.IntegerField(verbose_name = 'GRCh38 End',  null=True)
-    strand = models.CharField(null = True, blank = True, max_length = 1)
+    strand = models.CharField(null = True, blank = True, max_length = 1, verbose_name = "+/-")
     
     def __str__(self):
         return '{} {} {} {} {}'.format(self.chrom_no, self.start_coordinate_37, 
