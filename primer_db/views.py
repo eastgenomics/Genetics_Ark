@@ -660,7 +660,7 @@ def submit_pair(request):
 
         for field, value in request.POST.items():
             if field != "csrfmiddlewaretoken" and "button" not in field:
-                logger_submit.info(" - {}: {}".format(field, value))
+                logger_submit.info(" - {}: {}".format(field, value.strip()))
 
         # check if data input to each form is valid
         if (primer_form1.is_valid() and 
