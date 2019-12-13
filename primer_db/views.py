@@ -467,8 +467,7 @@ def submit(request):
 
         for field, value in request.POST.items():
             if field != "csrfmiddlewaretoken" and "button" not in field:
-                logger_submit.info(" - {}: {}".format(field, value))
-
+                logger_submit.info(" - {}: {}".format(field, value.strip()))
 
         # check if data input to each form is valid
         if (primer_form.is_valid() and 
@@ -1173,8 +1172,6 @@ def edit_pair(request, PrimerDetails_id):
                 (primer_name, gene, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms1
 
-                logger_editing.info("Updating {}".format(primer1))
-
                 new_status, created = Models.Status.objects.update_or_create(name = status)
                 logger_editing.info(" - Using status: {}".format(new_status))
 
@@ -1208,7 +1205,7 @@ def edit_pair(request, PrimerDetails_id):
                     }
                 )
 
-                logger_editing.info("Updating primer: {} {}".format(new_primer.id, new_primer))
+                logger_editing.info("Updating: {} {}".format(new_primer.id, new_primer))
                 logger_editing.info(" - Primer gene: {}".format(new_primer.gene))
                 logger_editing.info(" - Primer sequence: {}".format(new_primer.sequence))
                 logger_editing.info(" - Primer gc %: {}".format(new_primer.gc_percent))
@@ -1219,8 +1216,6 @@ def edit_pair(request, PrimerDetails_id):
                 # unpack variables for second form and save to db
                 (primer_name, gene, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms2
-
-                logger_editing.info("Updating {}".format(primer2))
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
                 logger_editing.info(" - Using status: {}".format(new_status))
