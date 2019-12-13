@@ -63,10 +63,16 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
                 snp_info += get_snp(ref, snp, primer_start_37, primer_end_37)
                 snp_info += get_snp(ref, snp, primer_start_38, primer_end_38)
 
+        else:
+            snp_info += ["Gene not recognized"]
+
     if snp_info:
-        snp_status = 2
+        if "Gene not recognized" in snp_info:
+            snp_status = "4"
+        else:
+            snp_status = "2"
     else:
-        snp_status = 1
+        snp_status = "1"
 
     return snp_status, snp_date, snp_info
 
@@ -81,6 +87,7 @@ if __name__ == "__main__":
 
     with open(record_file_path, "a") as f:
         for primer in primers:
+            print(primer)
             f.write("{}:\n".format(primer))
             current_snp_status = primer.snp_status
             current_snp_info = primer.snp_info
@@ -110,13 +117,16 @@ if __name__ == "__main__":
                         new_snps.append(new_snp)
 
             if new_snps:
+                if "Gene not recognized" in new_snps:
+                    f.write(" - Gene not recognized")
+                else:
+                    f.write(" - New snps detected: {}\n".format(new_snp_info))
                 new_snps = ";".join(set(new_snps))
-                f.write(" - New snps detected: {}\n".format(new_snp_info))
-                primer.snp_status = "2"
+                primer.snp_status = new_status
             else:
                 f.write(" - No new snps\n")
                 new_snps = ""
-                primer.snp_status = "1"
+                primer.snp_status = new_status
 
             primer.snp_info = new_snps
             primer.snp_date = datetime.datetime.now()
