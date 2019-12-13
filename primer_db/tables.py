@@ -54,7 +54,7 @@ class PrimerDetailsTable(tables.Table):
 
     def render_snp_status(snp_status, value, column):
         # render SNP check cell colour dependent on presence of SNP check
-        # 0 = not checked, 1 = no SNPs, 2 = SNPs detected, 3 = SNPs detected but manually checked
+        # 0 = not checked, 1 = no SNPs, 2 = SNPs detected, 3 = SNPs detected but manually checked, 4 = gene not recognized by gnomAD
 
         if int(value) == 0:
             column.attrs = {'td': {'bgcolor': 'lemonchiffon'}}
@@ -67,6 +67,9 @@ class PrimerDetailsTable(tables.Table):
             value = ''
         elif int(value) == 3:
             column.attrs = {'td': {'bgcolor': 'lightskyblue'}}
+            value = ''
+        elif int(value) == 4:
+            column.attrs = {'td': {'bgcolor': 'purple'}}
             value = ''
 
         return value
