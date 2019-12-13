@@ -11,7 +11,7 @@ def fetch(jsondata, url="https://gnomad.broadinstitute.org/api"):
     json = response.json()
 
     if "errors" in json:
-        raise Exception(str(json["errors"]))
+        return 
 
     return json
 
@@ -76,7 +76,10 @@ def snp_check_query(gene_symbol, ref):
 
     response = fetch(req_variantlist)
 
-    return response["data"]["gene"]["variants"]
+    if response:
+        return response["data"]["gene"]["variants"]
+    else:
+        return
 
 
 # if __name__ == "__main__":
