@@ -342,9 +342,6 @@ def index(request):
                 f_start38 = primer1.coordinates.start_coordinate_38
                 r_end38 = primer2.coordinates.end_coordinate_38
 
-                amplicon_length_37 = r_end37 - f_start37
-                amplicon_length_38 = r_end38 - f_start38
-
                 recalc_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
@@ -353,15 +350,15 @@ def index(request):
                 f_start38 = primer2.coordinates.start_coordinate_38
                 r_end38 = primer1.coordinates.end_coordinate_38
 
-                amplicon_length_37 = r_end37 - f_start37
-                amplicon_length_38 = r_end38 - f_start38
-
                 recalc_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
 
             else:
                 msg = "You need a forward and a reverse primer"
                 messages.error(request, msg, extra_tags='alert-danger')
                 return redirect('/primer_db/')
+
+            amplicon_length_37 = r_end37 - f_start37
+            amplicon_length_38 = r_end38 - f_start38
 
             recalc_msg.append("Recalculated coverage for GRCh37 is: {}:{}-{}".format(
                 primer1.coordinates.chrom_no,
@@ -386,9 +383,6 @@ def index(request):
             logger_index.info("Recalculating for {} and {}".format(primer1, primer2))
 
             context_dict["recalc"] = recalc_msg
-
-            # need to calculate coverage from coordinates and display in a window
-
 
         elif 'change_status' in request.POST and 'recalc' not in request.POST:
             new_status = request.POST.get('new_status') # get status to change to from POST data
@@ -439,7 +433,6 @@ def index(request):
 
 
 def submit(request):
-
     """
     Function for submitting a single primer to the database
     """
@@ -916,7 +909,7 @@ def edit_primer(request, PrimerDetails_id):
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
-        primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)
+        primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
 
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer_button"):
@@ -925,6 +918,11 @@ def edit_primer(request, PrimerDetails_id):
                 arrival_date_form.is_valid()
             ):
                 logger_editing.info("Editing primer")
+                logger_editing.info("Data stored:")
+
+                for field, value in model_to_dict(primer).items():
+                    logger_editing.info(" - {}: {}".format(field, value))
+
                 logger_editing.info("Data submitted by scientist:")
 
                 for field, value in request.POST.items():
@@ -991,7 +989,7 @@ def edit_primer(request, PrimerDetails_id):
             else:
                 messages.error(request, "One of the forms is invalid", extra_tags="alert-danger")
                 # view for form with populated data from selected primer if form is invalid
-                primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
+                primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
 
                 context_dict["primer_form"] = primer_form
                 context_dict["status_form"] = status_form
@@ -1001,39 +999,41 @@ def edit_primer(request, PrimerDetails_id):
 
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer_button"):
-            messages.success(request, 'Primer "{}" successfully deleted'.format(primer[0]),
+            messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
                 extra_tags="alert-success")
 
-            logger_deleting.info("Deleting {}".format(primer[0]))
+            logger_deleting.info("Deleting {}".format(primer))
             
-            primer[0].delete()
+            primer.delete()
 
             return  redirect('/primer_db/')
     
         elif request.POST.get("check_snp_primer_button"):
-            primer.update(snp_status = 3)
-            primer.update(snp_date = timezone.now())
+            primer.snp_status = 3
+            primer.snp_date = timezone.now()
+            primer.save()
 
-            logger_editing.info("SNP checking: {}".format(primer[0]))
+            logger_editing.info("SNP checking: {}".format(primer))
 
             messages.success(
-                request, 'SNP checked primer "{}"'.format(primer[0]),
+                request, 'SNP checked primer "{}"'.format(primer),
                 extra_tags="alert-success"
             )
 
             return redirect('/primer_db/')
 
         elif request.POST.get("update_date_button"):
-            primer.update(last_date_used = timezone.now())
+            primer.last_date_used = timezone.now()
+            primer.save()
 
-            logger_editing.info("Updating last date used: {}".format(primer[0]))
+            logger_editing.info("Updating last date used: {}".format(primer))
             
             messages.success(
-                request, 'Last date used for primer "{}" successfully updated'.format(primer[0]),
+                request, 'Last date used for primer "{}" successfully updated'.format(primer),
                 extra_tags="alert-success"
             )
 
-    primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
+    primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
     coordinates = primer.coordinates
     status = primer.status
 
@@ -1147,6 +1147,16 @@ def edit_pair(request, PrimerDetails_id):
                 arrival_date_form2.is_valid()
             ):
                 logger_editing.info("Editing primer pair")
+                logger_editing.info("Data stored for primer1:")
+
+                for field, value in model_to_dict(primer1).items():
+                    logger_editing.info(" - {}: {}".format(field, value))
+
+                logger_editing.info("Data stored for primer2:")
+
+                for field, value in model_to_dict(primer2).items():
+                    logger_editing.info(" - {}: {}".format(field, value))
+
                 logger_editing.info("Data submitted by scientist:")
 
                 for field, value in data.items():
@@ -1171,6 +1181,8 @@ def edit_pair(request, PrimerDetails_id):
                 # unpack variables for first form and save to db
                 (primer_name, gene, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms1
+
+                logger_editing.info("Creating or using meta items relating to primer1:")
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
                 logger_editing.info(" - Using status: {}".format(new_status))
@@ -1216,6 +1228,8 @@ def edit_pair(request, PrimerDetails_id):
                 # unpack variables for second form and save to db
                 (primer_name, gene, buffer, pcr_program, arrival_date, status, 
                  location, comments, forename, surname) = forms2
+
+                logger_editing.info("Creating or using meta items relating to primer2:")
 
                 new_status, created = Models.Status.objects.update_or_create(name = status)
                 logger_editing.info(" - Using status: {}".format(new_status))
@@ -1277,17 +1291,19 @@ def edit_pair(request, PrimerDetails_id):
             primer.update(snp_date = timezone.now())
 
         elif request.POST.get("update_date_button"):
-            queryset_primer1 = Models.PrimerDetails.objects.filter(pk = primer1.id)
-            queryset_primer2 = Models.PrimerDetails.objects.filter(pk = primer2.id)
+            queryset_primer1 = Models.PrimerDetails.objects.get(pk = primer1.id)
+            queryset_primer2 = Models.PrimerDetails.objects.get(pk = primer2.id)
 
-            logger_editing.info("Updating last date used for {} and {}".format(queryset_primer1[0], queryset_primer2[0]))
+            logger_editing.info("Updating last date used for {} and {}".format(queryset_primer1, queryset_primer2))
 
-            queryset_primer1.update(last_date_used = timezone.now())
-            queryset_primer2.update(last_date_used = timezone.now())
+            queryset_primer1.last_date_used = timezone.now()
+            queryset_primer2.last_date_used = timezone.now()
+            queryset_primer1.save()
+            queryset_primer2.save()
             
             messages.success(
                 request, 'Last date used for primer "{}" and "{}" successfully updated'.format(
-                    queryset_primer1[0], queryset_primer2[0]
+                    queryset_primer1, queryset_primer2
                 ),
                 extra_tags="alert-success")
 
