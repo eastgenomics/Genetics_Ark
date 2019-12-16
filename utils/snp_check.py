@@ -8,6 +8,7 @@ ml django
 python snp_check.py
 """
 
+import argparse
 import datetime
 import django
 import logging
@@ -107,13 +108,20 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
     return snp_status, snp_date, snp_info
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--status", required = False, help = "Snp status of primers to check")
+    args = parser.parse_args()
+
     today = datetime.datetime.now().strftime("%y%m%d")
     record_file_path = "snp_checking_update/{}".format(today)
 
     if not os.path.exists("snp_checking_update"):
         os.mkdir("snp_checking_update")
 
-    primers = Models.PrimerDetails.objects.all()
+    if args.status:
+        primers = Models.PrimerDetails.objects.filter(snp_status = args.status)
+    else:
+        primers = Models.PrimerDetails.objects.all()
 
     with open(record_file_path, "a") as f:
         for i, primer in enumerate(primers):
