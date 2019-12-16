@@ -13,7 +13,7 @@ class PrimerDetailsTable(tables.Table):
     primer_id = tables.Column(accessor = "id")
     tm = tables.Column()
     status = tables.Column()
-    snp_status = tables.Column(default = ' ', orderable=False)
+    snp_status = tables.Column(default = ' ')
     last_date_used = tables.Column()
     strand = tables.Column(accessor = "coordinates.strand", orderable = False)
     chrom_no = tables.Column(accessor = "coordinates.chrom_no")
