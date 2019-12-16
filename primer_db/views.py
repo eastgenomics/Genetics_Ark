@@ -277,11 +277,33 @@ def index(request):
             for primer in position_filtered_primers:
                 coordinates = primer.coordinates
 
-                if coordinates.start_coordinate_37 <= var_pos <= coordinates.end_coordinate_37:
-                    primers37.append(primer.id)
+                if primer.pairs_id:
+                    primer1, primer2 = Models.PrimerDetails.objects.filter(pairs__id = primer.pairs_id)
 
-                if coordinates.start_coordinate_38 <= var_pos <= coordinates.end_coordinate_38:
-                    primers38.append(primer.id)
+                    coordinates_37 = [
+                        primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
+                        primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
+                    ]
+
+                    coordinates_38 = [
+                        primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
+                        primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
+                    ]
+
+                    if min(coordinates_37) <= var_pos <= max(coordinates_37):
+                        primers37.append(primer1.id)
+                        primers37.append(primer2.id)
+
+                    if min(coordinates_38) <= var_pos <= max(coordinates_38):
+                        primers38.append(primer1.id)
+                        primers38.append(primer2.id)                        
+                    
+                else:
+                    if coordinates.start_coordinate_37 <= var_pos <= coordinates.end_coordinate_37:
+                        primers37.append(primer.id)
+
+                    if coordinates.start_coordinate_38 <= var_pos <= coordinates.end_coordinate_38:
+                        primers38.append(primer.id)
 
             # get query set for primer IDs that cover the variant position
             filter_grch37 = Models.PrimerDetails.objects.filter(pk__in=primers37)
