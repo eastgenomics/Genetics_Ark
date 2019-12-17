@@ -116,6 +116,8 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
                     # still not recognized
                     snp_info += ["Gene not recognized"]
                     continue
+
+                time.sleep(0.0001)
             
             else:
                 # couldn't rescue gene symbol
