@@ -35,6 +35,7 @@ import gnomAD_queries
 import snp_check
 
 
+# setup the logging
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
@@ -102,6 +103,7 @@ logging.config.dictConfig({
 })
 
 
+# 4 different loggers for the actions possibles in the interface
 logger_submit = logging.getLogger("submitting")
 logger_editing = logging.getLogger("editing")
 logger_deleting = logging.getLogger("deleting")
@@ -236,11 +238,9 @@ def tm_calculate(sequence):
 
 
 def index(request):
-
     """
     Homepage view of database; displays all primers inc. search functions and use of check boxes for changing
-    status of multiple primers and recalculating coverage for a given pair of primers    
-
+    status of multiple primers and recalculating coverage for a given pair of primers
     """
 
     context_dict = {}
@@ -265,6 +265,7 @@ def index(request):
         filter_gene = Models.PrimerDetails.objects.none()
 
         if var_pos:
+            # filtering using the position
             filtering = True
             primers37 = []
             primers38 = []
@@ -278,6 +279,7 @@ def index(request):
                 coordinates = primer.coordinates
 
                 if primer.pairs_id:
+                    # use coverage to check if variant is covered by a primer pair
                     primer1, primer2 = Models.PrimerDetails.objects.filter(pairs__id = primer.pairs_id)
 
                     coordinates_37 = [
@@ -299,6 +301,7 @@ def index(request):
                         primers38.append(primer2.id)                        
                     
                 else:
+                    # check if variant is in a primer sequence
                     if coordinates.start_coordinate_37 <= var_pos <= coordinates.end_coordinate_37:
                         primers37.append(primer.id)
 
@@ -335,6 +338,7 @@ def index(request):
 
     # function for changing handling check boxes
     elif request.method == 'POST':
+        # list of id for the primers checked in the main table
         pks = request.POST.getlist('check')
 
         if 'recalc' in request.POST:
@@ -344,6 +348,7 @@ def index(request):
 
             if len(pks) != 2:
                 messages.error(request, '{} primers selected, please select 2 primers'.format(len(pks)), extra_tags='alert-danger')
+                return redirect('/primer_db/')
 
             gene1 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[0])
             gene2 = Models.PrimerDetails.objects.values_list('gene', flat=True).get(pk=pks[1])
@@ -503,6 +508,7 @@ def submit(request):
             surname = primer_form.cleaned_data["surname"].capitalize()
             location = status_form.cleaned_data["location"]
 
+            # check if the name of primer is already in the database
             if Models.PrimerDetails.objects.filter(name=name):
                 messages.error(request, "Primer name {} already exists".format(name), extra_tags= "alert-danger")
                 return render(request, 'primer_db/submit.html', context_dict)
@@ -593,7 +599,6 @@ def submit(request):
                 messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
                     name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="alert-success")
 
-                #return redirect('submit')
                 return render(request, 'primer_db/submit.html', context_dict)
 
             else:
@@ -620,7 +625,6 @@ def submit(request):
         status_form = Forms.StatusLocationForm()
         arrival_date_form = Forms.ArrivalDateForm()
 
-            
     context_dict["primer_form"] = primer_form
     context_dict["sequence_form"] = sequence_form
     context_dict["status_form"] = status_form
@@ -630,7 +634,6 @@ def submit(request):
 
 
 def submit_pair(request):
-
     """
     Function for submitting pair of new primers to database
 
@@ -710,6 +713,7 @@ def submit_pair(request):
 
             existing_primers = Models.PrimerDetails.objects.filter(name__in=[primer_name1, primer_name2])
 
+            # check if the name given for both primers already exist
             if existing_primers:
                 messages.error(request, "Primer name {} already exists".format(", ".join([primer.name for primer in existing_primers])), extra_tags="alert-danger")
                 return render(request, "primer_db/submit_pair.html", context_dict)
@@ -893,7 +897,6 @@ def submit_pair(request):
             logger_submit.error("At least one of the forms is invalid")
 
     else:
-        print("just displaying form, data not sent")
         # if data is not sent, just display the form
         primer_form1 = Forms.PrimerForm(prefix = "form1")
         sequence_form1 = Forms.SequenceForm(prefix = "form1")
@@ -905,7 +908,6 @@ def submit_pair(request):
         status_form2 = Forms.StatusLocationForm(prefix = "form2")
         arrival_date_form2 = Forms.ArrivalDateForm(prefix = "form2")
 
-            
     context_dict["primer_form1"] = primer_form1
     context_dict["sequence_form1"] = sequence_form1
     context_dict["status_form1"] = status_form1
@@ -1008,9 +1010,12 @@ def edit_primer(request, PrimerDetails_id):
                 messages.success(request, 'Primer "{}" successfully updated'.format(new_primer),
                     extra_tags="alert-success")
                
+                return render(request, 'primer_db/edit_primer.html', context_dict)
+
             else:
-                messages.error(request, "One of the forms is invalid", extra_tags="alert-danger")
                 # view for form with populated data from selected primer if form is invalid
+                messages.error(request, "One of the forms is invalid", extra_tags="alert-danger")
+
                 primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
 
                 context_dict["primer_form"] = primer_form
@@ -1056,8 +1061,6 @@ def edit_primer(request, PrimerDetails_id):
             )
 
     primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
-    coordinates = primer.coordinates
-    status = primer.status
 
     primer_details_dict = {
         'name' : primer.name,
@@ -1086,6 +1089,7 @@ def edit_primer(request, PrimerDetails_id):
 
     context_dict["primer"] = primer
 
+    # complicated parsing to display snp info
     if primer.snp_info:
         context_dict["snps"] = []
 
@@ -1113,7 +1117,7 @@ def edit_pair(request, PrimerDetails_id):
     context_dict = {}
 
     if request.method == "POST":
-        # trick to fool form2
+        # trick to fool form2 validation
         data = request.POST.copy()
         data["form2-buffer"] = data["form1-buffer"]
         data["form2-gene"] = data["form1-gene"]
@@ -1151,8 +1155,7 @@ def edit_pair(request, PrimerDetails_id):
             # if primer is from a pair and to be edited in pair form
             primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
             context_dict["primer2"] = primer2        
-
-        context_dict["primer1"] = primer1
+            context_dict["primer1"] = primer1
 
         fields = ["name", "gene", "buffer", "pcr_program", "arrival_date", "status", 
             "location", "comments", "forename", "surname"
@@ -1280,7 +1283,7 @@ def edit_pair(request, PrimerDetails_id):
                 messages.success(request, 'Primer "{}" and "{}" successfully updated'.format(primer1, primer2),
                     extra_tags="alert-success")
 
-                return  redirect('/primer_db/')
+                return render(request, 'primer_db/edit_pair.html', context_dict)
 
             else:
                 for form in list_forms:
@@ -1296,6 +1299,7 @@ def edit_pair(request, PrimerDetails_id):
                 return render(request, 'primer_db/edit_pair.html', context_dict)
 
         elif request.POST.get("check_snp_primer1_button") or request.POST.get("check_snp_primer2_button"):
+            # value of button is the primer name allowing me to use it directly in the filtering after
             checked_primer1 = request.POST.get("check_snp_primer1_button", None)
             checked_primer2 = request.POST.get("check_snp_primer2_button", None)
 
@@ -1330,6 +1334,7 @@ def edit_pair(request, PrimerDetails_id):
                 extra_tags="alert-success")
 
         elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
+            # 2 ways to delete stuff: one primer or the pair
             delete_primer1 = request.POST.get("delete_primer1_button", None)
             delete_primer2 = request.POST.get("delete_primer2_button", None)
             delete_pair = request.POST.get("delete_pair_button", None)
@@ -1418,6 +1423,7 @@ def edit_pair(request, PrimerDetails_id):
 
     context_dict["primer1"] = primer1
 
+    # parsing for displaying snp info 
     if primer1.snp_info:
         context_dict["snp1"] = []
 
