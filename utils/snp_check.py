@@ -33,7 +33,8 @@ ALLELE_FREQUENCY_THRESHOLD = 0.005
 
 
 def get_hgnc_symbol(gene_name):
-    # check if given gene name is in gene list, if not use API to find new symbol from HGNC
+    """ Get HGNC symbol for gene symbol given if the gene symbol is not recognized in gnomAD """
+
     new_gene = HGNC_api.get_new_symbol(gene_name)
 
     if not new_gene:
@@ -41,18 +42,24 @@ def get_hgnc_symbol(gene_name):
         alias_list = HGNC_api.get_alias(gene_name)
 
         if alias_list:
+            # see if the aliases get us a new gene name
             for alias in alias_list:
                 for ref in ["37", "38"]:
                     query_res = gnomAD_queries.snp_check_query(alias, ref)
     
+                    # if gnomAD recognizes the alias, get the "main" symbol of the alias
                     if query_res:
-                        alias_id = HGNC_api.get_id(alias, verbose=False)
-                        new_gene = HGNC_api.get_symbol_from_id(alias_id, verbose=False)
+                        alias_id = HGNC_api.get_id(alias)
+                        new_gene = HGNC_api.get_symbol_from_id(alias_id)
+
+                    time.sleep(0.0001)
 
     return new_gene
 
 
 def get_snp(ref, snp, primer_start, primer_end):
+    """ Given a snp and the coordinates of a primer, return list with position of snp on the primer + gnomAD link """
+
     ref2gnomad = {"37": "r2_1", "38": "r3"}
 
     true_snps = []
@@ -77,6 +84,21 @@ def get_snp(ref, snp, primer_start, primer_end):
                 
 
 def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
+    """ Returns snp data for primer_db 
+
+    Args:
+     - gene
+     - primer start 37
+     -        end   37
+     - primer start 38
+     -        end   38
+
+    Returns:
+     - snp status
+     - snp date
+     - snp info
+    """
+
     snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
     snp_info = []
 
@@ -84,14 +106,21 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
         total_snps = gnomAD_queries.snp_check_query(gene, ref)
 
         if not total_snps:
+            # gene symbol not recognized by gnomAD, try and rescue with HGNC
             new_gene = get_hgnc_symbol(gene)
             
             if new_gene:
                 total_snps = gnomAD_queries.snp_check_query(new_gene, ref)
 
                 if not total_snps:
+                    # still not recognized
                     snp_info += ["Gene not recognized"]
                     continue
+            
+            else:
+                # couldn't rescue gene symbol
+                snp_info += ["Gene not recognized"]
+                continue
 
         for snp in total_snps:
             snp_info += get_snp(ref, snp, primer_start_37, primer_end_37)
@@ -107,7 +136,14 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
 
     return snp_status, snp_date, snp_info
 
+
+
 if __name__ == "__main__":
+    """
+    Launching the script on it's own will check every primers in the database
+    You can filter using the snp status
+    """
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--status", required = False, help = "Snp status of primers to check")
     args = parser.parse_args()
@@ -170,4 +206,5 @@ if __name__ == "__main__":
             primer.snp_date = datetime.datetime.now()
             primer.save()
 
+            # needs it because of the timeout parameters in the gnomAD API
             time.sleep(0.0001)
