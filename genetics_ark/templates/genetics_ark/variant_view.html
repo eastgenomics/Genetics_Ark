@@ -21,6 +21,32 @@
 
 {% else %}
 
+<div class="row">
+  <div class=" col-md-4">
+    <table cellpadding="5" cellspacing="5" class="col-sm-3 table table-condensed table-bordered table-hover">
+      <tr>
+        <td><b>HGMD annotation</b>:</td>
+        {% if hgmd %}
+          <td>{{ hgmd }}</td>
+        {% else %}
+          <td>No HGMD annotation</td>
+        {% endif %}
+      </tr>
+      {% comment %} <tr>
+        <td><b>Clinvar</b>:</td>
+        {% if clinvar %}
+          <td>{{ clinvar }}</td>
+        {% else %}
+          <td>No clinvar annotation</td>        
+        {% endif %}        
+      </tr> {% endcomment %}
+    </table>
+  </div>
+</div>
+
+<hr>
+<BR>
+
 
 <div class="row">
  <div class=" col-md-4">
