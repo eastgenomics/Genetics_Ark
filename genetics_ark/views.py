@@ -639,6 +639,8 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
     context_dict['ref']   = variant.ref
     context_dict['alt']   = variant.alt
     context_dict['id']    = variant.id
+    context_dict['hgmd']  = variant.hgmd
+    context_dict['clinvar'] = variant.clinvar
 
     context_dict[ 'projects' ] = []
     for project in Models.Project.objects.all().order_by('name'):
@@ -668,7 +670,7 @@ def variant_view( request, chrom=None, pos=None, ref=None, alt=None):
             analysis_variant.panels = []
             for sample_panel in sample_panels:
                 panels = Models.Panel.objects.filter( name = sample_panel.panel_name ).filter( active ='Y')
-                if ( panels.len() > 0):
+                if ( len(panels) > 0):
 
                     analysis_variant.panels.append( panels[0] )
             
