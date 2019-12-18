@@ -305,6 +305,8 @@ class Variant(models.Model):
     pos = models.IntegerField()
     ref = models.CharField(max_length=100)
     alt = models.CharField(max_length=100)
+    clinvar = models.CharField(max_length=100)
+    hgmd = models.CharField(max_length=100)
     comment = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
