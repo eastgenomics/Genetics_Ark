@@ -6,7 +6,7 @@ import requests
 def fetch(jsondata, url="https://gnomad.broadinstitute.org/api"):
     # The server gives a generic error message if the content type isn't
     # explicitly set
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "charset": "utf-8"}
     response = requests.post(url, json=jsondata, headers=headers)
     json = response.json()
 
