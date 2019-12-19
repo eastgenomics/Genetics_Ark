@@ -270,6 +270,8 @@ def index(request):
             primers37 = []
             primers38 = []
 
+            bugged_primers = []
+
             var_pos = int(var_pos)
 
             # get the id and coverage for all primers on given chromosome
@@ -279,8 +281,14 @@ def index(request):
                 coordinates = primer.coordinates
 
                 if primer.pairs_id:
-                    # use coverage to check if variant is covered by a primer pair
-                    primer1, primer2 = Models.PrimerDetails.objects.filter(pairs__id = primer.pairs_id)
+                    pair = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+
+                    if len(pair) == 2:
+                        primer1, primer2 = pair
+
+                    else:
+                        bugged_primers.append((primer.id, primer))
+                        continue
 
                     coordinates_37 = [
                         primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
@@ -312,6 +320,21 @@ def index(request):
             filter_grch37 = Models.PrimerDetails.objects.filter(pk__in=primers37)
             filter_grch38 = Models.PrimerDetails.objects.filter(pk__in=primers38)
 
+            filtered_dict["pos"] = primers37 + primers38
+            request.session["filtered_dict"] = filtered_dict
+
+            if bugged_primers:
+                logger_index.error("There are pair ids that are bugged")
+
+                for id_, primer in bugged_primers:
+                    logger_index.error(" - {} {}".format(id_, primer))
+
+                messages.add_message(request,
+                    messages.ERROR,
+                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
+                    extra_tags="alert-danger"
+                )
+
         if name_filter:
             filtering = True
             filter_name = Models.PrimerDetails.objects.filter(name__icontains=name_filter)
@@ -323,16 +346,32 @@ def index(request):
             filtering = True
             filter_gene = Models.PrimerDetails.objects.filter(gene = gene_filter)
 
-            filtered_dict["name"] = gene_filter
+            filtered_dict["gene"] = gene_filter
             request.session['filtered_dict'] = filtered_dict
 
         if filtering:
             # table filtered by something
-            filtered_primers = list(chain(filter_grch37, filter_grch38, filter_name, filter_gene)) # combine both querysets
+            filtered_primers = (filter_grch37 | filter_grch38 | filter_name | filter_gene) # combine both querysets
+
+            context_dict["nb_primers"] = len(filtered_primers)
+            context_dict["not_check"] = len([primer for primer in filtered_primers if primer.snp_status == "0"])
+            context_dict["passed_check"] = len([primer for primer in filtered_primers if primer.snp_status == "1"])
+            context_dict["failed_check"] = len([primer for primer in filtered_primers if primer.snp_status == "2"])
+            context_dict["manually_checked"] = len([primer for primer in filtered_primers if primer.snp_status == "3"])
+            context_dict["not_in_gnomAD"] = len([primer for primer in filtered_primers if primer.snp_status == "4"])
+
             table = PrimerDetailsTable(filtered_primers)
         else:
-            # original table not filtered
-            table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
+            primers = Models.PrimerDetails.objects.all()
+            table = PrimerDetailsTable(primers)
+
+            context_dict["nb_primers"] = len(primers)
+            context_dict["not_check"] = len([primer for primer in primers if primer.snp_status == "0"])
+            context_dict["passed_check"] = len([primer for primer in primers if primer.snp_status == "1"])
+            context_dict["failed_check"] = len([primer for primer in primers if primer.snp_status == "2"])
+            context_dict["manually_checked"] = len([primer for primer in primers if primer.snp_status == "3"])
+            context_dict["not_in_gnomAD"] = len([primer for primer in primers if primer.snp_status == "4"])
+
             if request.session.get("filtered_dict", None):
                 del request.session["filtered_dict"]
 
@@ -411,7 +450,7 @@ def index(request):
 
             context_dict["recalc"] = recalc_msg
 
-        elif 'change_status' in request.POST and 'recalc' not in request.POST:
+        elif 'change_status' in request.POST:
             new_status = request.POST.get('new_status') # get status to change to from POST data
 
             for pk in pks:
@@ -432,17 +471,46 @@ def index(request):
             filtered_dict = request.session.get('filtered_dict', None)
 
             if filtered_dict:
-                name = Models.PrimerDetails.objects.filter(gene = filtered_dict["name"])
+                name = Models.PrimerDetails.objects.filter(gene = filtered_dict["gene"])
 
                 if len(name) == 0:
                     # if filtered by primer name, length from gene name dict will be 0
                     name = Models.PrimerDetails.objects.filter(name__icontains = filtered_dict["name"])
+
+                    context_dict["nb_primers"] = len(name)
+                    context_dict["not_check"] = len([primer for primer in name if primer.snp_status == "0"])
+                    context_dict["passed_check"] = len([primer for primer in name if primer.snp_status == "1"])
+                    context_dict["failed_check"] = len([primer for primer in name if primer.snp_status == "2"])
+                    context_dict["manually_checked"] = len([primer for primer in name if primer.snp_status == "3"])
+                    context_dict["not_in_gnomAD"] = len([primer for primer in name if primer.snp_status == "4"])
 
                 table = PrimerDetailsTable(name)
 
             else:
                 if request.session.get("filtered_dict", None):
                     del request.session["filtered_dict"]
+
+        elif 'failed_snp_check' in request.POST:
+            filtered = request.session.get("filtered_dict", None)
+
+            if filtered:
+                if filtered.get("name", None):
+                    primers = Models.PrimerDetails.objects.filter(name__icontains = filtered["name"], snp_status = 2)
+                elif filtered.get("gene", None):
+                    primers = Models.PrimerDetails.objects.filter(gene = filtered["gene"], snp_status = 2)
+                elif filtered.get("pos", None):
+                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["pos"], snp_status = 2)
+            else:
+                primers = Models.PrimerDetails.objects.all().filter(snp_status = 2)
+
+            context_dict["nb_primers"] = len(primers)
+            context_dict["not_check"] = len([primer for primer in primers if primer.snp_status == "0"])
+            context_dict["passed_check"] = len([primer for primer in primers if primer.snp_status == "1"])
+            context_dict["failed_check"] = len([primer for primer in primers if primer.snp_status == "2"])
+            context_dict["manually_checked"] = len([primer for primer in primers if primer.snp_status == "3"])
+            context_dict["not_in_gnomAD"] = len([primer for primer in primers if primer.snp_status == "4"])
+
+            table = PrimerDetailsTable(primers)
 
     # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
@@ -1166,7 +1234,7 @@ def edit_pair(request, PrimerDetails_id):
                     "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as this issue can't be solved from the interface",
                     extra_tags="alert-danger")
                 return redirect("/primer_db/")
-                
+
             else:
                 logger_editing.error("This pair id {} is present in only one primer".format(primer.pairs_id))
                 messages.add_message(request,
