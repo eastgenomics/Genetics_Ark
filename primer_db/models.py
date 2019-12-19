@@ -49,7 +49,7 @@ class Coordinates(models.Model):
 class Pairs(models.Model):
     coverage_37 = models.CharField(max_length = 50, verbose_name = 'GRCh37 Coverage', null = True)
     coverage_38 = models.CharField(max_length = 50, verbose_name = 'GRCh38 Coverage', null = True)
-    size_37 = models.IntegerField(verbose_name="Amplicon size 37", null = True)
+    size_37 = models.IntegerField(verbose_name="Amplicon size", null = True)
     size_38 = models.IntegerField(verbose_name="Amplicon size 38", null = True)
 
 

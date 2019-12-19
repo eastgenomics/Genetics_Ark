@@ -86,10 +86,10 @@ class PrimerDetailsTable(tables.Table):
                     'snp_status', 'snp_date', 'snp_info', 'last_date_used')
 
         sequence = ('check', "primer_id", 'name', 'gene', 'sequence', 'gc_percent', 
-                    'tm', 'chrom_no', 'coverage37', 'coverage38', "size_37", "size_38", "strand",
+                    'tm', 'chrom_no', 'coverage37', 'coverage38', "size_37", "strand",
                     'buffer', 'pcr_program', 'scientist', 'arrival_date', 'location', 'last_date_used', 'status', 'snp_status', 'comments')
 
-        exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info')
+        exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info', 'size_38')
 
         row_attrs = { 'data-status': lambda record: record.status}
 
