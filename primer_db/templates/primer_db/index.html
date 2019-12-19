@@ -133,7 +133,7 @@
             <li>Number of primers manually snp checked: {{ manually_checked }}</li>
             <li>Number of primers not able to be snp checked: {{ not_in_gnomAD }}</li>
         {% endif %}
-    </ul>
+    </ul></br>
 
     {% render_table table "django_tables2/bootstrap-responsive.html" %}
 
@@ -151,7 +151,7 @@
 
 Total primers in bank: {{ total_bank }}</br>
 Total primers on order: {{ total_order }}</br>
-Total primers in archive: {{ total_archived }}
+Total primers in archive: {{ total_archived }}</br></br></br>
 
 {% endblock %}
 
