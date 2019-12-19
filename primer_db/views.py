@@ -1080,7 +1080,7 @@ def edit_primer(request, PrimerDetails_id):
     primer_form = Forms.PrimerForm(initial = primer_details_dict)
     location_form = Forms.StatusLocationForm(initial = model_to_dict(primer))
     arrival_date_form = Forms.ArrivalDateForm(initial = model_to_dict(primer))
-    status_form =  Forms.StatusLocationForm(initial = model_to_dict(status))
+    status_form =  Forms.StatusLocationForm(initial = model_to_dict(primer))
 
     context_dict["primer_form"] = primer_form
     context_dict["location_form"] = location_form
