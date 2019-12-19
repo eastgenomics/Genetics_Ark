@@ -1021,6 +1021,7 @@ def edit_primer(request, PrimerDetails_id):
                 context_dict["primer_form"] = primer_form
                 context_dict["status_form"] = status_form
                 context_dict["arrival_date_form"] = arrival_date_form
+                context_dict["primer"] = primer
 
                 return render(request, 'primer_db/edit_primer.html', context_dict)
 
@@ -1153,7 +1154,28 @@ def edit_pair(request, PrimerDetails_id):
 
         if primer.pairs_id:
             # if primer is from a pair and to be edited in pair form
-            primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+            pair = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+
+            if len(pair) == 2:
+                primer1, primer2 = pair
+
+            elif len(pair) > 2:
+                logger_editing.error("This pair id {} is shared by 3 or more primers".format(primer.pairs_id))
+                messages.add_message(request,
+                    messages.ERROR,
+                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as this issue can't be solved from the interface",
+                    extra_tags="alert-danger")
+                return redirect("/primer_db/")
+                
+            else:
+                logger_editing.error("This pair id {} is present in only one primer".format(primer.pairs_id))
+                messages.add_message(request,
+                    messages.ERROR,
+                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as an underlying issue has been detected",
+                    extra_tags="alert-danger"
+                )
+                return redirect('edit_primer', PrimerDetails_id = primer.id)
+
             context_dict["primer2"] = primer2        
             context_dict["primer1"] = primer1
 
@@ -1383,10 +1405,30 @@ def edit_pair(request, PrimerDetails_id):
 
     if primer.pairs_id:
         # if primer is from a pair and to be edited in pair form
-        primer1, primer2 = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+        pair = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
+
+        if len(pair) == 2:
+            primer1, primer2 = pair
+
+        elif len(pair) > 2:
+            logger_editing.error("This pair id {} is shared by 3 or more primers".format(primer.pairs_id))
+            messages.error(request,
+                "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as this issue can't be solved from the interface",
+                extra_tags="alert-danger")
+            return redirect("/primer_db/")
+        else:
+            logger_editing.error("This pair id {} is present in only one primer".format(primer.pairs_id))
+            messages.error(request,
+                "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as an underlying issue has been detected",
+                extra_tags="alert-danger"
+            )
+            return redirect('edit_primer', PrimerDetails_id = primer.id)
+
+        context_dict["primer2"] = primer2        
+        context_dict["primer1"] = primer1
+    
     else:
-        # if primer has no associated pair, render single edit page with selected primer
-        return redirect('edit_primer', PrimerDetails_id = PrimerDetails_id)
+        return redirect('edit_primer', PrimerDetails_id = primer.id)
 
     primer1_details_dict = {
         'name' : primer1.name, 'gene' : primer1.gene,
