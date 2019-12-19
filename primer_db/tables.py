@@ -19,6 +19,8 @@ class PrimerDetailsTable(tables.Table):
     chrom_no = tables.Column(accessor = "coordinates.chrom_no")
     coverage37 = tables.Column(accessor = "pairs.coverage_37")
     coverage38 = tables.Column(accessor = "pairs.coverage_38")
+    size_37 = tables.Column(accessor = "pairs.size_37")
+    size_38 = tables.Column(accessor = "pairs.size_38")
     check = tables.CheckBoxColumn(verbose_name=" refewrf", accessor = 'pk')
     comments = tables.Column(orderable=False)
 
@@ -84,7 +86,7 @@ class PrimerDetailsTable(tables.Table):
                     'snp_status', 'snp_date', 'snp_info', 'last_date_used')
 
         sequence = ('check', "primer_id", 'name', 'gene', 'sequence', 'gc_percent', 
-                    'tm', 'chrom_no', 'coverage37', 'coverage38', "strand",
+                    'tm', 'chrom_no', 'coverage37', 'coverage38', "size_37", "size_38", "strand",
                     'buffer', 'pcr_program', 'scientist', 'arrival_date', 'location', 'last_date_used', 'status', 'snp_status', 'comments')
 
         exclude = ('reference','start37', 'end37','start38', 'end38', 'snp_date', 'snp_info')

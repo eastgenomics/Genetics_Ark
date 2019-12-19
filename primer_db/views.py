@@ -815,8 +815,13 @@ def submit_pair(request):
                 ):
                     logger_submit.info("Common info for primers:")
 
+                    amplicon_37 = coverage_37.split(":")[1].split("-")
+                    amplicon_38 = coverage_37.split(":")[1].split("-")
+
                     new_pair = Models.Pairs.objects.create(
-                        coverage_37 = coverage_37, coverage_38 = coverage_38
+                        coverage_37 = coverage_37, coverage_38 = coverage_38,
+                        size_37 = int(max(amplicon_37)) - int(min(amplicon_37)),
+                        size_38 = int(max(amplicon_38)) - int(min(amplicon_38))
                     )
 
                     logger_submit.info(" - Pair created, id: {}".format(new_pair.id))
