@@ -30,30 +30,37 @@ sys.path.append("/mnt/storage/home/kimy/projects/HGNC_api/bin/")
 import HGNC_api
 
 ALLELE_FREQUENCY_THRESHOLD = 0.005
+hgnc_dict = {}
 
 
 def get_hgnc_symbol(gene_name):
     """ Get HGNC symbol for gene symbol given if the gene symbol is not recognized in gnomAD """
 
-    new_gene = HGNC_api.get_new_symbol(gene_name)
+    if gene_name not in hgnc_dict:
+        new_gene = HGNC_api.get_new_symbol(gene_name)
 
-    if not new_gene:
-        # if no new symbol retrieved, check aliases
-        alias_list = HGNC_api.get_alias(gene_name)
+        if not new_gene:
+            # if no new symbol retrieved, check aliases
+            alias_list = HGNC_api.get_alias(gene_name)
 
-        if alias_list:
-            # see if the aliases get us a new gene name
-            for alias in alias_list:
-                for ref in ["37", "38"]:
-                    query_res = gnomAD_queries.snp_check_query(alias, ref)
+            if alias_list:
+                # see if the aliases get us a new gene name
+                for alias in alias_list:
+                    for ref in ["37", "38"]:
+                        query_res = gnomAD_queries.snp_check_query(alias, ref)
+        
+                        # if gnomAD recognizes the alias, get the "main" symbol of the alias
+                        if query_res:
+                            alias_id = HGNC_api.get_id(alias)
+                            new_gene = HGNC_api.get_symbol_from_id(alias_id)
+
+                        time.sleep(0.0001)
+
+        hgnc_dict[gene_name] = new_gene
+        
+    else:
+        new_gene = hgnc_dict[gene_name]
     
-                    # if gnomAD recognizes the alias, get the "main" symbol of the alias
-                    if query_res:
-                        alias_id = HGNC_api.get_id(alias)
-                        new_gene = HGNC_api.get_symbol_from_id(alias_id)
-
-                    time.sleep(0.0001)
-
     return new_gene
 
 
@@ -101,6 +108,8 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
 
     snp_date = datetime.datetime.now().strftime("%Y-%m-%d")
     snp_info = []
+    ref_37 = True
+    ref_38 = True
 
     for ref in ["37", "38"]:
         total_snps = gnomAD_queries.snp_check_query(gene, ref)
@@ -114,25 +123,44 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
 
                 if not total_snps:
                     # still not recognized
-                    snp_info += ["Gene not recognized"]
+                    snp_info += ["Gene not recognized for {}".format(ref)]
+
+                    if ref == "37":
+                        ref_37 = False
+                    elif ref == "38":
+                        ref_38 = False
+
                     continue
 
                 time.sleep(0.0001)
             
             else:
                 # couldn't rescue gene symbol
-                snp_info += ["Gene not recognized"]
+                snp_info += ["Gene not recognized for {}".format(ref)]
+
+                if ref == "37":
+                    ref_37 = False
+                elif ref == "38":
+                    ref_38 = False
+
                 continue
 
         for snp in total_snps:
-            snp_info += get_snp(ref, snp, primer_start_37, primer_end_37)
-            snp_info += get_snp(ref, snp, primer_start_38, primer_end_38)
+            if ref == "37":
+                snp_info += get_snp(ref, snp, primer_start_37, primer_end_37)
+            elif ref == "38":
+                snp_info += get_snp(ref, snp, primer_start_38, primer_end_38)
 
     if snp_info:
-        if "Gene not recognized" in snp_info:
+        if not ref_37 and not ref_38:
             snp_status = "4"
-        else:
+        elif ref_37 and ref_38:
             snp_status = "2"
+        else:
+            if len(snp_info) == 1:
+                snp_status = "1"
+            else:
+                snp_status = "2"
     else:
         snp_status = "1"
 
@@ -193,10 +221,14 @@ if __name__ == "__main__":
                         new_snps.append(new_snp)
 
             if new_snps:
-                if "Gene not recognized" in new_snps:
+                if new_snps == ["Gene not recognized for 37", "Gene not recognized for 38"]:
                     f.write(" - Gene not recognized\n")
                 else:
-                    f.write(" - New snps detected: {}\n".format(new_snp_info))
+                    if len(new_snps) >= 2:
+                        f.write(" - New snps detected: {}\n".format(new_snp_info))
+                    else:
+                        f.write(" - No new snps, gene not recognized for a ref\n")
+
                 new_snps = ";".join(set(new_snps))
                 primer.snp_status = new_status
             else:
