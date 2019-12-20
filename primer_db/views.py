@@ -259,7 +259,7 @@ def index(request):
         filter_name = Models.PrimerDetails.objects.none()
         filter_gene = Models.PrimerDetails.objects.none()
 
-        if 'var_pos' in request.POST:
+        if 'search_snp' in request.POST:
             var_pos = request.POST.get("var_pos", None)
             chrom_no = request.POST.get("chrom_no", None)
 
@@ -333,23 +333,26 @@ def index(request):
                     extra_tags="alert-danger"
                 )
 
-        elif name_filter:
-            filtering = True
-            filter_name = Models.PrimerDetails.objects.filter(name__icontains=name_filter)
+        elif "filter_button" in request.POST:
+            filter_params = {}
+            
+            for field, value in request.POST.items():
+                if field.endswith("filter") and value:
+                    if field == "chr_filter":
+                        filter_params["coordinates__chrom_no"] = value
+                    elif field == "status_filter":
+                        filter_params["status__name"] = value
+                    elif field == "name_filter":
+                        filter_params["name__icontains"] = value
+                    elif field == "location_filter":
+                        filter_params["location__icontains"] = value
+                    else:
+                        filter_params[field.split("_")[0]] = value
 
-            filtered_dict["name"] = [primer.id for primer in filter_name]
+            filtered_primers = Models.PrimerDetails.objects.filter(**filter_params)
+
+            filtered_dict["filter"] = [primer.id for primer in filtered_primers]
             request.session['filtered_dict'] = filtered_dict
-
-        elif gene_filter:
-            filtering = True
-            filter_gene = Models.PrimerDetails.objects.filter(gene = gene_filter)
-
-            filtered_dict["gene"] =  [primer.id for primer in gene_filter]
-            request.session['filtered_dict'] = filtered_dict
-
-        if filtering:
-            # table filtered by something
-            filtered_primers = (filter_grch37 | filter_grch38 | filter_name | filter_gene) # combine both querysets
 
             context_dict["nb_primers"] = len(filtered_primers)
             context_dict["not_check"] = len([primer for primer in filtered_primers if primer.snp_status == "0"])
@@ -359,7 +362,7 @@ def index(request):
             context_dict["not_in_gnomAD"] = len([primer for primer in filtered_primers if primer.snp_status == "4"])
 
             primers = filtered_primers
-            table = PrimerDetailsTable(filtered_primers)
+            table = PrimerDetailsTable(primers)
 
         elif 'recalc' in request.POST:
             amplicon_length_37 = None
@@ -454,12 +457,7 @@ def index(request):
             filtered_dict = request.session.get('filtered_dict', None)
 
             if filtered_dict:
-                if "gene" in filtered_dict:
-                    primers = Models.PrimerDetails.objects.filter(gene = filtered_dict["gene"])
-
-                if "name" in filtered_dict:
-                    primers = Models.PrimerDetails.objects.filter(name__icontains = filtered_dict["name"])
-
+                primers = Models.PrimerDetails.objects.filter(pk__in = filtered_dict["filter"])
                 table = PrimerDetailsTable(primers)
 
         elif 'failed_snp_check' in request.POST or "manually_snp_check" in request.POST or "not_recognized_snp_check" in request.POST:
