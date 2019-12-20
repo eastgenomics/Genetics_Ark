@@ -462,18 +462,25 @@ def index(request):
 
                 table = PrimerDetailsTable(primers)
 
-        elif 'failed_snp_check' in request.POST:
+        elif 'failed_snp_check' in request.POST or "manually_snp_check" in request.POST or "not_recognized_snp_check" in request.POST:
+            if "failed_snp_check" in request.POST:
+                status = "2"
+            elif "manually_snp_check" in request.POST:
+                status = "3"
+            elif "not_recognized_snp_check" in request.POST:
+                status = "4"
+
             filtered = request.session.get("filtered_dict", None)
 
             if filtered:
                 if filtered.get("name", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["name"], snp_status = 2)
+                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["name"], snp_status = status)
                 elif filtered.get("gene", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["gene"], snp_status = 2)
+                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["gene"], snp_status = status)
                 elif filtered.get("pos", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["pos"], snp_status = 2)
+                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["pos"], snp_status = status)
             else:
-                primers = Models.PrimerDetails.objects.all().filter(snp_status = 2)
+                primers = Models.PrimerDetails.objects.all().filter(snp_status = status)
 
             primer_ids = [primer.id for primer in primers]
 
@@ -1006,11 +1013,14 @@ def edit_primer(request, PrimerDetails_id):
     context_dict = {}
 
     if request.method == "POST":
-        primer_form = Forms.PrimerForm(request.POST)
+        primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
+
+        data = request.POST.copy()
+        data["gene"] = primer.gene
+
+        primer_form = Forms.PrimerForm(data)
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
-
-        primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
 
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer_button"):
@@ -1086,8 +1096,6 @@ def edit_primer(request, PrimerDetails_id):
 
                 messages.success(request, 'Primer "{}" successfully updated'.format(new_primer),
                     extra_tags="alert-success")
-               
-                return render(request, 'primer_db/edit_primer.html', context_dict)
 
             else:
                 # view for form with populated data from selected primer if form is invalid
@@ -1198,7 +1206,6 @@ def edit_pair(request, PrimerDetails_id):
         # trick to fool form2 validation
         data = request.POST.copy()
         data["form2-buffer"] = data["form1-buffer"]
-        data["form2-gene"] = data["form1-gene"]
         data["form2-pcr_program"] = data["form1-pcr_program"]
         data["form2-forename"] = data["form1-forename"]
         data["form2-surname"] = data["form1-surname"]
