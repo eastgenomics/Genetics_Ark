@@ -3,9 +3,12 @@
 {% load static %}
 
 
+
 {% block body_block %}
 
 <body style="padding-top: 80px; padding-left: 80px">
+<html>
+<link rel="stylesheet" type="text/css" href="{% static 'css/link_button.css' %}">
 
 <!-- success message when primer is deleted from edit_primer and returns to index -->
 {% if messages %} 
@@ -117,26 +120,42 @@
         </ul>
     {% endif %}
 
-<div class="well">
-    <ul>
-        {% if nb_primers %}
-            <li>Number of primers: {{ nb_primers }}</li>
-            <li>Number of primers not snp checked: {{ not_check }}</li>
-            <li>Number of primers that passed snp check: {{ passed_check }}</li>
-            <li>Number of primers that failed snp check: <button type="submit" name="failed_snp_check" style="background: none!important;
-                    border: none;
-                    padding: 0!important;
-                    /*optional*/
-                    font-family: arial, sans-serif;
-                    /*input has OS specific font-family*/
-                    color: rgb(243, 8, 8);
-                    text-decoration: underline;
-                    cursor: pointer;">{{ failed_check }}</button></li>
-            <li>Number of primers manually snp checked: {{ manually_checked }}</li>
-            <li>Number of primers not able to be snp checked: {{ not_in_gnomAD }}</li>
-        {% endif %}
-    </ul>
-</div>
+    <div class="well">
+        <ul>
+            {% if nb_primers %}
+                <li>Number of primers: {{ nb_primers }}</li>
+                <li>Number of primers not snp checked: {{ not_check }}</li>
+                <li>Number of primers that passed snp check: {{ passed_check }}</li>
+                <li>
+                    Number of primers that failed snp check: 
+                    <button 
+                        class="link" 
+                        type="submit" 
+                        name="failed_snp_check" 
+                        style="color: rgb(243, 8, 8);"
+                    >{{ failed_check }}</button>
+                </li>
+                <li>
+                    Number of primers manually snp checked: 
+                    <button 
+                        class="link" 
+                        type="submit" 
+                        name="manually_snp_check" 
+                        style="color: rgb(8, 110, 243);"
+                    >{{ manually_checked }}</button>
+                </li>
+                <li>
+                    Number of primers not able to be snp checked: 
+                    <button 
+                        class="link" 
+                        type="submit" 
+                        name="not_recognized_snp_check" 
+                        style="color: rgb(118, 8, 243);"
+                    >{{ not_in_gnomAD }}</button>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
 
     {% render_table table "django_tables2/bootstrap-responsive.html" %}
 
