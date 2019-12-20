@@ -42,18 +42,19 @@
 
 <!-- form for primer name filter -->
 
-<form type="get" action="" style="padding-top:10px;">
+<form method="post" action="" style="padding-top:10px;">
+    {% csrf_token %}
     <input type="text" name="name_filter" placeholder="Search primer name">
     <button id="search_submit" type="submit">Submit</button>&nbsp;&nbsp;&nbsp;
     
-<form type="get" action="" style="padding-top:10px;">
     <input type="text" name="gene_filter" placeholder="Search exact gene name">
     <button id="search_submit" type="submit">Submit</button>
 </form></br>
 
 
 <!-- form for variant position filter -->
-<form type="get" action="" style="padding-top:5px;">
+<form method="post" action="" style="padding-top:5px;">
+    {% csrf_token %}
   Chromosome no: <select name="chrom_no"> 
         <option value="1">1</option>
         <option value="2">2</option>
