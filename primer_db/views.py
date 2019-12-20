@@ -247,24 +247,22 @@ def index(request):
     filtered_dict = {}
     filtering = False
 
-    table = PrimerDetailsTable(Models.PrimerDetails.objects.all())
-
     # function for filtering primers that have coverage for the given variant position  
-    if request.method == 'GET':
-        var_pos = request.GET.get('var_pos', None)
-        chrom_no = request.GET.get('chrom_no', None)
-        gene_filter = request.GET.get('gene_filter', None)
-        name_filter = request.GET.get('name_filter', None)
-        
-        context_dict["var_pos"] = var_pos
-        context_dict["chrom_no"] = chrom_no
+    if request.method == 'POST':
+        # list of id for the primers checked in the main table
+        name_filter = request.POST.get("name_filter", None)
+        gene_filter = request.POST.get("gene_filter", None)
+        pks = request.POST.getlist('check')
 
         filter_grch37 = Models.PrimerDetails.objects.none()
         filter_grch38 = Models.PrimerDetails.objects.none()
         filter_name = Models.PrimerDetails.objects.none()
         filter_gene = Models.PrimerDetails.objects.none()
 
-        if var_pos:
+        if 'var_pos' in request.POST:
+            var_pos = request.POST.get("var_pos", None)
+            chrom_no = request.POST.get("chrom_no", None)
+
             # filtering using the position
             filtering = True
             primers37 = []
@@ -335,18 +333,18 @@ def index(request):
                     extra_tags="alert-danger"
                 )
 
-        if name_filter:
+        elif name_filter:
             filtering = True
             filter_name = Models.PrimerDetails.objects.filter(name__icontains=name_filter)
 
-            filtered_dict["name"] = name_filter
+            filtered_dict["name"] = [primer.id for primer in filter_name]
             request.session['filtered_dict'] = filtered_dict
 
-        if gene_filter:
+        elif gene_filter:
             filtering = True
             filter_gene = Models.PrimerDetails.objects.filter(gene = gene_filter)
 
-            filtered_dict["gene"] = gene_filter
+            filtered_dict["gene"] =  [primer.id for primer in gene_filter]
             request.session['filtered_dict'] = filtered_dict
 
         if filtering:
@@ -360,27 +358,10 @@ def index(request):
             context_dict["manually_checked"] = len([primer for primer in filtered_primers if primer.snp_status == "3"])
             context_dict["not_in_gnomAD"] = len([primer for primer in filtered_primers if primer.snp_status == "4"])
 
+            primers = filtered_primers
             table = PrimerDetailsTable(filtered_primers)
-        else:
-            primers = Models.PrimerDetails.objects.all()
-            table = PrimerDetailsTable(primers)
 
-            context_dict["nb_primers"] = len(primers)
-            context_dict["not_check"] = len([primer for primer in primers if primer.snp_status == "0"])
-            context_dict["passed_check"] = len([primer for primer in primers if primer.snp_status == "1"])
-            context_dict["failed_check"] = len([primer for primer in primers if primer.snp_status == "2"])
-            context_dict["manually_checked"] = len([primer for primer in primers if primer.snp_status == "3"])
-            context_dict["not_in_gnomAD"] = len([primer for primer in primers if primer.snp_status == "4"])
-
-            if request.session.get("filtered_dict", None):
-                del request.session["filtered_dict"]
-
-    # function for changing handling check boxes
-    elif request.method == 'POST':
-        # list of id for the primers checked in the main table
-        pks = request.POST.getlist('check')
-
-        if 'recalc' in request.POST:
+        elif 'recalc' in request.POST:
             amplicon_length_37 = None
             amplicon_length_38 = None
             recalc_msg = []
@@ -448,6 +429,8 @@ def index(request):
 
             logger_index.info("Recalculating for {} and {}".format(primer1, primer2))
 
+            primers = Models.PrimerDetails.objects.all()
+            table = PrimerDetailsTable(primers)
             context_dict["recalc"] = recalc_msg
 
         elif 'change_status' in request.POST:
@@ -471,46 +454,60 @@ def index(request):
             filtered_dict = request.session.get('filtered_dict', None)
 
             if filtered_dict:
-                name = Models.PrimerDetails.objects.filter(gene = filtered_dict["gene"])
+                if "gene" in filtered_dict:
+                    primers = Models.PrimerDetails.objects.filter(gene = filtered_dict["gene"])
 
-                if len(name) == 0:
-                    # if filtered by primer name, length from gene name dict will be 0
-                    name = Models.PrimerDetails.objects.filter(name__icontains = filtered_dict["name"])
+                if "name" in filtered_dict:
+                    primers = Models.PrimerDetails.objects.filter(name__icontains = filtered_dict["name"])
 
-                    context_dict["nb_primers"] = len(name)
-                    context_dict["not_check"] = len([primer for primer in name if primer.snp_status == "0"])
-                    context_dict["passed_check"] = len([primer for primer in name if primer.snp_status == "1"])
-                    context_dict["failed_check"] = len([primer for primer in name if primer.snp_status == "2"])
-                    context_dict["manually_checked"] = len([primer for primer in name if primer.snp_status == "3"])
-                    context_dict["not_in_gnomAD"] = len([primer for primer in name if primer.snp_status == "4"])
-
-                table = PrimerDetailsTable(name)
-
-            else:
-                if request.session.get("filtered_dict", None):
-                    del request.session["filtered_dict"]
+                table = PrimerDetailsTable(primers)
 
         elif 'failed_snp_check' in request.POST:
             filtered = request.session.get("filtered_dict", None)
 
             if filtered:
                 if filtered.get("name", None):
-                    primers = Models.PrimerDetails.objects.filter(name__icontains = filtered["name"], snp_status = 2)
+                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["name"], snp_status = 2)
                 elif filtered.get("gene", None):
-                    primers = Models.PrimerDetails.objects.filter(gene = filtered["gene"], snp_status = 2)
+                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["gene"], snp_status = 2)
                 elif filtered.get("pos", None):
                     primers = Models.PrimerDetails.objects.filter(pk__in = filtered["pos"], snp_status = 2)
             else:
                 primers = Models.PrimerDetails.objects.all().filter(snp_status = 2)
 
-            context_dict["nb_primers"] = len(primers)
-            context_dict["not_check"] = len([primer for primer in primers if primer.snp_status == "0"])
-            context_dict["passed_check"] = len([primer for primer in primers if primer.snp_status == "1"])
-            context_dict["failed_check"] = len([primer for primer in primers if primer.snp_status == "2"])
-            context_dict["manually_checked"] = len([primer for primer in primers if primer.snp_status == "3"])
-            context_dict["not_in_gnomAD"] = len([primer for primer in primers if primer.snp_status == "4"])
+            primer_ids = [primer.id for primer in primers]
+
+            request.session["primer_ids_snp"] = primer_ids
 
             table = PrimerDetailsTable(primers)
+
+    else:
+        filtered_dict = request.session.get("filtered_dict", None)
+        filtered_snps = request.session.get("primer_ids_snp", None)
+
+        if filtered_snps and "page" in request.GET:
+            primer_ids = filtered_snps
+            primers = Models.PrimerDetails.objects.filter(pk__in = primer_ids)
+
+        elif filtered_dict and "page" in request.GET:
+            primer_ids = []
+
+            for type_ in ["name", "gene", "pos"]:
+                if type_ in filtered_dict:
+                    primer_ids += filtered_dict[type_]
+
+            primers = Models.PrimerDetails.objects.filter(pk__in = primer_ids)
+
+        else:
+            primers = Models.PrimerDetails.objects.all()
+
+            if filtered_snps:
+                del request.session["primer_ids_snp"]
+
+            if filtered_dict:
+                del request.session["filtered_dict"]
+
+        table = PrimerDetailsTable(primers)
 
     # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
@@ -521,6 +518,13 @@ def index(request):
     context_dict["total_archived"] = total_archived
     context_dict["total_bank"] = total_bank
     context_dict["total_order"] = total_order
+
+    context_dict["nb_primers"] = len(primers)
+    context_dict["not_check"] = len([primer for primer in primers if primer.snp_status == "0"])
+    context_dict["passed_check"] = len([primer for primer in primers if primer.snp_status == "1"])
+    context_dict["failed_check"] = len([primer for primer in primers if primer.snp_status == "2"])
+    context_dict["manually_checked"] = len([primer for primer in primers if primer.snp_status == "3"])
+    context_dict["not_in_gnomAD"] = len([primer for primer in primers if primer.snp_status == "4"])
 
     RequestConfig(request, paginate={'per_page': 50}).configure(table)
 
