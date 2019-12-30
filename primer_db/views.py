@@ -28,7 +28,7 @@ import primer_db.models as Models
 
 # path to mapping script
 sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/') 
-import primer_mapper_v2
+import primer_mapper
 
 sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
 import gnomAD_queries
@@ -114,7 +114,7 @@ def mapper1(seq, gene, ref):
     """
     Function for calling primer mapper when submitting single primer
     """
-    mapping_result = primer_mapper_v2.main(seq, gene, ref)
+    mapping_result = primer_mapper.main(seq, gene, ref)
 
     return mapping_result
 
@@ -123,7 +123,7 @@ def mapper2(primer_seq1, gene, ref, primer_seq2):
     """
     Function for calling primer mapper when submitting pair of primers
     """
-    mapping_result = primer_mapper_v2.main(primer_seq1, gene, ref, primer_seq2)
+    mapping_result = primer_mapper.main(primer_seq1, gene, ref, primer_seq2)
 
     return mapping_result
 
