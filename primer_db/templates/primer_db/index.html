@@ -44,50 +44,56 @@
 <a href="/primer_db/submit_pair"><button type="button" class = "bt btn-primary">Submit primer pair</button></a></br></br>
 
 <!-- form for primer name filter -->
+<div class="well">
+    <form method="post" action="" style="padding-top:10px;">
+        {% csrf_token %}
+        <input type="text" name="name_filter" placeholder="Filter primer name">
+        <input type="text" name="gene_filter" placeholder="Filter gene name">
+        <input type="text" name="chr_filter" placeholder="Filter chromosome">
+        <input type="text" name="location_filter" placeholder="Filter location">
+        <select name="status_filter" style="height:25px"> 
+            <option value=""></option>
+            <option value="Archived">Archived</option>
+            <option value="On Order">On Order</option>
+            <option value="In Bank">In Bank</option>
+        </select>
+        <button name="filter_button" type="submit">Filter</button>
+    </form></br>
 
-<form method="post" action="" style="padding-top:10px;">
-    {% csrf_token %}
-    <input type="text" name="name_filter" placeholder="Search primer name">
-    <button id="search_submit" type="submit">Submit</button>&nbsp;&nbsp;&nbsp;
-    
-    <input type="text" name="gene_filter" placeholder="Search exact gene name">
-    <button id="search_submit" type="submit">Submit</button>
-</form></br>
-
-
-<!-- form for variant position filter -->
-<form method="post" action="" style="padding-top:5px;">
-    {% csrf_token %}
-  Chromosome no: <select name="chrom_no"> 
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-        <option value="19">19</option>
-        <option value="20">20</option>
-        <option value="21">21</option>
-        <option value="22">22</option>
-        <option value="23">23</option>
-        <option value="X">X</option>
-        <option value="Y">Y</option>
-  </select>&nbsp;&nbsp;
-    <input type="text" name="var_pos" placeholder="Search variant position:">
-    <button id="search_submit" type="submit">Submit</button>
-</form></br>
+    <!-- form for variant position filter -->
+    <form method="post" action="" style="padding-top:5px;">
+        {% csrf_token %}
+    Chromosome no: <select name="chrom_no"> 
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="23">23</option>
+            <option value="X">X</option>
+            <option value="Y">Y</option>
+    </select>&nbsp;&nbsp;
+        <input type="text" name="var_pos" placeholder="Search variant position:">
+        <button name="search_snp" type="submit">Submit</button>
+    </form>
+</div></br>
 
 {% if var_pos and chrom_no %}
   Showing results for position {{ var_pos }} on chromosome {{ chrom_no }} </br></br>
