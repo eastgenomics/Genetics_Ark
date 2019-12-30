@@ -389,13 +389,20 @@ def index(request):
                 f_start38 = primer1.coordinates.start_coordinate_38
                 r_end38 = primer2.coordinates.end_coordinate_38
 
+                coverage37 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start37, r_end37)
+                coverage38 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start38, r_end38)
+
                 recalc_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
+      
                 f_start37 = primer2.coordinates.start_coordinate_37
                 r_end37 = primer1.coordinates.end_coordinate_37
                 f_start38 = primer2.coordinates.start_coordinate_38
                 r_end38 = primer1.coordinates.end_coordinate_38
+
+                coverage37 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start37, r_end37)
+                coverage38 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start38, r_end38)
 
                 recalc_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
 
@@ -407,16 +414,9 @@ def index(request):
             amplicon_length_37 = r_end37 - f_start37
             amplicon_length_38 = r_end38 - f_start38
 
-            recalc_msg.append("Recalculated coverage for GRCh37 is: {}:{}-{}".format(
-                primer1.coordinates.chrom_no,
-                f_start37, r_end37
-                )
-            )
-            recalc_msg.append("Recalculated coverage for GRCh38 is: {}:{}-{}".format(
-                primer1.coordinates.chrom_no,
-                f_start38, r_end38
-                )
-            )
+            recalc_msg.append("Recalculated coverage for GRCh37 is: {}".format(coverage37))
+            
+            recalc_msg.append("Recalculated coverage for GRCh38 is: {}".format(coverage38))
 
             if amplicon_length_37 < 0:
                 recalc_msg.append("Amplification not possible in GRCh37 with this pair of primer")
