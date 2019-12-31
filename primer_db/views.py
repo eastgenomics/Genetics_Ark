@@ -470,13 +470,8 @@ def index(request):
 
             filtered = request.session.get("filtered_dict", None)
 
-            if filtered:
-                if filtered.get("name", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["name"], snp_status = status)
-                elif filtered.get("gene", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["gene"], snp_status = status)
-                elif filtered.get("pos", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["pos"], snp_status = status)
+            if filtered:               
+                primers = Models.PrimerDetails.objects.filter(pk__in=filtered["filter"], snp_status=status)
             else:
                 primers = Models.PrimerDetails.objects.all().filter(snp_status = status)
 
