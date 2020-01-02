@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from itertools import chain
 
+from collections import defaultdict
 import re
 import subprocess
 import sys
@@ -33,6 +34,7 @@ import primer_mapper_v2
 sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
 import gnomAD_queries
 import snp_check
+import get_primer_vis
 
 
 # setup the logging
@@ -210,6 +212,72 @@ def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
                 name = new_primer1.name, defaults={'comments' : comment})
             Models.PrimerDetails.objects.update_or_create(
                 name = new_primer2.name, defaults={'comments' : comment})
+
+
+def get_primer_coverage(primer1, primer2):
+    gene = primer1.gene
+    start1_37, end1_37 = primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37
+    start2_37, end2_37 = primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
+    start1_38, end1_38 = primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38
+    start2_38, end2_38 = primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
+
+    ref2seq = {}
+    starts = []
+
+    gene_data_path = "/mnt/storage/home/rainfoj/Projects/primer_mapper/data/"
+    gene_data = defaultdict(lambda: defaultdict(tuple))
+
+    for ref in ["37", "38"]:
+        with open("{}/{}_genes_coords.txt".format(gene_data_path, ref)) as f:
+            for line in f:
+                gene_info = line.strip().split("\t")
+                gene_symbol, chrom, start, end = [ele.strip() for ele in gene_info]
+
+                if gene == gene_symbol:
+                    if ref == "37":
+                        start = min(start1_37, end1_37, start2_37, end2_37)
+                        end = max(start1_37, end1_37, start2_37, end2_37)
+                    elif ref == "38":
+                        start = min(start1_38, end1_38, start2_38, end2_38)
+                        end = max(start1_38, end1_38, start2_38, end2_38)
+
+                    gene_data[ref][gene] = (chrom, start, end)
+    
+            if not gene_data:
+                rescued_gene = snp_check.rescue_gene_symbol_with_HGNC(gene)
+
+                if rescued_gene:
+                    with open("{}/{}_genes_coords.txt".format(gene_data_path, ref)) as f:
+                        for line in f:
+                            gene_info = line.strip().split("\t")
+                            gene_symbol, chrom, start, end = [ele.strip() for ele in gene_info]
+
+                            if gene == gene_symbol:
+                                if ref == "37":
+                                    start = min(start1_37, end1_37, start2_37, end2_37)
+                                    end = max(start1_37, end1_37, start2_37, end2_37)
+                                elif ref == "38":
+                                    start = min(start1_38, end1_38, start2_38, end2_38)
+                                    end = max(start1_38, end1_38, start2_38, end2_38)
+
+                                gene_data[ref][gene] = (chrom, start, end)
+
+
+        ref_file = "/mnt/storage/data/refs/homo_sapiens/GRCh{}/Homo_sapiens_assembly{}.fasta".format(ref, ref)
+
+        chrom, start, end = gene_data[ref][gene]
+
+        cmd = ["samtools", "faidx", ref_file, "{}:{}-{}".format(chrom.strip("chr"), start-100, end+100)]
+
+        starts.append(start-100)
+
+        samtools_output = subprocess.run(cmd, stdout = subprocess.PIPE).stdout.decode("ascii")
+        samtools_output = ''.join(samtools_output.splitlines(True)[1:])
+        samtools_output = samtools_output.replace('\n', '')
+
+        ref2seq[ref] = samtools_output
+
+    return ref2seq, starts
 
         
 def gc_calculate(sequence):
@@ -1581,5 +1649,11 @@ def edit_pair(request, PrimerDetails_id):
             context_dict["snp2"].append(data)
     else:
         context_dict["snp2"] = None
+
+    ref2seq, starts = get_primer_coverage(primer1, primer2)
+    django_data = get_primer_vis.get_data_from_django(primer1, primer2)
+    get_primer_vis.main(starts[0], ref2seq["37"], *django_data)
+
+    context_dict["link"] = "/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/primer_visualization/{}-{}.pdf".format(primer1, primer2)
 
     return render(request, 'primer_db/edit_pair.html', context_dict)
