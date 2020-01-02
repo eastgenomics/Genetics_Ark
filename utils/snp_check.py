@@ -33,7 +33,7 @@ ALLELE_FREQUENCY_THRESHOLD = 0.005
 hgnc_dict = {}
 
 
-def get_hgnc_symbol(gene_name):
+def rescue_gene_symbol_with_HGNC(gene_name):
     """ Get HGNC symbol for gene symbol given if the gene symbol is not recognized in gnomAD """
 
     if gene_name not in hgnc_dict:
@@ -85,7 +85,9 @@ def get_snp(ref, snp, primer_start, primer_end):
                 if pop_af >= ALLELE_FREQUENCY_THRESHOLD and pop_af != 0:
                     snp_pos = snp['pos'] - primer_start
                     gnomad_link = "{}?dataset=gnomad_{}".format(snp['variant_id'], ref2gnomad[ref])
-                    true_snps.append("+{}, {}".format(snp_pos, gnomad_link))
+                    
+                    if "+{}, {}".format(snp_pos, gnomad_link) not in true_snps:
+                        true_snps.append("+{}, {}".format(snp_pos, gnomad_link))
 
     return true_snps
                 
@@ -116,7 +118,7 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
 
         if not total_snps:
             # gene symbol not recognized by gnomAD, try and rescue with HGNC
-            new_gene = get_hgnc_symbol(gene)
+            new_gene = rescue_gene_symbol_with_HGNC(gene)
             
             if new_gene:
                 total_snps = gnomAD_queries.snp_check_query(new_gene, ref)
