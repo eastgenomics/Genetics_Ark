@@ -29,7 +29,7 @@ import primer_db.models as Models
 
 # path to mapping script
 sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/') 
-import primer_mapper_v2
+import primer_mapper
 
 sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
 import gnomAD_queries
@@ -116,7 +116,7 @@ def mapper1(seq, gene, ref):
     """
     Function for calling primer mapper when submitting single primer
     """
-    mapping_result = primer_mapper_v2.main(seq, gene, ref)
+    mapping_result = primer_mapper.main(seq, gene, ref)
 
     return mapping_result
 
@@ -125,7 +125,7 @@ def mapper2(primer_seq1, gene, ref, primer_seq2):
     """
     Function for calling primer mapper when submitting pair of primers
     """
-    mapping_result = primer_mapper_v2.main(primer_seq1, gene, ref, primer_seq2)
+    mapping_result = primer_mapper.main(primer_seq1, gene, ref, primer_seq2)
 
     return mapping_result
 
@@ -460,13 +460,20 @@ def index(request):
                 f_start38 = primer1.coordinates.start_coordinate_38
                 r_end38 = primer2.coordinates.end_coordinate_38
 
+                coverage37 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start37, r_end37)
+                coverage38 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start38, r_end38)
+
                 recalc_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
+      
                 f_start37 = primer2.coordinates.start_coordinate_37
                 r_end37 = primer1.coordinates.end_coordinate_37
                 f_start38 = primer2.coordinates.start_coordinate_38
                 r_end38 = primer1.coordinates.end_coordinate_38
+
+                coverage37 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start37, r_end37)
+                coverage38 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start38, r_end38)
 
                 recalc_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
 
@@ -478,16 +485,9 @@ def index(request):
             amplicon_length_37 = r_end37 - f_start37
             amplicon_length_38 = r_end38 - f_start38
 
-            recalc_msg.append("Recalculated coverage for GRCh37 is: {}:{}-{}".format(
-                primer1.coordinates.chrom_no,
-                f_start37, r_end37
-                )
-            )
-            recalc_msg.append("Recalculated coverage for GRCh38 is: {}:{}-{}".format(
-                primer1.coordinates.chrom_no,
-                f_start38, r_end38
-                )
-            )
+            recalc_msg.append("Recalculated coverage for GRCh37 is: {}".format(coverage37))
+            
+            recalc_msg.append("Recalculated coverage for GRCh38 is: {}".format(coverage38))
 
             if amplicon_length_37 < 0:
                 recalc_msg.append("Amplification not possible in GRCh37 with this pair of primer")
@@ -538,13 +538,8 @@ def index(request):
 
             filtered = request.session.get("filtered_dict", None)
 
-            if filtered:
-                if filtered.get("name", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["name"], snp_status = status)
-                elif filtered.get("gene", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["gene"], snp_status = status)
-                elif filtered.get("pos", None):
-                    primers = Models.PrimerDetails.objects.filter(pk__in = filtered["pos"], snp_status = status)
+            if filtered:               
+                primers = Models.PrimerDetails.objects.filter(pk__in=filtered["filter"], snp_status=status)
             else:
                 primers = Models.PrimerDetails.objects.all().filter(snp_status = status)
 
