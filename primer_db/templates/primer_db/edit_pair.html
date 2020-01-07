@@ -186,8 +186,6 @@ table, td, th {
         </tr>
     </table></br>       
 
-
-
     {% if primer1.snp_status == "2" %}
         <button
             type="submit"
@@ -208,7 +206,10 @@ table, td, th {
         >SNP Check {{ primer2.name }}</button>
     {% endif %}
 
-    <a href={{ link }}>Visualization</a>
+    <br><br>
+
+    <button type="submit" name="visualization_button" value="37">Primer visualization GRCh37</button>
+    <button type="submit" name="visualization_button" value="38">Primer visualization GRCh38</button>
 
     <br><br>
 
