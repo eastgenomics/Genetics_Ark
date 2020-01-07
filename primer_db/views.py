@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.http import HttpResponseRedirect
 from django.template import loader
 from django.views.generic.edit import FormView
@@ -222,7 +222,7 @@ def get_primer_coverage(primer1, primer2):
     start2_38, end2_38 = primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
 
     ref2seq = {}
-    starts = []
+    starts = {}
 
     gene_data_path = "/mnt/storage/home/rainfoj/Projects/primer_mapper/data/"
     gene_data = defaultdict(lambda: defaultdict(tuple))
@@ -243,33 +243,32 @@ def get_primer_coverage(primer1, primer2):
 
                     gene_data[ref][gene] = (chrom, start, end)
     
-            if not gene_data:
-                rescued_gene = snp_check.rescue_gene_symbol_with_HGNC(gene)
+        if not gene_data:
+            rescued_gene = snp_check.rescue_gene_symbol_with_HGNC(gene)
 
-                if rescued_gene:
-                    with open("{}/{}_genes_coords.txt".format(gene_data_path, ref)) as f:
-                        for line in f:
-                            gene_info = line.strip().split("\t")
-                            gene_symbol, chrom, start, end = [ele.strip() for ele in gene_info]
+            if rescued_gene:
+                with open("{}/{}_genes_coords.txt".format(gene_data_path, ref)) as f:
+                    for line in f:
+                        gene_info = line.strip().split("\t")
+                        gene_symbol, chrom, start, end = [ele.strip() for ele in gene_info]
 
-                            if gene == gene_symbol:
-                                if ref == "37":
-                                    start = min(start1_37, end1_37, start2_37, end2_37)
-                                    end = max(start1_37, end1_37, start2_37, end2_37)
-                                elif ref == "38":
-                                    start = min(start1_38, end1_38, start2_38, end2_38)
-                                    end = max(start1_38, end1_38, start2_38, end2_38)
+                        if gene == gene_symbol:
+                            if ref == "37":
+                                start = min(start1_37, end1_37, start2_37, end2_37)
+                                end = max(start1_37, end1_37, start2_37, end2_37)
+                            elif ref == "38":
+                                start = min(start1_38, end1_38, start2_38, end2_38)
+                                end = max(start1_38, end1_38, start2_38, end2_38)
 
-                                gene_data[ref][gene] = (chrom, start, end)
-
+                            gene_data[ref][gene] = (chrom, start, end)
 
         ref_file = "/mnt/storage/data/refs/homo_sapiens/GRCh{}/Homo_sapiens_assembly{}.fasta".format(ref, ref)
 
         chrom, start, end = gene_data[ref][gene]
 
-        cmd = ["samtools", "faidx", ref_file, "{}:{}-{}".format(chrom.strip("chr"), start-100, end+100)]
+        cmd = ["samtools", "faidx", ref_file, "{}:{}-{}".format(chrom.strip("chr"), start-80, end+80)]
 
-        starts.append(start-100)
+        starts[ref] = start-80
 
         samtools_output = subprocess.run(cmd, stdout = subprocess.PIPE).stdout.decode("ascii")
         samtools_output = ''.join(samtools_output.splitlines(True)[1:])
@@ -386,8 +385,11 @@ def index(request):
             filter_grch37 = Models.PrimerDetails.objects.filter(pk__in=primers37)
             filter_grch38 = Models.PrimerDetails.objects.filter(pk__in=primers38)
 
+            primers = filter_grch37 | filter_grch38
+
             filtered_dict["pos"] = primers37 + primers38
             request.session["filtered_dict"] = filtered_dict
+            table = PrimerDetailsTable(primers)
 
             if bugged_primers:
                 logger_index.error("There are pair ids that are bugged")
@@ -1083,6 +1085,8 @@ def edit_primer(request, PrimerDetails_id):
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
+        list_forms = [primer_form, arrival_date_form, status_form]
+
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer_button"):
             if (primer_form.is_valid() and 
@@ -1159,17 +1163,15 @@ def edit_primer(request, PrimerDetails_id):
                     extra_tags="alert-success")
 
             else:
-                # view for form with populated data from selected primer if form is invalid
-                messages.error(request, "One of the forms is invalid", extra_tags="alert-danger")
-
-                primer = Models.PrimerDetails.objects.get(pk = PrimerDetails_id)
-
-                context_dict["primer_form"] = primer_form
-                context_dict["status_form"] = status_form
-                context_dict["arrival_date_form"] = arrival_date_form
-                context_dict["primer"] = primer
-
-                return render(request, 'primer_db/edit_primer.html', context_dict)
+                for form in list_forms:
+                    if not form.is_valid():
+                        error = form.errors["__all__"]
+                        messages.add_message(
+                            request,
+                            messages.ERROR,
+                            error,
+                            extra_tags='alert-danger'
+                        )
 
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer_button"):
@@ -1264,36 +1266,6 @@ def edit_pair(request, PrimerDetails_id):
     context_dict = {}
 
     if request.method == "POST":
-        # trick to fool form2 validation
-        data = request.POST.copy()
-        data["form2-buffer"] = data["form1-buffer"]
-        data["form2-pcr_program"] = data["form1-pcr_program"]
-        data["form2-forename"] = data["form1-forename"]
-        data["form2-surname"] = data["form1-surname"]
-
-        # data sent for first primer
-        primer_form1 = Forms.PrimerForm(request.POST, prefix ="form1")
-        status_loc_form1 = Forms.StatusLocationForm(request.POST, prefix ="form1")
-        arrival_date_form1 = Forms.ArrivalDateForm(request.POST, prefix ="form1")
-
-        # data sent for second primer
-        primer_form2 = Forms.PrimerForm(data, prefix ="form2")
-        status_loc_form2 = Forms.StatusLocationForm(request.POST, prefix ="form2")
-        arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix ="form2")
-
-        list_forms = [primer_form1, status_loc_form1, arrival_date_form1,
-                      primer_form2, status_loc_form2, arrival_date_form2]
-
-        # data for first primer
-        context_dict["primer_form1"] = primer_form1
-        context_dict["arrival_date_form1"] = arrival_date_form1
-        context_dict["status_loc_form1"] = status_loc_form1
-
-        # data for second primer
-        context_dict["primer_form2"] = primer_form2
-        context_dict["arrival_date_form2"] = arrival_date_form2
-        context_dict["status_loc_form2"] = status_loc_form2
-
         # check selected primer id
         primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
 
@@ -1323,6 +1295,38 @@ def edit_pair(request, PrimerDetails_id):
 
             context_dict["primer2"] = primer2        
             context_dict["primer1"] = primer1
+
+        # trick to fool form2 validation
+        data = request.POST.copy()
+        data["form1-gene"] = primer1.gene
+        data["form2-gene"] = primer2.gene
+        data["form2-buffer"] = data["form1-buffer"]
+        data["form2-pcr_program"] = data["form1-pcr_program"]
+        data["form2-forename"] = data["form1-forename"]
+        data["form2-surname"] = data["form1-surname"]
+
+        # data sent for first primer
+        primer_form1 = Forms.PrimerForm(data, prefix ="form1")
+        status_loc_form1 = Forms.StatusLocationForm(request.POST, prefix ="form1")
+        arrival_date_form1 = Forms.ArrivalDateForm(request.POST, prefix ="form1")
+
+        # data sent for second primer
+        primer_form2 = Forms.PrimerForm(data, prefix ="form2")
+        status_loc_form2 = Forms.StatusLocationForm(request.POST, prefix ="form2")
+        arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix ="form2")
+
+        list_forms = [primer_form1, status_loc_form1, arrival_date_form1,
+                      primer_form2, status_loc_form2, arrival_date_form2]
+
+        # data for first primer
+        context_dict["primer_form1"] = primer_form1
+        context_dict["arrival_date_form1"] = arrival_date_form1
+        context_dict["status_loc_form1"] = status_loc_form1
+
+        # data for second primer
+        context_dict["primer_form2"] = primer_form2
+        context_dict["arrival_date_form2"] = arrival_date_form2
+        context_dict["status_loc_form2"] = status_loc_form2
 
         fields = ["name", "gene", "buffer", "pcr_program", "arrival_date", "status", 
             "location", "comments", "forename", "surname"
@@ -1463,8 +1467,6 @@ def edit_pair(request, PrimerDetails_id):
                             extra_tags='alert-danger'
                         )
 
-                return render(request, 'primer_db/edit_pair.html', context_dict)
-
         elif request.POST.get("check_snp_primer1_button") or request.POST.get("check_snp_primer2_button"):
             # value of button is the primer name allowing me to use it directly in the filtering after
             checked_primer1 = request.POST.get("check_snp_primer1_button", None)
@@ -1544,6 +1546,23 @@ def edit_pair(request, PrimerDetails_id):
             primer.delete()
 
             return  redirect('/primer_db/')
+
+        elif request.POST.get("visualization_button"):
+            ref2seq, starts = get_primer_coverage(primer1, primer2)
+            primers = get_primer_vis.get_data_from_django(primer1, primer2)
+            created = get_primer_vis.main(starts, ref2seq, primers)
+
+            if request.POST.get("visualization_button") == "37":
+                return FileResponse(
+                    open("primer_db/primer_visualization/{}-{}_37.pdf".format(primer1, primer2), 'rb'),
+                    content_type='application/pdf'
+                )
+            elif request.POST.get("visualization_button") == "38":
+                return FileResponse(
+                    open("primer_db/primer_visualization/{}-{}_38.pdf".format(primer1, primer2), 'rb'),
+                    content_type='application/pdf'
+                )
+
 
     # check selected primer id
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
@@ -1644,11 +1663,5 @@ def edit_pair(request, PrimerDetails_id):
             context_dict["snp2"].append(data)
     else:
         context_dict["snp2"] = None
-
-    ref2seq, starts = get_primer_coverage(primer1, primer2)
-    django_data = get_primer_vis.get_data_from_django(primer1, primer2)
-    get_primer_vis.main(starts[0], ref2seq["37"], *django_data)
-
-    context_dict["link"] = "/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/primer_visualization/{}-{}.pdf".format(primer1, primer2)
 
     return render(request, 'primer_db/edit_pair.html', context_dict)
