@@ -64,6 +64,9 @@ def main(seq_starts, samtools_output, primer_data):
     name1, name2 = list(primer_data.keys())
     res = {}
 
+    if not os.path.exists("primer_db/primer_visualization") or not os.path.isdir("primer_db/primer_visualization"):
+        os.mkdir("primer_db/primer_visualization")
+
     for ref, sequence in samtools_output.items():
         if not os.path.exists("primer_db/primer_visualization/{}-{}_{}.pdf".format(name1, name2, ref)):
             records = []
@@ -95,14 +98,13 @@ def main(seq_starts, samtools_output, primer_data):
                 ticks_resolution=10
             )
 
-            fig, axes = seq_record.plot_on_multiple_lines(
+            seq_record.plot_on_multiple_pages(
+                "primer_db/primer_visualization/{}-{}_{}.pdf".format(name1, name2, ref),
                 nucl_per_line = 80,
-                figure_width = 13,
-                plot_sequence = True,
-                sequence_parameters = {"background": None}
+                lines_per_page = 10,
+                plot_sequence = True
             )
 
-            fig.savefig("primer_db/primer_visualization/{}-{}_{}.pdf".format(name1, name2, ref), format="pdf")
             res[ref] = "created"
         else:
             res[ref] = "exists"
