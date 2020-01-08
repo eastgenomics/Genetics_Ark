@@ -411,7 +411,8 @@ def index(request):
                     if field == "chr_filter":
                         filter_params["coordinates__chrom_no"] = value
                     elif field == "status_filter":
-                        filter_params["status__name"] = value
+                        if value != "Status":
+                            filter_params["status__name"] = value
                     elif field == "name_filter":
                         filter_params["name__icontains"] = value
                     elif field == "location_filter":
@@ -1562,7 +1563,6 @@ def edit_pair(request, PrimerDetails_id):
                     open("primer_db/primer_visualization/{}-{}_38.pdf".format(primer1, primer2), 'rb'),
                     content_type='application/pdf'
                 )
-
 
     # check selected primer id
     primer = Models.PrimerDetails.objects.filter(pk = PrimerDetails_id)[0]
