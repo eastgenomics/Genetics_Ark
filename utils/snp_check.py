@@ -11,7 +11,6 @@ python snp_check.py
 import argparse
 import datetime
 import django
-import logging
 import os
 import sys
 import time
@@ -193,7 +192,7 @@ if __name__ == "__main__":
 
     with open(record_file_path, "a") as f:
         for i, primer in enumerate(primers):
-            print(i, primer)
+            print(i, primer.name)
             f.write("{}:\n".format(primer))
             current_snp_status = primer.snp_status
             current_snp_info = primer.snp_info
