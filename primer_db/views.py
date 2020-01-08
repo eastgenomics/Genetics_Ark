@@ -214,7 +214,9 @@ def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
                 name = new_primer2.name, defaults={'comments' : comment})
 
 
-def get_primer_coverage(primer1, primer2):
+def get_data_for_primer_vis(primer1, primer2):
+    """ Get data for primer visualization """
+
     gene = primer1.gene
     start1_37, end1_37 = primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37
     start2_37, end2_37 = primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
@@ -529,7 +531,10 @@ def index(request):
 
             if filtered_dict:
                 primers = Models.PrimerDetails.objects.filter(pk__in = filtered_dict["filter"])
-                table = PrimerDetailsTable(primers)
+            else:
+                primers = Models.PrimerDetails.objects.all()
+            
+            table = PrimerDetailsTable(primers)
 
         elif 'failed_snp_check' in request.POST or "manually_snp_check" in request.POST or "not_recognized_snp_check" in request.POST:
             if "failed_snp_check" in request.POST:
@@ -1549,7 +1554,7 @@ def edit_pair(request, PrimerDetails_id):
             return  redirect('/primer_db/')
 
         elif request.POST.get("visualization_button"):
-            ref2seq, starts = get_primer_coverage(primer1, primer2)
+            ref2seq, starts = get_data_for_primer_vis(primer1, primer2)
             primers = get_primer_vis.get_data_from_django(primer1, primer2)
             created = get_primer_vis.main(starts, ref2seq, primers)
 
