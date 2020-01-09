@@ -1,28 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, FileResponse
-from django.http import HttpResponseRedirect
 from django.template import loader
-from django.views.generic.edit import FormView
 from django.contrib import messages
-from django.views.generic import  ListView
 from .tables import PrimerDetailsTable
 from django_tables2 import RequestConfig
 from django.forms.models import model_to_dict
-from django.shortcuts import get_object_or_404, redirect
-from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils import timezone
-from itertools import chain
 
 from collections import defaultdict
-import re
 import subprocess
 import sys
-import datetime
-import os
 import logging
-import time
 
 import primer_db.forms as Forms
 import primer_db.models as Models
@@ -314,130 +305,118 @@ def index(request):
 
     context_dict = {}
     filtered_dict = {}
-    filtering = False
 
     # function for filtering primers that have coverage for the given variant position  
     if request.method == 'POST':
         # list of id for the primers checked in the main table
-        name_filter = request.POST.get("name_filter", None)
-        gene_filter = request.POST.get("gene_filter", None)
         pks = request.POST.getlist('check')
 
-        filter_grch37 = Models.PrimerDetails.objects.none()
-        filter_grch38 = Models.PrimerDetails.objects.none()
-        filter_name = Models.PrimerDetails.objects.none()
-        filter_gene = Models.PrimerDetails.objects.none()
+        filter_form = Forms.FilterForm(request.POST)
 
-        if 'search_snp' in request.POST:
-            var_pos = request.POST.get("var_pos", None)
-            chrom_no = request.POST.get("chrom_no", None)
-
-            # filtering using the position
-            filtering = True
-            primers37 = []
-            primers38 = []
-
-            bugged_primers = []
-
-            var_pos = int(var_pos)
-
-            # get the id and coverage for all primers on given chromosome
-            position_filtered_primers = Models.PrimerDetails.objects.filter(coordinates__chrom_no = chrom_no)
-            
-            for primer in position_filtered_primers:
-                coordinates = primer.coordinates
-
-                if primer.pairs_id:
-                    pair = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
-
-                    if len(pair) == 2:
-                        primer1, primer2 = pair
-
-                    else:
-                        bugged_primers.append((primer.id, primer))
-                        continue
-
-                    coordinates_37 = [
-                        primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
-                        primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
-                    ]
-
-                    coordinates_38 = [
-                        primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
-                        primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
-                    ]
-
-                    if min(coordinates_37) <= var_pos <= max(coordinates_37):
-                        primers37.append(primer1.id)
-                        primers37.append(primer2.id)
-
-                    if min(coordinates_38) <= var_pos <= max(coordinates_38):
-                        primers38.append(primer1.id)
-                        primers38.append(primer2.id)                        
-                    
-                else:
-                    # check if variant is in a primer sequence
-                    if coordinates.start_coordinate_37 <= var_pos <= coordinates.end_coordinate_37:
-                        primers37.append(primer.id)
-
-                    if coordinates.start_coordinate_38 <= var_pos <= coordinates.end_coordinate_38:
-                        primers38.append(primer.id)
-
-            # get query set for primer IDs that cover the variant position
-            filter_grch37 = Models.PrimerDetails.objects.filter(pk__in=primers37)
-            filter_grch38 = Models.PrimerDetails.objects.filter(pk__in=primers38)
-
-            primers = filter_grch37 | filter_grch38
-
-            filtered_dict["pos"] = primers37 + primers38
-            request.session["filtered_dict"] = filtered_dict
-            table = PrimerDetailsTable(primers)
-
-            if bugged_primers:
-                logger_index.error("There are pair ids that are bugged")
-
-                for id_, primer in bugged_primers:
-                    logger_index.error(" - {} {}".format(id_, primer))
-
-                messages.add_message(request,
-                    messages.ERROR,
-                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
-                    extra_tags="alert-danger"
-                )
-
-        elif "filter_button" in request.POST:
+        if filter_form.is_valid():
+            clean_data = filter_form.cleaned_data
             filter_params = {}
             
-            for field, value in request.POST.items():
-                if field.endswith("filter") and value:
-                    if field == "chr_filter":
+            for field, value in clean_data.items():
+                if value:
+                    if field == "chrom":
                         filter_params["coordinates__chrom_no"] = value
-                    elif field == "status_filter":
-                        if value != "Status":
-                            filter_params["status__name"] = value
-                    elif field == "name_filter":
+                    elif field == "gene":
+                        filter_params["gene__exact"] = value
+                    elif field == "status":
+                        filter_params["status__name"] = value
+                    elif field == "name":
                         filter_params["name__icontains"] = value
-                    elif field == "location_filter":
+                    elif field == "location":
                         filter_params["location__icontains"] = value
-                    else:
-                        filter_params[field.split("_")[0]] = value
+                    elif field == "position":
+                        # special case: when filtering by genomic position, you want to get position between a pair of primers
+                        # in addition to the position within the primers
+                        # --> need to handle pairs and solo primers differently
+                        bugged_primers = []
+                        paired_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = False)
+                        lonely_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = True)
 
-            filtered_primers = Models.PrimerDetails.objects.filter(**filter_params)
+                        if lonely_primers:
+                            filtered_lonely_primers = lonely_primers.filter(
+                                Q(
+                                    coordinates__start_coordinate_37__gte = value,
+                                    coordinates__end_coordinate_37__lte = value
+                                ) | 
+                                Q(
+                                    coordinates__start_coordinate_38__gte = value,
+                                    coordinates__end_coordinate_38__lte = value
+                                )
+                            )
 
-            filtered_dict["filter"] = [primer.id for primer in filtered_primers]
-            request.session['filtered_dict'] = filtered_dict
+                        if paired_primers:
+                            primer_ids = []
 
-            context_dict["nb_primers"] = len(filtered_primers)
-            context_dict["not_check"] = len([primer for primer in filtered_primers if primer.snp_status == "0"])
-            context_dict["passed_check"] = len([primer for primer in filtered_primers if primer.snp_status == "1"])
-            context_dict["failed_check"] = len([primer for primer in filtered_primers if primer.snp_status == "2"])
-            context_dict["manually_checked"] = len([primer for primer in filtered_primers if primer.snp_status == "3"])
-            context_dict["not_in_gnomAD"] = len([primer for primer in filtered_primers if primer.snp_status == "4"])
+                            for primer in paired_primers:
+                                nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
+                                
+                                if nb_in_pairs != 2:
+                                    bugged_primers.append((primer.id, primer.name))
+                                    continue
 
-            primers = filtered_primers
+                                elif nb_in_pairs == 2:
+                                    primer1, primer2 = paired_primers.filter(pairs_id = primer.pairs_id)
+
+                                    coordinates_37 = [
+                                        primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
+                                        primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
+                                    ]
+                                    coordinates_38 = [
+                                        primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
+                                        primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
+                                    ]
+
+                                    if (min(coordinates_37) <= value <= max(coordinates_37) or
+                                        min(coordinates_38) <= value <= max(coordinates_38)
+                                    ):
+                                        primer_ids.append(primer1.id)
+                                        primer_ids.append(primer2.id)
+                                                
+                            filtered_paired_primers = paired_primers.filter(pk__in = primer_ids)
+
+                            if bugged_primers:
+                                logger_index.error("There are pair ids that are bugged")
+
+                                for id_, primer in bugged_primers:
+                                    logger_index.error(" - {} {}".format(id_, primer))
+
+                                messages.add_message(request,
+                                    messages.ERROR,
+                                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
+                                    extra_tags="alert-danger"
+                                )
+
+                        filtered_position_primers = filtered_lonely_primers | filtered_paired_primers
+
+            if "filtered_position_primers" in locals():
+                primers = filtered_position_primers.filter(**filter_params)
+            else:
+                primers = Models.PrimerDetails.objects.filter(**filter_params)
+
+            request.session['filtered'] = [primer.id for primer in primers]
+
+            if any(clean_data.values()):
+                context_dict["filter_params"] = clean_data
+
             table = PrimerDetailsTable(primers)
 
-        elif 'recalc' in request.POST:
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                filter_form.errors["__all__"],
+                extra_tags='alert-danger'
+            )
+
+            primers = Models.PrimerDetails.objects.all()
+            table = PrimerDetailsTable(primers)
+
+        if 'recalc' in request.POST:
             amplicon_length_37 = None
             amplicon_length_38 = None
             recalc_msg = []
@@ -457,7 +436,7 @@ def index(request):
             primer1 = Models.PrimerDetails.objects.get(pk = pks[0])
             primer2 = Models.PrimerDetails.objects.get(pk = pks[1])
 
-            recalc_msg.append("Selected primers: {} and {}".format(primer1, primer2))
+            recalc_msg.append("Selected primers: <b>{}</b> and <b>{}</b>".format(primer1, primer2))
 
             if primer1.coordinates.strand == "+" and primer2.coordinates.strand == "-":
                 f_start37 = primer1.coordinates.start_coordinate_37
@@ -468,7 +447,7 @@ def index(request):
                 coverage37 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start37, r_end37)
                 coverage38 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start38, r_end38)
 
-                recalc_msg.append("{} is forward and {} is reverse".format(primer1, primer2))
+                recalc_msg.append("<b>{}</b> is forward and <b>{}</b> is reverse".format(primer1, primer2))
 
             elif primer2.coordinates.strand == "+" and primer1.coordinates.strand == "-":
       
@@ -480,7 +459,7 @@ def index(request):
                 coverage37 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start37, r_end37)
                 coverage38 = "{}:{}-{}".format(primer1.coordinates.chrom_no, f_start38, r_end38)
 
-                recalc_msg.append("{} is forward and {} is reverse".format(primer2, primer1))
+                recalc_msg.append("<b>{}</b> is forward and <b>{}</b> is reverse".format(primer2, primer1))
 
             else:
                 msg = "You need a forward and a reverse primer"
@@ -490,9 +469,9 @@ def index(request):
             amplicon_length_37 = r_end37 - f_start37
             amplicon_length_38 = r_end38 - f_start38
 
-            recalc_msg.append("Recalculated coverage for GRCh37 is: {}".format(coverage37))
+            recalc_msg.append("Recalculated coverage for GRCh37 is: <b>{}</b>".format(coverage37))
             
-            recalc_msg.append("Recalculated coverage for GRCh38 is: {}".format(coverage38))
+            recalc_msg.append("Recalculated coverage for GRCh38 is: <b>{}</b>".format(coverage38))
 
             if amplicon_length_37 < 0:
                 recalc_msg.append("Amplification not possible in GRCh37 with this pair of primer")
@@ -500,8 +479,8 @@ def index(request):
             if amplicon_length_38 < 0:
                 recalc_msg.append("Amplification not possible in GRCh38 with this pair of primer")
 
-            recalc_msg.append("Amplicon length in GRCh37 is: {}".format(amplicon_length_37))
-            recalc_msg.append("Amplicon length in GRCh38 is: {}".format(amplicon_length_38))
+            recalc_msg.append("Amplicon length in GRCh37 is: <b>{}</b>".format(amplicon_length_37))
+            recalc_msg.append("Amplicon length in GRCh38 is: <b>{}</b>".format(amplicon_length_38))
 
             logger_index.info("Recalculating for {} and {}".format(primer1, primer2))
 
@@ -558,21 +537,14 @@ def index(request):
             table = PrimerDetailsTable(primers)
 
     else:
-        filtered_dict = request.session.get("filtered_dict", None)
+        filtered_primers = request.session.get("filtered", None)
         filtered_snps = request.session.get("primer_ids_snp", None)
 
         if filtered_snps and "page" in request.GET:
-            primer_ids = filtered_snps
-            primers = Models.PrimerDetails.objects.filter(pk__in = primer_ids)
+            primers = Models.PrimerDetails.objects.filter(pk__in = filtered_snps)
 
-        elif filtered_dict and "page" in request.GET:
-            primer_ids = []
-
-            for type_ in ["name", "gene", "pos"]:
-                if type_ in filtered_dict:
-                    primer_ids += filtered_dict[type_]
-
-            primers = Models.PrimerDetails.objects.filter(pk__in = primer_ids)
+        elif filtered_primers and "page" in request.GET:
+            primers = Models.PrimerDetails.objects.filter(pk__in = filtered_primers)
 
         else:
             primers = Models.PrimerDetails.objects.all()
@@ -580,10 +552,12 @@ def index(request):
             if filtered_snps:
                 del request.session["primer_ids_snp"]
 
-            if filtered_dict:
-                del request.session["filtered_dict"]
+            if filtered_primers:
+                del request.session["filtered"]
 
         table = PrimerDetailsTable(primers)
+
+    context_dict["filter_form"] = Forms.FilterForm()
 
     # returns primer totals filtered by status for displaying on main db view
     total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
