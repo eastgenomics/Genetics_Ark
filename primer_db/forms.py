@@ -4,6 +4,8 @@ from datetime import datetime
 from .models import PrimerDetails, Coordinates, Status, Scientist, PCRProgram, Buffer 
 from django.core.exceptions import ValidationError
 
+import re
+
 class PrimerForm(forms.Form):
 	name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter primer name'}))
 	gene = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter gene name'}))
@@ -49,3 +51,40 @@ class StatusLocationForm(forms.Form):
 		if cd.get('status') == "In Bank" and cd.get('location') == "":
 			raise forms.ValidationError('Location can not be blank when status is In Bank') 
 		return cd
+
+class FilterForm(forms.Form):
+	name = forms.CharField(required = False, widget=forms.TextInput(attrs={'placeholder':'Filter by primer name'}))
+	gene = forms.CharField(required = False, widget=forms.TextInput(attrs={'placeholder':'Filter by gene'}))
+	location = forms.CharField(required = False, widget=forms.TextInput(attrs={'placeholder':'Filter by storage location'}))
+	status = forms.ChoiceField(required = False, choices = (
+		("", "Filter by status"),
+		("On order", "On order"),
+		("In Bank", "In Bank"),
+		("Archived", "Archived")
+	))
+	chrom = forms.CharField(required = False, widget=forms.TextInput(attrs={'placeholder':'Filter by chrom'}))
+	position = forms.IntegerField(required = False, min_value=1, widget=forms.TextInput(attrs={'placeholder':'Filter by genomic position'}))
+
+	def clean(self):
+		cd = self.cleaned_data
+
+		for field, value in cd.items():
+			if value:
+				if field == "gene":
+					if re.search(r"[^0-9a-zA-Z]", value):
+						raise ValidationError("Gene symbol cannot contain non alphanumerical characters")
+
+				elif field == "chrom":
+					if value.isdigit():
+						value = int(value)
+						
+						if 1 >= value >= 22:
+							raise ValidationError("Chrom can't be under 1 or over 22 (at least in the human)")
+					
+					else:
+						if re.search(r"[^xyXY]", value):
+							raise ValidationError("Chrom can't be a character other than \"X\" or \"Y\"")
+				
+				elif field == "position":
+					if value < 1:
+						raise ValidationError("Genomic position can't be under 1")
