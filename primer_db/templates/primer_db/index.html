@@ -45,54 +45,33 @@
 
 <!-- form for primer name filter -->
 <div class="well">
-    <form method="post" action="" style="padding-top:10px;">
+    <form method="post" action="" style="padding-top:10px;" name="filter_form">
         {% csrf_token %}
-        <input type="text" name="name_filter" placeholder="Filter primer name">
-        <input type="text" name="gene_filter" placeholder="Filter gene name">
-        <input type="text" name="chr_filter" placeholder="Filter chromosome">
-        <input type="text" name="location_filter" placeholder="Filter location">
-        <select name="status_filter" style="height:25px"> 
-            <option value="Status" selected="selected">Filter status</option>
-            <option value="Archived">Archived</option>
-            <option value="On Order">On Order</option>
-            <option value="In Bank">In Bank</option>
-        </select>
+        {{ filter_form.name }}
+        {{ filter_form.gene }}
+        {{ filter_form.location }}
+        {{ filter_form.status }}
+        <br>
+        {{ filter_form.chrom }}
+        {{ filter_form.position }}
+        <br><br>
         <button name="filter_button" type="submit">Filter</button>
-    </form></br>
-
-    <!-- form for variant position filter -->
-    <form method="post" action="" style="padding-top:5px;">
-        {% csrf_token %}
-    Chromosome no: <select name="chrom_no"> 
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="X">X</option>
-            <option value="Y">Y</option>
-    </select>&nbsp;&nbsp;
-        <input type="text" name="var_pos" placeholder="Search variant position:">
-        <button name="search_snp" type="submit">Submit</button>
     </form>
+
+    {% if filter_params %}
+        <br>
+        <div>
+            Filtering parameters:
+            <ul>
+                {% for field, value in filter_params.items %}
+                    {% if value %}
+                        <li>{{ field }}: {{ value }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
 </div></br>
 
 {% if var_pos and chrom_no %}
@@ -119,16 +98,18 @@
     <input type="submit" name="recalc" value="Recalculate"></br></br>
     
     {% if recalc %}
-        <ul>
-            {% for ele in recalc %}
-                <li>{{ ele }}</li>
-            {% endfor %}
-        </ul>
+        <div class="well">
+            <ul>
+                {% for ele in recalc %}
+                    <li>{{ ele |safe }}</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
 
-    <div class="well">
-        <ul>
-            {% if nb_primers %}
+    {% if nb_primers %}
+        <div class="well">
+            <ul>
                 <li>Number of primers: {{ nb_primers }}</li>
                 <li>Number of primers not snp checked: {{ not_check }}</li>
                 <li>Number of primers that passed snp check: {{ passed_check }}</li>
@@ -159,9 +140,9 @@
                         style="color: rgb(118, 8, 243);"
                     >{{ not_in_gnomAD }}</button>
                 </li>
-            {% endif %}
-        </ul>
-    </div>
+            </ul>
+        </div>
+    {% endif %}
 
     {% render_table table "django_tables2/bootstrap-responsive.html" %}
 
