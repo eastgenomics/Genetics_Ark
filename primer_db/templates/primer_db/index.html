@@ -71,16 +71,9 @@
             </ul>
         </div>
     {% endif %}
-
-</div></br>
-
-{% if var_pos and chrom_no %}
-  Showing results for position {{ var_pos }} on chromosome {{ chrom_no }} </br></br>
-{% endif %}
-
+</div>
 
 <form action="" method="post">
-    
     {% csrf_token %}
 
     Change primer status: 
@@ -145,16 +138,10 @@
     {% endif %}
 
     {% render_table table "django_tables2/bootstrap-responsive.html" %}
-
 </form>
-
 
 </html>
 </body>
-</br>
-
-
-
 
 <a href="/primer_db/"><button type="button" class = "bt btn-primary">View all</button></a></br></br>
 
