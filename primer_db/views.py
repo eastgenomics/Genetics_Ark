@@ -26,6 +26,7 @@ sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark
 import gnomAD_queries
 import snp_check
 import get_primer_vis
+import smalt_mapping
 
 
 # setup the logging
@@ -119,90 +120,6 @@ def mapper2(primer_seq1, gene, ref, primer_seq2):
     mapping_result = primer_mapper.main(primer_seq1, gene, ref, primer_seq2)
 
     return mapping_result
-
-
-def multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom):
-    """
-    Function to run SMALT to check for multiple mapping 
-    """
-
-    print("checking for multiple mapping")
-
-    primers_file = "primers.fasta"
-
-    with open(primers_file, 'w+') as primer_fasta:
-        # add forward and reverse sequences to temp. file for running smalt
-        print("opening file")
-
-        primer_fasta.write(">{}\n{}\n".format("f", sequence1.strip()))
-        primer_fasta.write(">{}\n{}\n".format("r", sequence2.strip()))
-
-        primer_fasta.close()
-
-    ref_37 = "/mnt/storage/data/refs/homo_sapiens/GRCh37/Homo_sapiens_assembly37"
-    ref_38 = "/mnt/storage/data/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38"
-
-    cmd_37 = "smalt map -d -1 -m 15 {} {}".format(ref_37, primers_file)
-    cmd_38 = "smalt map -d -1 -m 15 {} {}".format(ref_38, primers_file)		
-
-    # try mapping on GRCh37
-    smalt_out_37 = subprocess.run(cmd_37, shell = True, stdout = subprocess.PIPE).stdout.decode("ascii").strip()
-    smalt_out_37 = [line for line in smalt_out_37.split("\n") if not line.startswith("@")]
-
-    match_list = []
-    match_list2 = []
-
-    for line in smalt_out_37:
-        line = line.split('\t')
-
-        if gene_chrom == line[2]:
-            # get just primers on correct chromosome
-
-            match = int(len(line[9]) - int(line[12].split(':')[2]))
-
-            if match <= 5:
-                match_list.append(match)
-        
-
-    if len(match_list) <= 2:
-        # no multiple mappings on GRCh37, trying GRCh38
-
-        smalt_out_38 = subprocess.run(cmd_38, shell = True, stdout = subprocess.PIPE).stdout.decode("ascii").strip()
-        smalt_out_38 = [line for line in smalt_out_38.split("\n") if not line.startswith("@")]
-
-        for line in smalt_out_38:
-            line = line.split('\t')
-            match = 0
-
-            if gene_chrom == line[2]:
-                # get just primers on correct chromosome
-                match = int(len(line[9]) - int(line[12].split(':')[2]))
-            
-                if match <= 5:
-                    match_list2.append(match)
-        
-    if len(match_list) > 2 or len(match_list2) > 2:
-        
-        # multiple mapping detected, adding new comment
-        comment = "Multiple mapping detected, check before use"
-
-        if new_primer1.comments or new_primer2.comments:
-            # comments already exist, add to them
-                new_primer1_comments = new_primer1.comments + "\nMultiple mapping detected, check before use"
-                new_primer2_comments = new_primer2.comments + "\nMultiple mapping detected, check before use"
-
-                Models.PrimerDetails.objects.update_or_create(
-                    name = new_primer1.name, defaults={'comments' : new_primer1_comments})
-                Models.PrimerDetails.objects.update_or_create(
-                    name = new_primer2.name, defaults={'comments' : new_primer2_comments})
-
-        
-        else:
-            # just add comment
-            Models.PrimerDetails.objects.update_or_create(
-                name = new_primer1.name, defaults={'comments' : comment})
-            Models.PrimerDetails.objects.update_or_create(
-                name = new_primer2.name, defaults={'comments' : comment})
 
 
 def get_data_for_primer_vis(primer1, primer2):
@@ -849,6 +766,14 @@ def submit_pair(request):
                 mapping_37 = mapper2(sequence1, gene, 37, sequence2)
                 mapping_38 = mapper2(sequence1, gene, 38, sequence2)
 
+                if isinstance(mapping_37, str):
+                    messages.error(request, "{}".format(mapping_37), extra_tags= "alert-danger")
+                    return render(request, "primer_db/submit_pair.html", context_dict)
+
+                if isinstance(mapping_38, str):
+                    messages.error(request, "{}".format(mapping_38), extra_tags= "alert-danger")
+                    return render(request, "primer_db/submit_pair.html", context_dict)
+
                 if mapping_37 and mapping_38:
                     (coverage_37, primer1_start_37, primer1_end_37,
                      primer2_start_37, primer2_end_37, gene_chrom,
@@ -901,7 +826,6 @@ def submit_pair(request):
                             logger_submit.info(" - New {} created : {}".format(field, data["object"]))
                         else:
                             logger_submit.info(" - Using {} : {}".format(field, data["object"]))
-
 
                     #############################################################
 
@@ -1008,7 +932,10 @@ def submit_pair(request):
                     messages.success(request, 'Primers {} and {} successfully saved'.format(new_primer1, new_primer2),
                         extra_tags="alert-success")
 
-                    multiple_mapping(new_primer1, new_primer2, sequence1, sequence2, gene_chrom)
+                    multiple_mapping_res = smalt_mapping.multiple_mapping_check(new_primer1, new_primer2)
+
+                    if not multiple_mapping_res:
+                        messages.warning(request, "Multiple mapping check failed", extra_tags="alert-warning")
 
                     # recreate the empty forms
                     primer_form1 = Forms.PrimerForm()
