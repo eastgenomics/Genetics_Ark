@@ -4,6 +4,18 @@
 
 {% block body_block %}
 
+<html>
+<head>
+<style>
+
+table, td, th {
+    padding: 10px;
+  text-align: left;
+}
+
+</style>
+</head>
+
 <body style="padding-top: 80px">
 
 <h1>Primer Database</h1>
@@ -26,18 +38,7 @@
 <div class="row center-block">
 
 
-<html>
-<head>
-<style>
 
-table, td, th {
-    padding: 10px;
-  text-align: left;
-}
-
-</style>
-</head>
-</html>
 
 <form id = "forward" action = "" method = "POST">
     {% csrf_token %}
@@ -211,6 +212,20 @@ table, td, th {
     <button type="submit" name="visualization_button" value="37">Primer visualization GRCh37</button>
     <button type="submit" name="visualization_button" value="38">Primer visualization GRCh38</button>
 
+    {% comment %} Trying to display the spinner if visualization button clicked {% endcomment %}
+    {% comment %} &nbsp;&nbsp;&nbsp;&nbsp;
+    <img id='spinner' src='/static/images/spinner.gif' alt="Please wait .."  style="width:50px;height:50px;display:none;">
+
+    {% block script %}
+        <script type="text/javascript">
+            function display_spinner() {
+                 // $("#spinner").show();
+                console.log("JS happening");
+                alert("JS happening");
+            }​;​
+        </script>
+    {% endblock %} {% endcomment %}
+
     <br><br>
 
     <button type="submit" name = "update_date_button" value="update_date_used" class = "bt btn-primary">Update date used</button>
@@ -247,7 +262,7 @@ table, td, th {
 </form>
 <br>
 </body>
+</html>
 
 {% endblock %}
-
 
