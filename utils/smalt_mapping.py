@@ -24,16 +24,21 @@ def multiple_mapping_check(*primers, temp_fasta = SMALT_FASTA):
 
     with open(temp_fasta, "w") as f:
         for primer in primers:
-            f.write(">{}\n{}\n".format(primer.name, primer.sequence))
+            if "tgtaaaacgacggccagt" in primer.sequence:
+                sequence = primer.sequence.replace("tgtaaaacgacggccagt", "")
+            else:
+                sequence = primer.sequence
+
+            f.write(">{}\n{}\n".format(primer.name, sequence))
 
     success = main(temp_fasta)
 
     if success:
         print("SUCCESS")
-        sys.exit(0)
+        return True
     else:
         print("FAILED")
-        sys.exit(1)
+        return False
 
 
 def run_smalt(cmd):
@@ -142,19 +147,19 @@ def main(temp_fasta):
     for cmd in [cmd_37, cmd_38]:
         all_mappings.append(run_smalt(cmd))
 
-    # if all(all_mappings):
-    #     print("CHECKING NB MAPPINGS PER PRIMER...")
+    if all(all_mappings):
+        print("CHECKING NB MAPPINGS PER PRIMER...")
 
-    #     for mapping_dict in all_mappings:
-    #         success = check_nb_mapping(mapping_dict)
+        for mapping_dict in all_mappings:
+            success = check_nb_mapping(mapping_dict)
 
-    #         if not success:
-    #             return False
-    # else:
-    #     print("SMALT issue")
-    #     return False
+            if not success:
+                return False
+    else:
+        print("SMALT issue")
+        return False
 
-    # return True
+    return True
 
 
 
