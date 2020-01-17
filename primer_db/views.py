@@ -19,7 +19,7 @@ import primer_db.forms as Forms
 import primer_db.models as Models
 
 # path to mapping script
-sys.path.insert(1, '/mnt/storage/home/rainfoj/Projects/primer_mapper/bin/') 
+sys.path.append("/mnt/storage/home/kimy/projects/primer_database/primer_mapper/bin/") 
 import primer_mapper
 
 sys.path.insert(1, '/mnt/storage/home/kimy/projects/primer_database/genetics_ark_django/utils/') 
@@ -102,24 +102,6 @@ logger_submit = logging.getLogger("submitting")
 logger_editing = logging.getLogger("editing")
 logger_deleting = logging.getLogger("deleting")
 logger_index = logging.getLogger("index")
-
-
-def mapper1(seq, gene, ref):
-    """
-    Function for calling primer mapper when submitting single primer
-    """
-    mapping_result = primer_mapper.main(seq, gene, ref)
-
-    return mapping_result
-
-
-def mapper2(primer_seq1, gene, ref, primer_seq2):
-    """
-    Function for calling primer mapper when submitting pair of primers
-    """
-    mapping_result = primer_mapper.main(primer_seq1, gene, ref, primer_seq2)
-
-    return mapping_result
 
 
 def get_data_for_primer_vis(primer1, primer2):
@@ -516,12 +498,7 @@ def submit(request):
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
-        list_forms = [primer_form, sequence_form, status_form, arrival_date_form]
-
-        context_dict["primer_form"] = primer_form
-        context_dict["sequence_form"] = sequence_form
-        context_dict["status_form"] = status_form
-        context_dict["arrival_date_form"] = arrival_date_form
+        form_list = [primer_form, sequence_form, status_form, arrival_date_form]
 
         logger_submit.info("SUBMITING SINGLE PRIMER...")
 
@@ -551,101 +528,101 @@ def submit(request):
             # check if the name of primer is already in the database
             if Models.PrimerDetails.objects.filter(name=name):
                 messages.error(request, "Primer name {} already exists".format(name), extra_tags= "alert-danger")
-                return render(request, 'primer_db/submit.html', context_dict)
-
-            # call functions to calculate gc % and tm
-            gc_percent = gc_calculate(sequence)
-            tm = tm_calculate(sequence)
-
-            # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
-            mapping_37 = mapper1(sequence, gene, 37)
-            mapping_38 = mapper1(sequence, gene, 38)
-
-            if mapping_37 and mapping_38:
-                start_coordinate_37, end_coordinate_37, gene_chrom, strand = mapping_37
-                start_coordinate_38, end_coordinate_38, gene_chrom, strand = mapping_38
             else:
-                messages.error(request, "Gene {} not found for mapping, please check gene name".format(gene), extra_tags= "alert-danger")
-                return render(request, "primer_db/submit.html", context_dict)
+                # call functions to calculate gc % and tm
+                gc_percent = gc_calculate(sequence)
+                tm = tm_calculate(sequence)
 
-            if all((start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38)):
-                # call function to check for SNPs
-                snp_status, snp_date, snp_info = snp_check.main(
-                    gene, start_coordinate_37, end_coordinate_37,
-                    start_coordinate_38, end_coordinate_38
-                )
+                # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
+                primer_mapping_data = primer_mapper.main(sequence, gene)
 
-                # save primer to database
-                status_object = Models.Status.objects.filter(name = status)[0]
-
-                new_scientist, created = Models.Scientist.objects.get_or_create(
-                    forename = forename, surname = surname)
-
-                logging_dict["scientist"]["created"] = created
-                logging_dict["scientist"]["object"] = new_scientist
-
-                new_pcr, created = Models.PCRProgram.objects.get_or_create(
-                    name = pcr_program)
-
-                logging_dict["pcr_program"]["created"] = created
-                logging_dict["pcr_program"]["object"] = new_pcr
-
-                new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
-
-                logging_dict["buffer"]["created"] = created
-                logging_dict["buffer"]["object"] = new_buffer
-
-                new_coordinates, created = Models.Coordinates.objects.get_or_create(
-                    start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
-                    start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
-                    chrom_no = gene_chrom, strand = strand
-                )
-
-                logging_dict["coordinates"]["created"] = created
-                logging_dict["coordinates"]["object"] = new_coordinates
-
-                new_primer = Models.PrimerDetails.objects.create(
-                    name = name, gene = gene, sequence = sequence, 
-                    gc_percent = gc_percent, tm = tm,
-                    comments =  comments, arrival_date = arrival_date,
-                    location = location, snp_status = snp_status,
-                    snp_date = snp_date, snp_info = ";".join(snp_info),
-                    status = status_object, scientist = new_scientist, 
-                    pcr_program = new_pcr, buffer = new_buffer, 
-                    coordinates = new_coordinates
-                )
-
-                logger_submit.info("Created primer: {} {}".format(new_primer.id, new_primer))
-                logger_submit.info(" - Primer gene: {}".format(new_primer.gene))
-                logger_submit.info(" - Primer sequence: {}".format(new_primer.sequence))
-                logger_submit.info(" - Primer gc %: {}".format(new_primer.gc_percent))
-                logger_submit.info(" - Primer tm: {}".format(new_primer.tm))
-
-                if snp_info:
-                    logger_submit.info(" - Detected snps in primer")
+                if "errors" in primer_mapping_data:
+                    logging.error(primer_mapping_data["errors"])
+                    messages.error(request, primer_mapping_data["errors"], extra_tags="alert-danger")
                 else:
-                    logger_submit.info(" - No snps detected")
+                    start_coordinate_37, end_coordinate_37 = primer_mapping_data["data"]["primer1"]["37"]["coordinates"]
+                    start_coordinate_38, end_coordinate_38 = primer_mapping_data["data"]["primer1"]["38"]["coordinates"]
+                    strand = primer_mapping_data["data"]["primer1"]["37"]["strand"]
+                    gene_chrom = primer_mapping_data["data"]["primer1"]["37"]["chrom"]
+                    
+                    # call function to check for SNPs
+                    snp_status, snp_date, snp_info = snp_check.main(
+                        gene, start_coordinate_37, end_coordinate_37,
+                        start_coordinate_38, end_coordinate_38
+                    )
 
-                logger_submit.info(" - Using status: {}".format(status_object))
+                    # save primer to database
+                    status_object = Models.Status.objects.filter(name = status)[0]
 
-                for field, data in logging_dict.items():
-                    if data["created"]:
-                        logger_submit.info(" - New {} created: {}".format(field, data["object"]))
+                    new_scientist, created = Models.Scientist.objects.get_or_create(
+                        forename = forename, surname = surname)
+
+                    logging_dict["scientist"]["created"] = created
+                    logging_dict["scientist"]["object"] = new_scientist
+
+                    new_pcr, created = Models.PCRProgram.objects.get_or_create(
+                        name = pcr_program)
+
+                    logging_dict["pcr_program"]["created"] = created
+                    logging_dict["pcr_program"]["object"] = new_pcr
+
+                    new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
+
+                    logging_dict["buffer"]["created"] = created
+                    logging_dict["buffer"]["object"] = new_buffer
+
+                    new_coordinates, created = Models.Coordinates.objects.get_or_create(
+                        start_coordinate_37 = start_coordinate_37, end_coordinate_37 = end_coordinate_37,
+                        start_coordinate_38 = start_coordinate_38, end_coordinate_38 = end_coordinate_38, 
+                        chrom_no = gene_chrom, strand = strand
+                    )
+
+                    logging_dict["coordinates"]["created"] = created
+                    logging_dict["coordinates"]["object"] = new_coordinates
+
+                    new_primer = Models.PrimerDetails.objects.create(
+                        name = name, gene = gene, sequence = sequence, 
+                        gc_percent = gc_percent, tm = tm,
+                        comments =  comments, arrival_date = arrival_date,
+                        location = location, snp_status = snp_status,
+                        snp_date = snp_date, snp_info = ";".join(snp_info),
+                        status = status_object, scientist = new_scientist, 
+                        pcr_program = new_pcr, buffer = new_buffer, 
+                        coordinates = new_coordinates
+                    )
+
+                    logger_submit.info("Created primer: {} {}".format(new_primer.id, new_primer))
+                    logger_submit.info(" - Primer gene: {}".format(new_primer.gene))
+                    logger_submit.info(" - Primer sequence: {}".format(new_primer.sequence))
+                    logger_submit.info(" - Primer gc %: {}".format(new_primer.gc_percent))
+                    logger_submit.info(" - Primer tm: {}".format(new_primer.tm))
+
+                    if snp_info:
+                        logger_submit.info(" - Detected snps in primer")
                     else:
-                        logger_submit.info(" - Using {}: {}".format(field, data["object"]))
+                        logger_submit.info(" - No snps detected")
 
-                # success save message passed to submit.html
-                messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
-                    name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="alert-success")
+                    logger_submit.info(" - Using status: {}".format(status_object))
 
-                return render(request, 'primer_db/submit.html', context_dict)
+                    for field, data in logging_dict.items():
+                        if data["created"]:
+                            logger_submit.info(" - New {} created: {}".format(field, data["object"]))
+                        else:
+                            logger_submit.info(" - Using {}: {}".format(field, data["object"]))
 
-            else:
-                messages.error(request, "The sequence provided didn't map to gene provided", extra_tags="alert-danger")
-                logger_submit.error("Sequence didn't map")
+                    # success save message passed to submit.html
+                    messages.success(request, 'Primer {} successfully saved with coordinates: GRCh37 {} - {} and GRCh38 {} - {}'.format(
+                        name, start_coordinate_37, end_coordinate_37, start_coordinate_38, end_coordinate_38), extra_tags="alert-success")
+
+                    primer_form = Forms.PrimerForm()
+                    sequence_form = Forms.SequenceForm()
+                    status_form = Forms.StatusLocationForm()
+                    arrival_date_form = Forms.ArrivalDateForm()
 
         else:
-            for form in list_forms:
+            logger_submit.error("Validation Error")
+
+            for list_form in form_list:
                 if not form.is_valid():
                     error = form.errors["__all__"]
                     messages.add_message(
@@ -654,8 +631,7 @@ def submit(request):
                         error,
                         extra_tags='alert-danger'
                     )
-
-            return render(request, 'primer_db/submit.html', context_dict)
+                    logger_submit.info("error")
 
     else:
         # if data is not sent, just display the form
@@ -700,15 +676,10 @@ def submit_pair(request):
         status_form2 = Forms.StatusLocationForm(request.POST, prefix = "form2")
         arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix = "form2")
 
-        context_dict["primer_form1"] = primer_form1
-        context_dict["sequence_form1"] = sequence_form1
-        context_dict["status_form1"] = status_form1
-        context_dict["arrival_date_form1"] = arrival_date_form1
-
-        context_dict["primer_form2"] = primer_form2
-        context_dict["sequence_form2"] = sequence_form2
-        context_dict["status_form2"] = status_form2
-        context_dict["arrival_date_form2"] = arrival_date_form2
+        form_list = [
+            primer_form1, sequence_form1, status_form1, arrival_date_form1,
+            primer_form2, sequence_form2, status_form2, arrival_date_form2
+        ]
 
         logger_submit.info("SUBMITTING PRIMER PAIR...")
 
@@ -751,214 +722,208 @@ def submit_pair(request):
 
             # check if the name given for both primers already exist
             if existing_primers:
+                logger_submit.error("Primer name {} already exists".format(", ".join([primer.name for primer in existing_primers])))
                 messages.error(request, "Primer name {} already exists".format(", ".join([primer.name for primer in existing_primers])), extra_tags="alert-danger")
-                return render(request, "primer_db/submit_pair.html", context_dict)
-
-            if primer_name1 != primer_name2:
-                # call functions to calculate gc % and tm
-                gc_percent1 = gc_calculate(sequence1)
-                tm1 = tm_calculate(sequence1)
-
-                gc_percent2 = gc_calculate(sequence2)
-                tm2 = tm_calculate(sequence2)
-
-                # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
-                mapping_37 = mapper2(sequence1, gene, 37, sequence2)
-                mapping_38 = mapper2(sequence1, gene, 38, sequence2)
-
-                if isinstance(mapping_37, str):
-                    messages.error(request, "{}".format(mapping_37), extra_tags= "alert-danger")
-                    return render(request, "primer_db/submit_pair.html", context_dict)
-
-                if isinstance(mapping_38, str):
-                    messages.error(request, "{}".format(mapping_38), extra_tags= "alert-danger")
-                    return render(request, "primer_db/submit_pair.html", context_dict)
-
-                if mapping_37 and mapping_38:
-                    (coverage_37, primer1_start_37, primer1_end_37,
-                     primer2_start_37, primer2_end_37, gene_chrom,
-                     primer1_strand, primer2_strand) = mapping_37
-
-                    (coverage_38, primer1_start_38, primer1_end_38,
-                     primer2_start_38, primer2_end_38, gene_chrom,
-                     primer1_strand, primer2_strand) = mapping_38
+            else:
+                if primer_name1 == primer_name2:
+                    messages.error(request, "Can't have the same names for both primers", extra_tags="alert-danger")
+                    logger_submit.error("Can't have same names for both primers")
                 else:
-                    messages.error(request, "Gene {} not found for mapping, please check gene name".format(gene), extra_tags= "alert-danger")
-                    return render(request, "primer_db/submit_pair.html", context_dict)
+                    # call functions to calculate gc % and tm
+                    gc_percent1 = gc_calculate(sequence1)
+                    tm1 = tm_calculate(sequence1)
 
-                if all((primer1_start_37, primer1_end_37, primer2_start_37, primer2_start_37,
-                        primer1_start_38, primer1_end_38, primer2_start_38, primer2_end_38)
-                ):
-                    logging_common = defaultdict(lambda: defaultdict())
-                    logger_submit.info("Common info for primers:")
+                    gc_percent2 = gc_calculate(sequence2)
+                    tm2 = tm_calculate(sequence2)
 
-                    amplicon_37 = coverage_37.split(":")[1].split("-")
-                    amplicon_38 = coverage_37.split(":")[1].split("-")
+                    # call primer_mapper to map primer to both 37 and 38, then return coords and chromosome number
+                    primer_mapping_data = primer_mapper.main(sequence1, gene, sequence2)
 
-                    new_pair = Models.Pairs.objects.create(
-                        coverage_37 = coverage_37, coverage_38 = coverage_38,
-                        size_37 = int(max(amplicon_37)) - int(min(amplicon_37)),
-                        size_38 = int(max(amplicon_38)) - int(min(amplicon_38))
-                    )
+                    if "errors" in primer_mapping_data:
+                        logging.error(primer_mapping_data["errors"])
+                        messages.error(request, primer_mapping_data["errors"], extra_tags= "alert-danger")
+                    else:
+                        gene_chrom = primer_mapping_data["data"]["chrom"]
+                        coverage_37 = primer_mapping_data["data"]["37"]["coverage"]
+                        coverage_38 = primer_mapping_data["data"]["38"]["coverage"]
+                        primer1_start_37, primer1_end_37 = primer_mapping_data["data"]["37"]["primer1"]["coordinates"]
+                        primer2_start_37, primer2_end_37 = primer_mapping_data["data"]["37"]["primer2"]["coordinates"]
+                        primer1_start_38, primer1_end_38 = primer_mapping_data["data"]["38"]["primer1"]["coordinates"]
+                        primer2_start_38, primer2_end_38 = primer_mapping_data["data"]["38"]["primer2"]["coordinates"]
+                        primer1_strand = primer_mapping_data["data"]["37"]["primer1"]["strand"]
+                        primer2_strand = primer_mapping_data["data"]["37"]["primer2"]["strand"]
 
-                    logging_common["pair"]["created"] = True
-                    logging_common["pair"]["object"] = new_pair.id
+                        logging_common = defaultdict(lambda: defaultdict())
+                        logger_submit.info("Common info for primers:")
 
-                    new_scientist, created = Models.Scientist.objects.get_or_create(
-                        forename = forename, surname = surname)
+                        amplicon_37 = coverage_37.split(":")[1].split("-")
+                        amplicon_38 = coverage_38.split(":")[1].split("-")
 
-                    logging_common["scientist"]["created"] = created
-                    logging_common["scientist"]["object"] = new_scientist
-
-                    new_pcr, created = Models.PCRProgram.objects.get_or_create(
-                        name = pcr_program)
-
-                    logging_common["pcr_program"]["created"] = created
-                    logging_common["pcr_program"]["object"] = new_pcr
-
-                    new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
-
-                    logging_common["buffer"]["created"] = created
-                    logging_common["buffer"]["object"] = new_buffer
-
-                    for field, data in logging_common.items():
-                        if data["created"]:
-                            logger_submit.info(" - New {} created : {}".format(field, data["object"]))
-                        else:
-                            logger_submit.info(" - Using {} : {}".format(field, data["object"]))
-
-                    #############################################################
-
-                    logging_primer1 = defaultdict(lambda: defaultdict())
-
-                    snp_status1, snp_date1, snp_info1 = snp_check.main(
-                        gene, primer1_start_37, primer1_end_37,
-                        primer1_start_38, primer1_end_38
-                    )
-
-                    new_status1, created = Models.Status.objects.get_or_create(name = status1)
-
-                    logging_primer1["status"]["created"] = created
-                    logging_primer1["status"]["object"] = new_status1
-
-                    new_coordinates1, created = Models.Coordinates.objects.get_or_create(
-                        start_coordinate_37 = primer1_start_37, end_coordinate_37 = primer1_end_37,
-                        start_coordinate_38 = primer1_start_38, end_coordinate_38 = primer1_end_38,
-                        chrom_no = gene_chrom, strand = primer1_strand
+                        new_pair = Models.Pairs.objects.create(
+                            coverage_37 = coverage_37, coverage_38 = coverage_38,
+                            size_37 = int(max(amplicon_37)) - int(min(amplicon_37)),
+                            size_38 = int(max(amplicon_38)) - int(min(amplicon_38))
                         )
 
-                    logging_primer1["status"]["created"] = created
-                    logging_primer1["status"]["object"] = new_coordinates1
+                        logging_common["pair"]["created"] = True
+                        logging_common["pair"]["object"] = new_pair.id
 
-                    new_primer1, created =  Models.PrimerDetails.objects.update_or_create(
-                        name = primer_name1, gene = gene, sequence = sequence1, 
-                        gc_percent = gc_percent1, tm = tm1, pairs = new_pair,
-                        comments =  comments1, arrival_date = arrival_date1,
-                        location = location1, status = new_status1, 
-                        scientist = new_scientist, pcr_program = new_pcr, 
-                        buffer = new_buffer, coordinates = new_coordinates1,
-                        snp_status = snp_status1, snp_info = ";".join(snp_info1), snp_date = snp_date1
-                    )
-                    
-                    logger_submit.info("Created primer: {} {}".format(new_primer1.id, new_primer1))
-                    logger_submit.info(" - Primer gene: {}".format(new_primer1.gene))
-                    logger_submit.info(" - Primer sequence: {}".format(new_primer1.sequence))
-                    logger_submit.info(" - Primer gc %: {}".format(new_primer1.gc_percent))
-                    logger_submit.info(" - Primer tm: {}".format(new_primer1.tm))
-                    
-                    if snp_info1:
-                        logger_submit.info(" - SNPs detected in primer")
-                    else:
-                        logger_submit.info(" - No SNPs detected in primer")
-                    
-                    for field, data in logging_primer1.items():
-                        if data["created"]:
-                            logger_submit.info(" - New {} created: {}".format(field, data["object"]))
+                        new_scientist, created = Models.Scientist.objects.get_or_create(
+                            forename = forename, surname = surname)
+
+                        logging_common["scientist"]["created"] = created
+                        logging_common["scientist"]["object"] = new_scientist
+
+                        new_pcr, created = Models.PCRProgram.objects.get_or_create(
+                            name = pcr_program)
+
+                        logging_common["pcr_program"]["created"] = created
+                        logging_common["pcr_program"]["object"] = new_pcr
+
+                        new_buffer, created = Models.Buffer.objects.get_or_create(name = buffer)
+
+                        logging_common["buffer"]["created"] = created
+                        logging_common["buffer"]["object"] = new_buffer
+
+                        for field, data in logging_common.items():
+                            if data["created"]:
+                                logger_submit.info(" - New {} created : {}".format(field, data["object"]))
+                            else:
+                                logger_submit.info(" - Using {} : {}".format(field, data["object"]))
+
+                        #############################################################
+
+                        logging_primer1 = defaultdict(lambda: defaultdict())
+
+                        snp_status1, snp_date1, snp_info1 = snp_check.main(
+                            gene, primer1_start_37, primer1_end_37,
+                            primer1_start_38, primer1_end_38
+                        )
+
+                        new_status1, created = Models.Status.objects.get_or_create(name = status1)
+
+                        logging_primer1["status"]["created"] = created
+                        logging_primer1["status"]["object"] = new_status1
+
+                        new_coordinates1, created = Models.Coordinates.objects.get_or_create(
+                            start_coordinate_37 = primer1_start_37, end_coordinate_37 = primer1_end_37,
+                            start_coordinate_38 = primer1_start_38, end_coordinate_38 = primer1_end_38,
+                            chrom_no = gene_chrom, strand = primer1_strand
+                            )
+
+                        logging_primer1["status"]["created"] = created
+                        logging_primer1["status"]["object"] = new_coordinates1
+
+                        new_primer1 = Models.PrimerDetails.objects.create(
+                            name = primer_name1, gene = gene, sequence = sequence1, 
+                            gc_percent = gc_percent1, tm = tm1, pairs = new_pair,
+                            comments =  comments1, arrival_date = arrival_date1,
+                            location = location1, status = new_status1, 
+                            scientist = new_scientist, pcr_program = new_pcr, 
+                            buffer = new_buffer, coordinates = new_coordinates1,
+                            snp_status = snp_status1, snp_info = ";".join(snp_info1), snp_date = snp_date1
+                        )
+                        
+                        logger_submit.info("Created primer: {} {}".format(new_primer1.id, new_primer1))
+                        logger_submit.info(" - Primer gene: {}".format(new_primer1.gene))
+                        logger_submit.info(" - Primer sequence: {}".format(new_primer1.sequence))
+                        logger_submit.info(" - Primer gc %: {}".format(new_primer1.gc_percent))
+                        logger_submit.info(" - Primer tm: {}".format(new_primer1.tm))
+                        
+                        if snp_info1:
+                            logger_submit.info(" - SNPs detected in primer")
                         else:
-                            logger_submit.info(" - Using {}: {}".format(field, data["object"]))
+                            logger_submit.info(" - No SNPs detected in primer")
+                        
+                        for field, data in logging_primer1.items():
+                            if data["created"]:
+                                logger_submit.info(" - New {} created: {}".format(field, data["object"]))
+                            else:
+                                logger_submit.info(" - Using {}: {}".format(field, data["object"]))
 
-                    #############################################################
+                        #############################################################
 
-                    logging_primer2 = defaultdict(lambda: defaultdict())
+                        logging_primer2 = defaultdict(lambda: defaultdict())
 
-                    snp_status2, snp_date2, snp_info2 = snp_check.main(
-                        gene, primer2_start_37, primer2_end_37,
-                        primer2_start_38, primer2_end_38
-                    )
+                        snp_status2, snp_date2, snp_info2 = snp_check.main(
+                            gene, primer2_start_37, primer2_end_37,
+                            primer2_start_38, primer2_end_38
+                        )
 
-                    # save primer 2 to database
-                    new_status2, created = Models.Status.objects.get_or_create(name = status2)
+                        # save primer 2 to database
+                        new_status2, created = Models.Status.objects.get_or_create(name = status2)
 
-                    logging_primer2["status"]["created"] = created
-                    logging_primer2["status"]["object"] = new_status2
+                        logging_primer2["status"]["created"] = created
+                        logging_primer2["status"]["object"] = new_status2
 
-                    new_coordinates2, created = Models.Coordinates.objects.get_or_create(
-                        start_coordinate_37 = primer2_start_37, end_coordinate_37 = primer2_end_37,
-                        start_coordinate_38 = primer2_start_38, end_coordinate_38 = primer2_end_38,
-                        chrom_no = gene_chrom, strand = primer2_strand
-                    )
+                        new_coordinates2, created = Models.Coordinates.objects.get_or_create(
+                            start_coordinate_37 = primer2_start_37, end_coordinate_37 = primer2_end_37,
+                            start_coordinate_38 = primer2_start_38, end_coordinate_38 = primer2_end_38,
+                            chrom_no = gene_chrom, strand = primer2_strand
+                        )
 
-                    logging_primer2["coordinates"]["created"] = created
-                    logging_primer2["coordinates"]["object"] = new_coordinates2
+                        logging_primer2["coordinates"]["created"] = created
+                        logging_primer2["coordinates"]["object"] = new_coordinates2
 
-                    new_primer2, created =  Models.PrimerDetails.objects.update_or_create(
-                        name = primer_name2, gene = gene, sequence = sequence2, 
-                        gc_percent = gc_percent2, tm = tm2, pairs = new_pair,
-                        comments =  comments2, arrival_date = arrival_date2,
-                        location = location2, status = new_status2, 
-                        scientist = new_scientist, pcr_program = new_pcr, 
-                        buffer = new_buffer, coordinates = new_coordinates2,
-                        snp_status = snp_status2, snp_info = ";".join(snp_info2), snp_date = snp_date2
-                    )
-                    
-                    logger_submit.info("Created primer: {} {}".format(new_primer2.id, new_primer2))
-                    logger_submit.info(" - Primer gene: {}".format(new_primer2.gene))
-                    logger_submit.info(" - Primer sequence: {}".format(new_primer2.sequence))
-                    logger_submit.info(" - Primer gc %: {}".format(new_primer2.gc_percent))
-                    logger_submit.info(" - Primer tm: {}".format(new_primer2.tm))
+                        new_primer2 =  Models.PrimerDetails.objects.create(
+                            name = primer_name2, gene = gene, sequence = sequence2, 
+                            gc_percent = gc_percent2, tm = tm2, pairs = new_pair,
+                            comments =  comments2, arrival_date = arrival_date2,
+                            location = location2, status = new_status2, 
+                            scientist = new_scientist, pcr_program = new_pcr, 
+                            buffer = new_buffer, coordinates = new_coordinates2,
+                            snp_status = snp_status2, snp_info = ";".join(snp_info2), snp_date = snp_date2
+                        )
+                        
+                        logger_submit.info("Created primer: {} {}".format(new_primer2.id, new_primer2))
+                        logger_submit.info(" - Primer gene: {}".format(new_primer2.gene))
+                        logger_submit.info(" - Primer sequence: {}".format(new_primer2.sequence))
+                        logger_submit.info(" - Primer gc %: {}".format(new_primer2.gc_percent))
+                        logger_submit.info(" - Primer tm: {}".format(new_primer2.tm))
 
-                    if snp_info2:
-                        logger_submit.info(" - SNPs detected in primer")
-                    else:
-                        logger_submit.info(" - No SNPs detected in primer")
-                    
-                    for field, data in logging_primer2.items():
-                        if data["created"]:
-                            logger_submit.info(" - New {} created: {}".format(field, data["object"]))
+                        if snp_info2:
+                            logger_submit.info(" - SNPs detected in primer")
                         else:
-                            logger_submit.info(" - Using {}: {}".format(field, data["object"]))
+                            logger_submit.info(" - No SNPs detected in primer")
+                        
+                        for field, data in logging_primer2.items():
+                            if data["created"]:
+                                logger_submit.info(" - New {} created: {}".format(field, data["object"]))
+                            else:
+                                logger_submit.info(" - Using {}: {}".format(field, data["object"]))
 
-                    # success save message passed to submit.html
-                    messages.success(request, 'Primers {} and {} successfully saved'.format(new_primer1, new_primer2),
-                        extra_tags="alert-success")
+                        # success save message passed to submit.html
+                        messages.success(request, 'Primers {} and {} successfully saved'.format(new_primer1, new_primer2),
+                            extra_tags="alert-success")
 
-                    multiple_mapping_res = smalt_mapping.multiple_mapping_check(new_primer1, new_primer2)
+                        multiple_mapping_res = smalt_mapping.multiple_mapping_check(new_primer1, new_primer2)
 
-                    if not multiple_mapping_res:
-                        messages.warning(request, "Multiple mapping check failed", extra_tags="alert-warning")
+                        if not multiple_mapping_res:
+                            messages.warning(request, "Multiple mapping check failed", extra_tags="alert-warning")
 
-                    # recreate the empty forms
-                    primer_form1 = Forms.PrimerForm()
-                    sequence_form1 = Forms.SequenceForm()
-                    status_form1 = Forms.StatusLocationForm()
-                    arrival_date_form1 = Forms.ArrivalDateForm()
+                        # recreate the empty forms
+                        primer_form1 = Forms.PrimerForm(prefix = "form1")
+                        sequence_form1 = Forms.SequenceForm(prefix = "form1")
+                        status_form1 = Forms.StatusLocationForm(prefix = "form1")
+                        arrival_date_form1 = Forms.ArrivalDateForm(prefix = "form1")
 
-                    primer_form2 = Forms.PrimerForm()
-                    sequence_form2 = Forms.SequenceForm()
-                    status_form2 = Forms.StatusLocationForm()
-                    arrival_date_form2 = Forms.ArrivalDateForm()
-
-                else:
-                    messages.error(request, "One of the primers didn't map", extra_tags="alert-danger")
-                    logger_submit.error("One of the primers didn't map")
-
-            else:
-                messages.error(request, "Can't have the same names for both primers", extra_tags="alert-danger")
-                logger_submit.error("Can't have same names for both primers")
+                        primer_form2 = Forms.PrimerForm(prefix = "form2")
+                        sequence_form2 = Forms.SequenceForm(prefix = "form2")
+                        status_form2 = Forms.StatusLocationForm(prefix = "form2")
 
         else:
-            messages.error(request, "At least one of the forms is invalid", extra_tags="alert-danger")
-            logger_submit.error("At least one of the forms is invalid")
+            logger_submit.error("Validation Error")
+
+            for form in form_list:
+                if not form.is_valid():
+                    error = form.errors["__all__"]
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        error,
+                        extra_tags='alert-danger'
+                    )
+                    logger_submit.error(error)
 
     else:
         # if data is not sent, just display the form
@@ -1002,7 +967,7 @@ def edit_primer(request, PrimerDetails_id):
         status_form = Forms.StatusLocationForm(request.POST)
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
-        list_forms = [primer_form, arrival_date_form, status_form]
+        form_list = [primer_form, arrival_date_form, status_form]
 
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer_button"):
@@ -1086,7 +1051,9 @@ def edit_primer(request, PrimerDetails_id):
                     extra_tags="alert-success")
 
             else:
-                for form in list_forms:
+                logger_editing.error("Validation Error")
+
+                for form in form_list:
                     if not form.is_valid():
                         error = form.errors["__all__"]
                         messages.add_message(
@@ -1095,6 +1062,7 @@ def edit_primer(request, PrimerDetails_id):
                             error,
                             extra_tags='alert-danger'
                         )
+                        logger_editing.error(error)
 
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer_button"):
@@ -1238,7 +1206,7 @@ def edit_pair(request, PrimerDetails_id):
         status_loc_form2 = Forms.StatusLocationForm(request.POST, prefix ="form2")
         arrival_date_form2 = Forms.ArrivalDateForm(request.POST, prefix ="form2")
 
-        list_forms = [primer_form1, status_loc_form1, arrival_date_form1,
+        form_list = [primer_form1, status_loc_form1, arrival_date_form1,
                       primer_form2, status_loc_form2, arrival_date_form2]
 
         # data for first primer
@@ -1383,7 +1351,9 @@ def edit_pair(request, PrimerDetails_id):
                 return render(request, 'primer_db/edit_pair.html', context_dict)
 
             else:
-                for form in list_forms:
+                logger_editing.error("Validation Error")
+
+                for form in form_list:
                     if not form.is_valid():
                         error = form.errors["__all__"]
                         messages.add_message(
@@ -1392,6 +1362,7 @@ def edit_pair(request, PrimerDetails_id):
                             error,
                             extra_tags='alert-danger'
                         )
+                        logger_editing.error(error)
 
         elif request.POST.get("check_snp_primer1_button") or request.POST.get("check_snp_primer2_button"):
             # value of button is the primer name allowing me to use it directly in the filtering after
@@ -1512,7 +1483,7 @@ def edit_pair(request, PrimerDetails_id):
         elif len(pair) > 2:
             logger_editing.error("This pair id {} is shared by 3 or more primers".format(primer.pairs_id))
             messages.error(request,
-                "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as this issue can't be solved from the interface",
+                "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as an underlying issue has been detected",
                 extra_tags="alert-danger")
             return redirect("/primer_db/")
         else:
