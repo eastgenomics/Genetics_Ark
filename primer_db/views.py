@@ -214,7 +214,6 @@ def index(request):
 
         if "filter_button" in request.POST:
             if filter_form.is_valid():
-                print("form valid")
                 clean_data = filter_form.cleaned_data
                 filter_params = {}
                 
@@ -249,11 +248,14 @@ def index(request):
                                         coordinates__end_coordinate_38__lte = value
                                     )
                                 )
+                            else:
+                                filtered_lonely_primers = Models.PrimerDetails.objects.none()
 
                             if paired_primers:
                                 primer_ids = []
 
                                 for primer in paired_primers:
+                                    # NEED TO WRITE THAT DIFFERENTLY, SUPER LONG, TAKES LIKE A MINUTE OR TWO TO RUN WITH 3000 PRIMERS
                                     nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
                                     
                                     if nb_in_pairs != 2:
@@ -312,7 +314,6 @@ def index(request):
                 table = PrimerDetailsTable(primers)
 
             else:
-                print("form not valid")
                 messages.add_message(
                     request,
                     messages.ERROR,
