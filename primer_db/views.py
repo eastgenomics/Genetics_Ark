@@ -212,116 +212,119 @@ def index(request):
 
         filter_form = Forms.FilterForm(request.POST)
 
-        if filter_form.is_valid():
-            clean_data = filter_form.cleaned_data
-            filter_params = {}
-            
-            for field, value in clean_data.items():
-                if value:
-                    if field == "chrom":
-                        filter_params["coordinates__chrom_no"] = value
-                    elif field == "gene":
-                        filter_params["gene__exact"] = value
-                    elif field == "status":
-                        filter_params["status__name"] = value
-                    elif field == "name":
-                        filter_params["name__icontains"] = value
-                    elif field == "location":
-                        filter_params["location__icontains"] = value
-                    elif field == "position":
-                        # special case: when filtering by genomic position, you want to get position between a pair of primers
-                        # in addition to the position within the primers
-                        # --> need to handle pairs and solo primers differently
-                        bugged_primers = []
-                        paired_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = False)
-                        lonely_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = True)
+        if "filter_button" in request.POST:
+            if filter_form.is_valid():
+                print("form valid")
+                clean_data = filter_form.cleaned_data
+                filter_params = {}
+                
+                for field, value in clean_data.items():
+                    if value:
+                        if field == "chrom":
+                            filter_params["coordinates__chrom_no"] = value
+                        elif field == "gene":
+                            filter_params["gene__exact"] = value
+                        elif field == "status":
+                            filter_params["status__name"] = value
+                        elif field == "name":
+                            filter_params["name__icontains"] = value
+                        elif field == "location":
+                            filter_params["location__icontains"] = value
+                        elif field == "position":
+                            # special case: when filtering by genomic position, you want to get position between a pair of primers
+                            # in addition to the position within the primers
+                            # --> need to handle pairs and solo primers differently
+                            bugged_primers = []
+                            paired_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = False)
+                            lonely_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = True)
 
-                        if lonely_primers:
-                            filtered_lonely_primers = lonely_primers.filter(
-                                Q(
-                                    coordinates__start_coordinate_37__gte = value,
-                                    coordinates__end_coordinate_37__lte = value
-                                ) | 
-                                Q(
-                                    coordinates__start_coordinate_38__gte = value,
-                                    coordinates__end_coordinate_38__lte = value
-                                )
-                            )
-
-                        if paired_primers:
-                            primer_ids = []
-
-                            for primer in paired_primers:
-                                nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
-                                
-                                if nb_in_pairs != 2:
-                                    # there has been instances where a pair is more than 2 primers
-                                    # checking and recording those instances
-                                    bugged_primers.append((primer.id, primer.name, primer.pairs_id))
-                                    continue
-
-                                elif nb_in_pairs == 2:
-                                    primer1, primer2 = paired_primers.filter(pairs_id = primer.pairs_id)
-
-                                    coordinates_37 = [
-                                        primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
-                                        primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
-                                    ]
-                                    coordinates_38 = [
-                                        primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
-                                        primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
-                                    ]
-
-                                    if (min(coordinates_37) <= value <= max(coordinates_37) or
-                                        min(coordinates_38) <= value <= max(coordinates_38)
-                                    ):
-                                        primer_ids.append(primer1.id)
-                                        primer_ids.append(primer2.id)
-                                                
-                            filtered_paired_primers = paired_primers.filter(pk__in = primer_ids)
-
-                            if bugged_primers:
-                                logger_index.error("There are pair ids that are bugged")
-
-                                for id_, primer, pairs_id in bugged_primers:
-                                    logger_index.error(" - {} {} --> {}".format(id_, primer, pairs_id))
-
-                                messages.add_message(request,
-                                    messages.ERROR,
-                                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
-                                    extra_tags="alert-danger"
+                            if lonely_primers:
+                                filtered_lonely_primers = lonely_primers.filter(
+                                    Q(
+                                        coordinates__start_coordinate_37__gte = value,
+                                        coordinates__end_coordinate_37__lte = value
+                                    ) | 
+                                    Q(
+                                        coordinates__start_coordinate_38__gte = value,
+                                        coordinates__end_coordinate_38__lte = value
+                                    )
                                 )
 
-                        filtered_position_primers = filtered_lonely_primers | filtered_paired_primers
+                            if paired_primers:
+                                primer_ids = []
 
-            # need to use locals because an empty queryset can be the sign of:
-            # - no results after filtering by position
-            # - no position typed to filter by
-            if "filtered_position_primers" in locals():
-                primers = filtered_position_primers.filter(**filter_params)
+                                for primer in paired_primers:
+                                    nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
+                                    
+                                    if nb_in_pairs != 2:
+                                        # there has been instances where a pair is more than 2 primers
+                                        # checking and recording those instances
+                                        bugged_primers.append((primer.id, primer.name, primer.pairs_id))
+                                        continue
+
+                                    elif nb_in_pairs == 2:
+                                        primer1, primer2 = paired_primers.filter(pairs_id = primer.pairs_id)
+
+                                        coordinates_37 = [
+                                            primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
+                                            primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
+                                        ]
+                                        coordinates_38 = [
+                                            primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
+                                            primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
+                                        ]
+
+                                        if (min(coordinates_37) <= value <= max(coordinates_37) or
+                                            min(coordinates_38) <= value <= max(coordinates_38)
+                                        ):
+                                            primer_ids.append(primer1.id)
+                                            primer_ids.append(primer2.id)
+                                                    
+                                filtered_paired_primers = paired_primers.filter(pk__in = primer_ids)
+
+                                if bugged_primers:
+                                    logger_index.error("There are pair ids that are bugged")
+
+                                    for id_, primer, pairs_id in bugged_primers:
+                                        logger_index.error(" - {} {} --> {}".format(id_, primer, pairs_id))
+
+                                    messages.add_message(request,
+                                        messages.ERROR,
+                                        "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
+                                        extra_tags="alert-danger"
+                                    )
+
+                            filtered_position_primers = filtered_lonely_primers | filtered_paired_primers
+
+                # need to use locals because an empty queryset can be the sign of:
+                # - no results after filtering by position
+                # - no position typed to filter by
+                if "filtered_position_primers" in locals():
+                    primers = filtered_position_primers.filter(**filter_params)
+                else:
+                    primers = Models.PrimerDetails.objects.filter(**filter_params)
+
+                request.session['filtered'] = [primer.id for primer in primers]
+
+                if any(clean_data.values()):
+                    context_dict["filter_params"] = clean_data
+
+                table = PrimerDetailsTable(primers)
+
             else:
-                primers = Models.PrimerDetails.objects.filter(**filter_params)
+                print("form not valid")
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    filter_form.errors["__all__"],
+                    extra_tags='alert-danger'
+                )
 
-            request.session['filtered'] = [primer.id for primer in primers]
-
-            if any(clean_data.values()):
-                context_dict["filter_params"] = clean_data
-
-            table = PrimerDetailsTable(primers)
-
-        else:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                filter_form.errors["__all__"],
-                extra_tags='alert-danger'
-            )
-
-            primers = Models.PrimerDetails.objects.all()
-            table = PrimerDetailsTable(primers)
+                primers = Models.PrimerDetails.objects.all()
+                table = PrimerDetailsTable(primers)
 
         # recalc button clicked in index
-        if 'recalc' in request.POST:
+        elif 'recalc' in request.POST:
             amplicon_length_37 = None
             amplicon_length_38 = None
             recalc_msg = []
