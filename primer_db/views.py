@@ -216,6 +216,7 @@ def index(request):
             if filter_form.is_valid():
                 clean_data = filter_form.cleaned_data
                 filter_params = {}
+                position_to_filter = False
                 
                 for field, value in clean_data.items():
                     if value:
@@ -230,81 +231,90 @@ def index(request):
                         elif field == "location":
                             filter_params["location__icontains"] = value
                         elif field == "position":
-                            # special case: when filtering by genomic position, you want to get position between a pair of primers
-                            # in addition to the position within the primers
-                            # --> need to handle pairs and solo primers differently
-                            bugged_primers = []
-                            paired_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = False)
-                            lonely_primers = Models.PrimerDetails.objects.filter(pairs_id__isnull = True)
+                            position_to_filter = value
 
-                            if lonely_primers:
-                                filtered_lonely_primers = lonely_primers.filter(
-                                    Q(
-                                        coordinates__start_coordinate_37__gte = value,
-                                        coordinates__end_coordinate_37__lte = value
-                                    ) | 
-                                    Q(
-                                        coordinates__start_coordinate_38__gte = value,
-                                        coordinates__end_coordinate_38__lte = value
-                                    )
-                                )
-                            else:
-                                filtered_lonely_primers = Models.PrimerDetails.objects.none()
-
-                            if paired_primers:
-                                primer_ids = []
-
-                                for primer in paired_primers:
-                                    # NEED TO WRITE THAT DIFFERENTLY, SUPER LONG, TAKES LIKE A MINUTE OR TWO TO RUN WITH 3000 PRIMERS
-                                    nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
-                                    
-                                    if nb_in_pairs != 2:
-                                        # there has been instances where a pair is more than 2 primers
-                                        # checking and recording those instances
-                                        bugged_primers.append((primer.id, primer.name, primer.pairs_id))
-                                        continue
-
-                                    elif nb_in_pairs == 2:
-                                        primer1, primer2 = paired_primers.filter(pairs_id = primer.pairs_id)
-
-                                        coordinates_37 = [
-                                            primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
-                                            primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
-                                        ]
-                                        coordinates_38 = [
-                                            primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
-                                            primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
-                                        ]
-
-                                        if (min(coordinates_37) <= value <= max(coordinates_37) or
-                                            min(coordinates_38) <= value <= max(coordinates_38)
-                                        ):
-                                            primer_ids.append(primer1.id)
-                                            primer_ids.append(primer2.id)
-                                                    
-                                filtered_paired_primers = paired_primers.filter(pk__in = primer_ids)
-
-                                if bugged_primers:
-                                    logger_index.error("There are pair ids that are bugged")
-
-                                    for id_, primer, pairs_id in bugged_primers:
-                                        logger_index.error(" - {} {} --> {}".format(id_, primer, pairs_id))
-
-                                    messages.add_message(request,
-                                        messages.ERROR,
-                                        "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
-                                        extra_tags="alert-danger"
-                                    )
-
-                            filtered_position_primers = filtered_lonely_primers | filtered_paired_primers
-
-                # need to use locals because an empty queryset can be the sign of:
-                # - no results after filtering by position
-                # - no position typed to filter by
-                if "filtered_position_primers" in locals():
-                    primers = filtered_position_primers.filter(**filter_params)
+                if filter_params:
+                    filtered_primers = Models.PrimerDetails.objects.filter(**filter_params)
                 else:
-                    primers = Models.PrimerDetails.objects.filter(**filter_params)
+                    filtered_primers = Models.PrimerDetails.objects.all()
+                
+                if position_to_filter:
+                    # special case: when filtering by genomic position, you want to get position between a pair of primers
+                    # in addition to the position within the primers
+                    # --> need to handle pairs and solo primers differently
+                    bugged_primers = []
+                    paired_primers = filtered_primers.filter(pairs_id__isnull = False)
+                    lonely_primers = filtered_primers.filter(pairs_id__isnull = True)
+
+                    if lonely_primers:
+                        filtered_lonely_primers = lonely_primers.filter(
+                            Q(
+                                coordinates__start_coordinate_37__gte = value,
+                                coordinates__end_coordinate_37__lte = value
+                            ) | 
+                            Q(
+                                coordinates__start_coordinate_38__gte = value,
+                                coordinates__end_coordinate_38__lte = value
+                            )
+                        )
+                    else:
+                        filtered_lonely_primers = Models.PrimerDetails.objects.none()
+
+                    if paired_primers:
+                        primer_ids = []
+
+                        for primer in paired_primers:
+                            # NEED TO WRITE THAT DIFFERENTLY, SUPER LONG, TAKES LIKE A MINUTE OR TWO TO RUN WITH 3000 PRIMERS
+                            nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
+                            
+                            if nb_in_pairs != 2:
+                                # there has been instances where a pair is more than 2 primers
+                                # checking and recording those instances
+                                bugged_primers.append((primer.id, primer.name, primer.pairs_id))
+                                continue
+
+                            elif nb_in_pairs == 2:
+                                primer1, primer2 = paired_primers.filter(pairs_id = primer.pairs_id)
+
+                                coordinates_37 = [
+                                    primer1.coordinates.start_coordinate_37, primer1.coordinates.end_coordinate_37,
+                                    primer2.coordinates.start_coordinate_37, primer2.coordinates.end_coordinate_37
+                                ]
+                                coordinates_38 = [
+                                    primer1.coordinates.start_coordinate_38, primer1.coordinates.end_coordinate_38,
+                                    primer2.coordinates.start_coordinate_38, primer2.coordinates.end_coordinate_38
+                                ]
+
+                                if (min(coordinates_37) <= value <= max(coordinates_37) or
+                                    min(coordinates_38) <= value <= max(coordinates_38)
+                                ):
+                                    primer_ids.append(primer1.id)
+                                    primer_ids.append(primer2.id)
+
+                        filtered_paired_primers = paired_primers.filter(pk__in = primer_ids)
+
+                        if bugged_primers:
+                            logger_index.error("There are pair ids that are bugged")
+
+                            for id_, primer, pairs_id in bugged_primers:
+                                logger_index.error(" - {} {} --> {}".format(id_, primer, pairs_id))
+
+                            messages.add_message(request,
+                                messages.ERROR,
+                                "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as the filtering skipped {} primers".format(len(bugged_primers)),
+                                extra_tags="alert-danger"
+                            )
+                    else:
+                        filtered_paired_primers = Models.PrimerDetails.objects.none()
+
+                    position_filtered_primers = filtered_lonely_primers | filtered_paired_primers
+                else:
+                    position_filtered_primers = Models.PrimerDetails.objects.none()
+
+                if position_filtered_primers:
+                    primers = position_filtered_primers & filtered_primers
+                else:
+                    primers = filtered_primers
 
                 request.session['filtered'] = [primer.id for primer in primers]
 
