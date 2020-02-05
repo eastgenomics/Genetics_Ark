@@ -217,6 +217,14 @@ def index(request):
                 clean_data = filter_form.cleaned_data
                 filter_params = {}
                 position_to_filter = False
+
+                prior_filtering = request.session.get("filtered", [])
+                filtered_snps = request.session.get("primer_ids_snp", [])
+
+                if prior_filtering or filtered_snps:
+                    session_primers = prior_filtering + filtered_snps
+                else:
+                    session_primers = None
                 
                 for field, value in clean_data.items():
                     if value:
@@ -234,9 +242,15 @@ def index(request):
                             position_to_filter = value
 
                 if filter_params:
-                    filtered_primers = Models.PrimerDetails.objects.filter(**filter_params)
+                    if session_primers:
+                        filtered_primers = Models.PrimerDetails.objects.filter(**filter_params, pk__in = session_primers)
+                    else:
+                        filtered_primers = Models.PrimerDetails.objects.filter(**filter_params)
                 else:
-                    filtered_primers = Models.PrimerDetails.objects.all()
+                    if session_primers:
+                        filtered_primers = Models.PrimerDetails.objects.filter(pk__in = session_primers)
+                    else:
+                        filtered_primers = Models.PrimerDetails.objects.all()
                 
                 if position_to_filter:
                     # special case: when filtering by genomic position, you want to get position between a pair of primers
@@ -258,13 +272,12 @@ def index(request):
                             )
                         )
                     else:
-                        filtered_lonely_primers = Models.PrimerDetails.objects.none()
+                        filtered_lonely_primers = None
 
                     if paired_primers:
                         primer_ids = []
 
                         for primer in paired_primers:
-                            # NEED TO WRITE THAT DIFFERENTLY, SUPER LONG, TAKES LIKE A MINUTE OR TWO TO RUN WITH 3000 PRIMERS
                             nb_in_pairs = len(paired_primers.filter(pairs_id = primer.pairs_id))
                             
                             if nb_in_pairs != 2:
@@ -305,13 +318,21 @@ def index(request):
                                 extra_tags="alert-danger"
                             )
                     else:
-                        filtered_paired_primers = Models.PrimerDetails.objects.none()
+                        filtered_paired_primers = None
 
-                    position_filtered_primers = filtered_lonely_primers | filtered_paired_primers
+                    if filtered_lonely_primers is not None:
+                        if filtered_paired_primers is not None:
+                            position_filtered_primers = filtered_lonely_primers | filtered_paired_primers
+                        else:
+                            position_filtered_primers = filtered_lonely_primers
+                    else:
+                        if filtered_paired_primers is not None:
+                            position_filtered_primers = filtered_paired_primers
+
                 else:
-                    position_filtered_primers = Models.PrimerDetails.objects.none()
+                    position_filtered_primers = None
 
-                if position_filtered_primers:
+                if position_filtered_primers is not None:
                     primers = position_filtered_primers & filtered_primers
                 else:
                     primers = filtered_primers
