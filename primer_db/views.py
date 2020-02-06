@@ -1542,6 +1542,11 @@ def edit_pair(request, PrimerDetails_id):
         'surname' : primer1.scientist.surname
     }
 
+    primer1_statusLoc = {
+        "status": primer1.status.name,
+        "location": primer1.location
+    }
+
     primer2_details_dict = {
         'name' : primer2.name, 'gene' : primer2.gene,
         'comments' : primer2.comments, 'buffer' : primer2.buffer,
@@ -1549,14 +1554,20 @@ def edit_pair(request, PrimerDetails_id):
         'surname' : primer2.scientist.surname
     }
 
+    primer2_statusLoc = {
+        "status": primer2.status.name,
+        "location": primer2.location
+    }
+
+
     primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
     arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
-    status_loc_form1 = Forms.StatusLocationForm(initial = model_to_dict(primer1), prefix = "form1")
+    status_loc_form1 = Forms.StatusLocationForm(initial = primer1_statusLoc, prefix = "form1")
 
     # data for second primer
     primer_form2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
     arrival_date_form2 = Forms.ArrivalDateForm(initial = model_to_dict(primer2), prefix = "form2")
-    status_loc_form2 = Forms.StatusLocationForm(initial = model_to_dict(primer2), prefix = "form2")
+    status_loc_form2 = Forms.StatusLocationForm(initial = primer2_statusLoc, prefix = "form2")
 
     # data for first primer
     context_dict["primer_form1"] = primer_form1
