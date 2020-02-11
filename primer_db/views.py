@@ -212,6 +212,8 @@ def index(request):
 
         filter_form = Forms.FilterForm(request.POST)
 
+        ############################################################################################################################
+
         if "filter_button" in request.POST:
             if filter_form.is_valid():
                 clean_data = filter_form.cleaned_data
@@ -355,6 +357,8 @@ def index(request):
                 primers = Models.PrimerDetails.objects.all()
                 table = PrimerDetailsTable(primers)
 
+        ############################################################################################################################
+
         # recalc button clicked in index
         elif 'recalc' in request.POST:
             amplicon_length_37 = None
@@ -425,6 +429,8 @@ def index(request):
             table = PrimerDetailsTable(primers)
             context_dict["recalc"] = recalc_msg
 
+        ############################################################################################################################
+
         elif 'change_status' in request.POST:
             new_status = request.POST.get('new_status') # get status to change to from POST data
             update_status = Models.Status.objects.get(name=new_status)
@@ -452,6 +458,8 @@ def index(request):
             
             table = PrimerDetailsTable(primers)
 
+        ############################################################################################################################
+
         elif 'failed_snp_check' in request.POST or "manually_snp_check" in request.POST or "not_recognized_snp_check" in request.POST:
             if "failed_snp_check" in request.POST:
                 status = "2"
@@ -472,6 +480,8 @@ def index(request):
             request.session["primer_ids_snp"] = primer_ids
 
             table = PrimerDetailsTable(primers)
+
+    ############################################################################################################################
 
     else:
         filtered_primers = request.session.get("filtered", None)
@@ -540,6 +550,8 @@ def submit(request):
         for field, value in request.POST.items():
             if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger_submit.info(" - {}: {}".format(field, value.strip()))
+
+        ############################################################################################################################
 
         # check if data input to each form is valid
         if (primer_form.is_valid() and 
@@ -654,6 +666,8 @@ def submit(request):
                     status_form = Forms.StatusLocationForm()
                     arrival_date_form = Forms.ArrivalDateForm()
 
+        ############################################################################################################################
+
         else:
             logger_submit.error("Validation Error")
 
@@ -667,6 +681,8 @@ def submit(request):
                         extra_tags='alert-danger'
                     )
                     logger_submit.info("error")
+
+    ############################################################################################################################
 
     else:
         # if data is not sent, just display the form
@@ -721,6 +737,8 @@ def submit_pair(request):
         for field, value in request.POST.items():
             if field != "csrfmiddlewaretoken" and "button" not in field:
                 logger_submit.info(" - {}: {}".format(field, value.strip()))
+
+        ############################################################################################################################
 
         # check if data input to each form is valid
         if (primer_form1.is_valid() and 
@@ -946,6 +964,8 @@ def submit_pair(request):
                         sequence_form2 = Forms.SequenceForm(prefix = "form2")
                         status_form2 = Forms.StatusLocationForm(prefix = "form2")
 
+        ############################################################################################################################
+
         else:
             logger_submit.error("Validation Error")
 
@@ -959,6 +979,8 @@ def submit_pair(request):
                         extra_tags='alert-danger'
                     )
                     logger_submit.error(error)
+
+    ############################################################################################################################
 
     else:
         # if data is not sent, just display the form
@@ -1003,6 +1025,8 @@ def edit_primer(request, PrimerDetails_id):
         arrival_date_form = Forms.ArrivalDateForm(request.POST)
 
         form_list = [primer_form, arrival_date_form, status_form]
+
+        ############################################################################################################################
 
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primer_button"):
@@ -1099,6 +1123,8 @@ def edit_primer(request, PrimerDetails_id):
                         )
                         logger_editing.error(error)
 
+        ############################################################################################################################
+
         # when delete button is pressed, delete current primer
         elif request.POST.get("delete_primer_button"):
             messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
@@ -1110,6 +1136,8 @@ def edit_primer(request, PrimerDetails_id):
 
             return  redirect('/primer_db/')
     
+        ############################################################################################################################
+
         elif request.POST.get("check_snp_primer_button"):
             primer.snp_status = 3
             primer.snp_date = timezone.now()
@@ -1123,6 +1151,8 @@ def edit_primer(request, PrimerDetails_id):
             )
 
             return redirect('/primer_db/')
+
+        ############################################################################################################################
 
         elif request.POST.get("update_date_button"):
             primer.last_date_used = timezone.now()
@@ -1258,6 +1288,8 @@ def edit_pair(request, PrimerDetails_id):
             "name", "gene", "buffer", "pcr_program", "arrival_date",
             "status", "location", "comments", "forename", "surname"
         ]
+
+        ############################################################################################################################
 
         # when update button is pressed, save updates made to current primer
         if request.POST.get("update_primers_button"):
@@ -1399,6 +1431,8 @@ def edit_pair(request, PrimerDetails_id):
                         )
                         logger_editing.error(error)
 
+        ############################################################################################################################
+
         elif request.POST.get("check_snp_primer1_button") or request.POST.get("check_snp_primer2_button"):
             # value of button is the primer name allowing me to use it directly in the filtering after
             checked_primer1 = request.POST.get("check_snp_primer1_button", None)
@@ -1417,6 +1451,8 @@ def edit_pair(request, PrimerDetails_id):
             primer.update(snp_status = 3)
             primer.update(snp_date = timezone.now())
 
+        ############################################################################################################################
+
         elif request.POST.get("update_date_button"):
             queryset_primer1 = Models.PrimerDetails.objects.get(pk = primer1.id)
             queryset_primer2 = Models.PrimerDetails.objects.get(pk = primer2.id)
@@ -1433,6 +1469,8 @@ def edit_pair(request, PrimerDetails_id):
                     queryset_primer1, queryset_primer2
                 ),
                 extra_tags="alert-success")
+
+        ############################################################################################################################
 
         elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
             # 2 ways to delete stuff: one primer or the pair
@@ -1478,6 +1516,8 @@ def edit_pair(request, PrimerDetails_id):
             primer.delete()
 
             return  redirect('/primer_db/')
+
+        ############################################################################################################################
 
         elif request.POST.get("visualization_button"):
             vis_path_37 = "primer_db/primer_visualization/{}-{}_37.pdf".format(primer1, primer2)
@@ -1558,7 +1598,6 @@ def edit_pair(request, PrimerDetails_id):
         "status": primer2.status.name,
         "location": primer2.location
     }
-
 
     primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
     arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
