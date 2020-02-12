@@ -1155,7 +1155,13 @@ def edit_primer(request, PrimerDetails_id):
         ############################################################################################################################
 
         elif request.POST.get("update_date_button"):
-            primer.last_date_used = timezone.now()
+
+            last_used_form = Forms.DateLastUsedForm(request.POST)
+
+            if last_used_form.is_valid():
+                last_used = last_used_form.cleaned_data["last_used"]
+
+            primer.last_date_used = last_used
             primer.save()
 
             logger_editing.info("UPDATING LAST DATE USED: {}".format(primer))
@@ -1457,10 +1463,15 @@ def edit_pair(request, PrimerDetails_id):
             queryset_primer1 = Models.PrimerDetails.objects.get(pk = primer1.id)
             queryset_primer2 = Models.PrimerDetails.objects.get(pk = primer2.id)
 
-            logger_editing.info("UPDATATING LAST DATE USED FOR \"{}\" AND \"{}\"".format(queryset_primer1, queryset_primer2))
+            last_used_form = Forms.DateLastUsedForm(request.POST, prefix = "form1")
+           
+            if last_used_form.is_valid():
+                last_used = last_used_form.cleaned_data["date_last_used"]
 
-            queryset_primer1.last_date_used = timezone.now()
-            queryset_primer2.last_date_used = timezone.now()
+            logger_editing.info("UPDATING LAST DATE USED FOR \"{}\" AND \"{}\" to \"{}\"".format(queryset_primer1, queryset_primer2, last_used))
+
+            queryset_primer1.last_date_used = last_used
+            queryset_primer2.last_date_used = last_used
             queryset_primer1.save()
             queryset_primer2.save()
             
@@ -1587,6 +1598,11 @@ def edit_pair(request, PrimerDetails_id):
         "location": primer1.location
     }
 
+    primer1_last_used = {
+        "last_date_used": primer1.last_date_used
+
+    }
+
     primer2_details_dict = {
         'name' : primer2.name, 'gene' : primer2.gene,
         'comments' : primer2.comments, 'buffer' : primer2.buffer,
@@ -1602,6 +1618,7 @@ def edit_pair(request, PrimerDetails_id):
     primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
     arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
     status_loc_form1 = Forms.StatusLocationForm(initial = primer1_statusLoc, prefix = "form1")
+    date_last_used_form1 = Forms.DateLastUsedForm(initial = primer1_last_used, prefix = "form1")
 
     # data for second primer
     primer_form2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
@@ -1618,7 +1635,7 @@ def edit_pair(request, PrimerDetails_id):
     context_dict["arrival_date_form2"] = arrival_date_form2
     context_dict["status_loc_form2"] = status_loc_form2
 
-    context_dict["primer1"] = primer1
+    context_dict["date_last_used_form1"] = date_last_used_form1
 
     # parsing for displaying snp info 
     if primer1.snp_info:

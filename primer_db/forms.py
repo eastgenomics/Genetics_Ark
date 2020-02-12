@@ -38,6 +38,11 @@ class ArrivalDateForm(forms.Form):
 	arrival_date = forms.DateField(widget=forms.SelectDateWidget(years=range(this_year - 5,this_year + 3)), 
 		initial=datetime.now)
 
+class DateLastUsedForm(forms.Form):
+	this_year = datetime.now().year
+	date_last_used = forms.DateField(widget=forms.SelectDateWidget(years=range(this_year - 5,this_year + 3)), 
+		initial=datetime.now)
+
 
 class StatusLocationForm(forms.Form):
 	CHOICES = (('On order', 'On order'), ('In Bank', 'In Bank'), ('Archived', 'Archived'))
