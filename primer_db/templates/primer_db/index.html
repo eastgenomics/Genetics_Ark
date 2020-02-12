@@ -55,8 +55,9 @@
         {{ filter_form.chrom }}
         {{ filter_form.position }}
         <br><br>
-        <button name="filter_button" type="submit">Filter</button>
-    </form>
+        <button name="filter_button" type="submit" class = "bt btn-primary">Filter</button>
+    </form><br>
+        <a href="/primer_db/"><button name="clear_filter" type="button" class = "bt btn-primary">Clear Filters</button></a>
 
     {% if filter_params %}
         <br>
