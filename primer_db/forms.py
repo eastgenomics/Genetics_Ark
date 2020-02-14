@@ -53,8 +53,9 @@ class StatusLocationForm(forms.Form):
 	def clean(self):
 		cd = self.cleaned_data
 
-		if cd.get('status') == "In Bank" and cd.get('location') == "":
-			raise forms.ValidationError('Location can not be blank when status is In Bank') 
+		if (cd.get('status') == "In Bank" or cd.get('status') == "On order") and cd.get('location') == "":
+			raise forms.ValidationError('Location can not be blank when status is In Bank or On order')
+
 		return cd
 
 class FilterForm(forms.Form):
