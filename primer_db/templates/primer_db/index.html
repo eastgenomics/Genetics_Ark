@@ -57,7 +57,8 @@
         <br><br>
         <button name="filter_button" type="submit" class = "bt btn-primary">Filter</button>
     </form><br>
-        <a href="/primer_db/"><button name="clear_filter" type="button" class = "bt btn-primary">Clear Filters</button></a>
+
+    <a href="/primer_db/"><button name="clear_filter" type="button" class = "bt btn-primary">Clear Filters</button></a><br>
 
     {% if filter_params %}
         <br>
@@ -66,7 +67,7 @@
             <ul>
                 {% for field, value in filter_params.items %}
                     {% if value %}
-                        <li>{{ field }}: {{ value }}</li>
+                        <li><b>{{ field|capfirst }}</b>: {{ value }}</li>
                     {% endif %}
                 {% endfor %}
             </ul>
