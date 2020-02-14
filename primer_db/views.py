@@ -340,7 +340,24 @@ def index(request):
                 request.session['filtered'] = [primer.id for primer in primers]
 
                 if any(clean_data.values()):
-                    context_dict["filter_params"] = clean_data
+                    filter_params = request.session.get("filter_params", None)
+
+                    if filter_params:
+                        new_params = {}
+
+                        for old_key, old_val in filter_params.items():
+                            for new_key, new_val in clean_data.items():
+                                if old_key == new_key:
+                                    if old_val != "" and new_val == "":
+                                        new_params[old_key] = old_val
+                                    else:
+                                        new_params[old_key] = new_val
+
+                        request.session["filter_params"] = new_params
+                        context_dict["filter_params"] = new_params
+                    else:
+                        request.session["filter_params"] = clean_data
+                        context_dict["filter_params"] = clean_data
 
                 table = PrimerDetailsTable(primers)
 
@@ -476,6 +493,7 @@ def index(request):
     else:
         filtered_primers = request.session.get("filtered", None)
         filtered_snps = request.session.get("primer_ids_snp", None)
+        filter_params = request.session.get("filter_params", None)
 
         if filtered_snps and "page" in request.GET:
             primers = Models.PrimerDetails.objects.filter(pk__in = filtered_snps)
@@ -492,19 +510,15 @@ def index(request):
             if filtered_primers:
                 del request.session["filtered"]
 
+            if filter_params:
+                del request.session["filter_params"]
+
         table = PrimerDetailsTable(primers)
 
     context_dict["filter_form"] = Forms.FilterForm()
 
     # returns primer totals filtered by status for displaying on main db view
-    total_archived = Models.PrimerDetails.objects.filter(status__name__icontains="archived").count()
-    total_bank = Models.PrimerDetails.objects.filter(status__name__icontains="bank").count()
-    total_order = Models.PrimerDetails.objects.filter(status__name__icontains="order").count()
-
     context_dict["table"] = table
-    context_dict["total_archived"] = total_archived
-    context_dict["total_bank"] = total_bank
-    context_dict["total_order"] = total_order
 
     context_dict["nb_primers"] = len(primers)
     context_dict["not_check"] = len([primer for primer in primers if primer.snp_status == "0"])
@@ -657,7 +671,7 @@ def submit(request):
         else:
             logger_submit.error("Validation Error")
 
-            for list_form in form_list:
+            for form in form_list:
                 if not form.is_valid():
                     error = form.errors["__all__"]
                     messages.add_message(
