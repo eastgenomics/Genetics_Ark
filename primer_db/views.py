@@ -598,7 +598,7 @@ def submit(request):
                 primer_mapping_data = primer_mapper.main(sequence, gene)
 
                 if "errors" in primer_mapping_data:
-                    logging.error(primer_mapping_data["errors"])
+                    logger_submit.error(primer_mapping_data["errors"])
                     messages.error(request, primer_mapping_data["errors"], extra_tags="alert-danger")
                 else:
                     start_coordinate_37, end_coordinate_37 = primer_mapping_data["data"]["primer1"]["37"]["coordinates"]
@@ -694,7 +694,7 @@ def submit(request):
                         error,
                         extra_tags='alert-danger'
                     )
-                    logger_submit.info("error")
+                    logger_submit.error(error)
 
     ############################################################################################################################
 
@@ -807,7 +807,7 @@ def submit_pair(request):
                     primer_mapping_data = primer_mapper.main(sequence1, gene, sequence2)
 
                     if "errors" in primer_mapping_data:
-                        logging.error(primer_mapping_data["errors"])
+                        logger_submit.error(primer_mapping_data["errors"])
                         messages.error(request, primer_mapping_data["errors"], extra_tags= "alert-danger")
                     else:
                         gene_chrom = primer_mapping_data["data"]["chrom"]
