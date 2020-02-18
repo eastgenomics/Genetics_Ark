@@ -330,6 +330,8 @@ def index(request):
                     else:
                         if filtered_paired_primers is not None:
                             position_filtered_primers = filtered_paired_primers
+                        else:
+                            position_filtered_primers = None
 
                 else:
                     position_filtered_primers = None
@@ -350,10 +352,18 @@ def index(request):
                         for old_key, old_val in filter_params.items():
                             for new_key, new_val in clean_data.items():
                                 if old_key == new_key:
-                                    if old_val != "" and new_val == "":
-                                        new_params[old_key] = old_val
-                                    else:
-                                        new_params[old_key] = new_val
+                                    if old_val and not new_val:
+                                        new_params.setdefault(old_key, []).append(old_val)
+
+                                    elif old_val and new_val:
+                                        new_params.setdefault(old_key, []).append(old_val)
+                                        new_params[old_key].append(new_val)
+
+                                    elif not old_val == "" and new_val:
+                                        new_params.setdefault(old_key, []).append(new_val)
+
+                                    if old_key in new_params:
+                                        new_params[old_key] = ", ".join([str(val) for val in new_params[old_key]])
 
                         request.session["filter_params"] = new_params
                         context_dict["filter_params"] = new_params
