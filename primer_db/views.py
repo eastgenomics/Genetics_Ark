@@ -515,10 +515,13 @@ def index(request):
         filtered_snps = request.session.get("primer_ids_snp", None)
         filter_params = request.session.get("filter_params", None)
 
-        if filtered_snps and "page" in request.GET:
-            primers = Models.PrimerDetails.objects.filter(pk__in = filtered_snps)
+        if filtered_snps and ("page" in request.GET or "sort" in request.GET):
+            if filtered_primers and ("page" in request.GET or "sort" in request.GET):
+                primers = Models.PrimerDetails.objects.filter(pk__in = filtered_primers).filter(pk__in = filtered_snps)
+            else:
+                primers = Models.PrimerDetails.objects.filter(pk__in = filtered_snps)
 
-        elif filtered_primers and "page" in request.GET:
+        elif filtered_primers and ("page" in request.GET or "sort" in request.GET):
             primers = Models.PrimerDetails.objects.filter(pk__in = filtered_primers)
 
         else:
