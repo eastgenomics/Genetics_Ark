@@ -330,6 +330,8 @@ def index(request):
                     else:
                         if filtered_paired_primers is not None:
                             position_filtered_primers = filtered_paired_primers
+                        else:
+                            position_filtered_primers = None
 
                 else:
                     position_filtered_primers = None
@@ -350,10 +352,18 @@ def index(request):
                         for old_key, old_val in filter_params.items():
                             for new_key, new_val in clean_data.items():
                                 if old_key == new_key:
-                                    if old_val != "" and new_val == "":
-                                        new_params[old_key] = old_val
-                                    else:
-                                        new_params[old_key] = new_val
+                                    if old_val and not new_val:
+                                        new_params.setdefault(old_key, []).append(old_val)
+
+                                    elif old_val and new_val:
+                                        new_params.setdefault(old_key, []).append(old_val)
+                                        new_params[old_key].append(new_val)
+
+                                    elif not old_val == "" and new_val:
+                                        new_params.setdefault(old_key, []).append(new_val)
+
+                                    if old_key in new_params:
+                                        new_params[old_key] = ", ".join([str(val) for val in new_params[old_key]])
 
                         request.session["filter_params"] = new_params
                         context_dict["filter_params"] = new_params
@@ -505,10 +515,13 @@ def index(request):
         filtered_snps = request.session.get("primer_ids_snp", None)
         filter_params = request.session.get("filter_params", None)
 
-        if filtered_snps and "page" in request.GET:
-            primers = Models.PrimerDetails.objects.filter(pk__in = filtered_snps)
+        if filtered_snps and ("page" in request.GET or "sort" in request.GET):
+            if filtered_primers and ("page" in request.GET or "sort" in request.GET):
+                primers = Models.PrimerDetails.objects.filter(pk__in = filtered_primers).filter(pk__in = filtered_snps)
+            else:
+                primers = Models.PrimerDetails.objects.filter(pk__in = filtered_snps)
 
-        elif filtered_primers and "page" in request.GET:
+        elif filtered_primers and ("page" in request.GET or "sort" in request.GET):
             primers = Models.PrimerDetails.objects.filter(pk__in = filtered_primers)
 
         else:
@@ -598,7 +611,7 @@ def submit(request):
                 primer_mapping_data = primer_mapper.main(sequence, gene)
 
                 if "errors" in primer_mapping_data:
-                    logging.error(primer_mapping_data["errors"])
+                    logger_submit.error(primer_mapping_data["errors"])
                     messages.error(request, primer_mapping_data["errors"], extra_tags="alert-danger")
                 else:
                     start_coordinate_37, end_coordinate_37 = primer_mapping_data["data"]["primer1"]["37"]["coordinates"]
@@ -694,7 +707,7 @@ def submit(request):
                         error,
                         extra_tags='alert-danger'
                     )
-                    logger_submit.info("error")
+                    logger_submit.error(error)
 
     ############################################################################################################################
 
@@ -807,7 +820,7 @@ def submit_pair(request):
                     primer_mapping_data = primer_mapper.main(sequence1, gene, sequence2)
 
                     if "errors" in primer_mapping_data:
-                        logging.error(primer_mapping_data["errors"])
+                        logger_submit.error(primer_mapping_data["errors"])
                         messages.error(request, primer_mapping_data["errors"], extra_tags= "alert-danger")
                     else:
                         gene_chrom = primer_mapping_data["data"]["chrom"]
