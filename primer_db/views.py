@@ -243,7 +243,9 @@ def index(request):
                         elif field == "position":
                             position_to_filter = value
 
+                # prefilter using other parameters to reduce dataset on which to filter on
                 if filter_params:
+                    # use previously filtered primers as dataset on which to filter on
                     if session_primers:
                         filtered_primers = Models.PrimerDetails.objects.filter(**filter_params, pk__in = session_primers)
                     else:
@@ -277,6 +279,8 @@ def index(request):
                         filtered_lonely_primers = None
 
                     if paired_primers:
+                        # really slow way to do it for now
+                        # need to change pair table to have coverage as seperate fields
                         primer_ids = []
 
                         for primer in paired_primers:
@@ -322,6 +326,7 @@ def index(request):
                     else:
                         filtered_paired_primers = None
 
+                    # combine lonely primers and paired primers depending on their existence
                     if filtered_lonely_primers is not None:
                         if filtered_paired_primers is not None:
                             position_filtered_primers = filtered_lonely_primers | filtered_paired_primers
@@ -334,8 +339,10 @@ def index(request):
                             position_filtered_primers = None
 
                 else:
+                    # position was not given as parameter
                     position_filtered_primers = None
 
+                # combine position filtered primers and "other params" filtered primers
                 if position_filtered_primers is not None:
                     primers = position_filtered_primers & filtered_primers
                 else:
@@ -346,9 +353,11 @@ def index(request):
                 if any(clean_data.values()):
                     filter_params = request.session.get("filter_params", None)
 
+                    # session had filtering applied
                     if filter_params:
                         new_params = {}
 
+                        # complicated ugly thing to get old and new filtering parameters into dict to display for user
                         for old_key, old_val in filter_params.items():
                             for new_key, new_val in clean_data.items():
                                 if old_key == new_key:
@@ -367,6 +376,8 @@ def index(request):
 
                         request.session["filter_params"] = new_params
                         context_dict["filter_params"] = new_params
+                    
+                    # first time filtering in this session
                     else:
                         request.session["filter_params"] = clean_data
                         context_dict["filter_params"] = clean_data
@@ -525,6 +536,7 @@ def index(request):
             primers = Models.PrimerDetails.objects.filter(pk__in = filtered_primers)
 
         else:
+            # if the session doesn't have primers saved, reset the session
             primers = Models.PrimerDetails.objects.all()
 
             if filtered_snps:
@@ -1261,26 +1273,7 @@ def edit_pair(request, PrimerDetails_id):
         if primer.pairs_id:
             # if primer is from a pair and to be edited in pair form
             paired_primers = Models.PrimerDetails.objects.filter(pairs_id = primer.pairs_id)
-
-            if len(paired_primers) == 2:
-                primer1, primer2 = paired_primers
-
-            elif len(paired_primers) > 2:
-                logger_editing.error("This pair id {} is shared by 3 or more primers".format(primer.pairs_id))
-                messages.add_message(request,
-                    messages.ERROR,
-                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as this issue can't be solved from the interface",
-                    extra_tags="alert-danger")
-                return redirect("/primer_db/")
-
-            else:
-                logger_editing.error("This pair id {} is present in only one primer".format(primer.pairs_id))
-                messages.add_message(request,
-                    messages.ERROR,
-                    "Please contact BioinformaticsTeamGeneticsLab@addenbrookes.nhs.uk as an underlying issue has been detected",
-                    extra_tags="alert-danger"
-                )
-                return redirect('edit_primer', PrimerDetails_id = primer.id)
+            primer1, primer2 = paired_primers
 
             context_dict["primer2"] = primer2        
             context_dict["primer1"] = primer1
@@ -1417,9 +1410,9 @@ def edit_pair(request, PrimerDetails_id):
                     if data["object"] != model_to_dict(primer)[field]:
                         update_params[field] = data["object"]
 
-                Models.PrimerDetails.objects.filter(id=primer1.id).update(**update_params)
-
                 logger_editing.info("Updating: {} {}".format(primer1.id, primer1))
+
+                Models.PrimerDetails.objects.filter(id=primer1.id).update(**update_params)
 
                 #################################################################################
 
@@ -1441,9 +1434,9 @@ def edit_pair(request, PrimerDetails_id):
                     if data["object"] != model_to_dict(primer)[field]:
                         update_params[field] = data["object"]
 
-                Models.PrimerDetails.objects.filter(id=primer2.id).update(**update_params)
-
                 logger_editing.info("Updating primer: {} {}".format(primer2.id, primer2))
+
+                Models.PrimerDetails.objects.filter(id=primer2.id).update(**update_params)
 
                 messages.success(request, 'Primer "{}" and "{}" successfully updated'.format(primer1, primer2),
                     extra_tags="alert-success")
@@ -1486,74 +1479,78 @@ def edit_pair(request, PrimerDetails_id):
 
         ############################################################################################################################
 
-        elif request.POST.get("update_date_button"):
-            queryset_primer1 = Models.PrimerDetails.objects.get(pk = primer1.id)
-            queryset_primer2 = Models.PrimerDetails.objects.get(pk = primer2.id)
+        # NOT USED ANYMORE
 
-            last_used_form = Forms.DateLastUsedForm(request.POST, prefix = "form1")
+        # elif request.POST.get("update_date_button"):
+        #     queryset_primer1 = Models.PrimerDetails.objects.get(pk = primer1.id)
+        #     queryset_primer2 = Models.PrimerDetails.objects.get(pk = primer2.id)
+
+        #     last_used_form = Forms.DateLastUsedForm(request.POST, prefix = "form1")
            
-            if last_used_form.is_valid():
-                last_used = last_used_form.cleaned_data["date_last_used"]
+        #     if last_used_form.is_valid():
+        #         last_used = last_used_form.cleaned_data["date_last_used"]
 
-            logger_editing.info("UPDATING LAST DATE USED FOR \"{}\" AND \"{}\" to \"{}\"".format(queryset_primer1, queryset_primer2, last_used))
+        #     logger_editing.info("UPDATING LAST DATE USED FOR \"{}\" AND \"{}\" to \"{}\"".format(queryset_primer1, queryset_primer2, last_used))
 
-            queryset_primer1.last_date_used = last_used
-            queryset_primer2.last_date_used = last_used
-            queryset_primer1.save()
-            queryset_primer2.save()
+        #     queryset_primer1.last_date_used = last_used
+        #     queryset_primer2.last_date_used = last_used
+        #     queryset_primer1.save()
+        #     queryset_primer2.save()
             
-            messages.success(
-                request, 'Last date used for primer "{}" and "{}" successfully updated'.format(
-                    queryset_primer1, queryset_primer2
-                ),
-                extra_tags="alert-success")
+        #     messages.success(
+        #         request, 'Last date used for primer "{}" and "{}" successfully updated'.format(
+        #             queryset_primer1, queryset_primer2
+        #         ),
+        #         extra_tags="alert-success")
 
         ############################################################################################################################
 
-        elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
-            # 2 ways to delete stuff: one primer or the pair
-            delete_primer1 = request.POST.get("delete_primer1_button", None)
-            delete_primer2 = request.POST.get("delete_primer2_button", None)
-            delete_pair = request.POST.get("delete_pair_button", None)
+        # NOT USED ANYMORE
 
-            if delete_pair:
-                pair_to_delete = primer1.pairs
+        # elif request.POST.get("delete_primer1_button") or request.POST.get("delete_pair_button") or request.POST.get("delete_primer2_button"):
+        #     # 2 ways to delete stuff: one primer or the pair
+        #     delete_primer1 = request.POST.get("delete_primer1_button", None)
+        #     delete_primer2 = request.POST.get("delete_primer2_button", None)
+        #     delete_pair = request.POST.get("delete_pair_button", None)
 
-                messages.success(request, 'Pair with "{}" "{}" successfully deleted'.format(primer1, primer2),
-                    extra_tags="alert-success")
+        #     if delete_pair:
+        #         pair_to_delete = primer1.pairs
 
-                logger_deleting.info("DELETING: {}".format(primer1))
-                logger_deleting.info("DELETING: {}".format(primer2))
-                logger_deleting.info("DELETING PAIR ID: {}".format(pair_to_delete.id))
+        #         messages.success(request, 'Pair with "{}" "{}" successfully deleted'.format(primer1, primer2),
+        #             extra_tags="alert-success")
 
-                primer1.delete()
-                primer2.delete()
-                pair_to_delete.delete()
+        #         logger_deleting.info("DELETING: {}".format(primer1))
+        #         logger_deleting.info("DELETING: {}".format(primer2))
+        #         logger_deleting.info("DELETING PAIR ID: {}".format(pair_to_delete.id))
 
-                return redirect("/primer_db/")
+        #         primer1.delete()
+        #         primer2.delete()
+        #         pair_to_delete.delete()
 
-            if delete_primer1:
-                primer = Models.PrimerDetails.objects.get(pk = delete_primer1)
-            elif delete_primer2:
-                primer = Models.PrimerDetails.objects.get(pk = delete_primer2)
+        #         return redirect("/primer_db/")
+
+        #     if delete_primer1:
+        #         primer = Models.PrimerDetails.objects.get(pk = delete_primer1)
+        #     elif delete_primer2:
+        #         primer = Models.PrimerDetails.objects.get(pk = delete_primer2)
             
-            pair_to_delete = primer.pairs
+        #     pair_to_delete = primer.pairs
 
-            paired_primer = Models.PrimerDetails.objects.filter(pairs__id = pair_to_delete.id).exclude(name = primer.name)[0]
-            paired_primer.pairs_id = None
-            paired_primer.save()
+        #     paired_primer = Models.PrimerDetails.objects.filter(pairs__id = pair_to_delete.id).exclude(name = primer.name)[0]
+        #     paired_primer.pairs_id = None
+        #     paired_primer.save()
 
-            messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
-                extra_tags="alert-success")
+        #     messages.success(request, 'Primer "{}" successfully deleted'.format(primer),
+        #         extra_tags="alert-success")
 
-            logger_deleting.info("DELETING: {}".format(primer))
-            logger_deleting.info("DELETING PAIR ID: {}".format(pair_to_delete.id))
-            logger_deleting.info("{} LEFT WITHOUT PAIR".format(paired_primer))
+        #     logger_deleting.info("DELETING: {}".format(primer))
+        #     logger_deleting.info("DELETING PAIR ID: {}".format(pair_to_delete.id))
+        #     logger_deleting.info("{} LEFT WITHOUT PAIR".format(paired_primer))
             
-            pair_to_delete.delete()
-            primer.delete()
+        #     pair_to_delete.delete()
+        #     primer.delete()
 
-            return  redirect('/primer_db/')
+        #     return  redirect('/primer_db/')
 
         ############################################################################################################################
 
@@ -1613,6 +1610,7 @@ def edit_pair(request, PrimerDetails_id):
     else:
         return redirect('edit_primer', PrimerDetails_id = primer.id)
 
+    # dicts to prefill the form fields
     primer1_details_dict = {
         'name' : primer1.name, 'gene' : primer1.gene,
         'comments' : primer1.comments, 'buffer' : primer1.buffer,
@@ -1642,22 +1640,20 @@ def edit_pair(request, PrimerDetails_id):
         "location": primer2.location
     }
 
+    # prefix needed to differenciate form for primer1 and primer2
     primer_form1 = Forms.PrimerForm(initial = primer1_details_dict, prefix = "form1")
     arrival_date_form1 = Forms.ArrivalDateForm(initial = model_to_dict(primer1), prefix = "form1")
     status_loc_form1 = Forms.StatusLocationForm(initial = primer1_statusLoc, prefix = "form1")
     date_last_used_form1 = Forms.DateLastUsedForm(initial = primer1_last_used, prefix = "form1")
 
-    # data for second primer
     primer_form2 = Forms.PrimerForm(initial = primer2_details_dict, prefix = "form2")
     arrival_date_form2 = Forms.ArrivalDateForm(initial = model_to_dict(primer2), prefix = "form2")
     status_loc_form2 = Forms.StatusLocationForm(initial = primer2_statusLoc, prefix = "form2")
 
-    # data for first primer
     context_dict["primer_form1"] = primer_form1
     context_dict["arrival_date_form1"] = arrival_date_form1
     context_dict["status_loc_form1"] = status_loc_form1
 
-    # data for second primer
     context_dict["primer_form2"] = primer_form2
     context_dict["arrival_date_form2"] = arrival_date_form2
     context_dict["status_loc_form2"] = status_loc_form2
@@ -1670,6 +1666,7 @@ def edit_pair(request, PrimerDetails_id):
 
         for snp_info in primer1.snp_info.split(";"):
             data = []
+
             for ele in snp_info.split(","):
                 if "?" not in ele:
                     data.append(ele.strip())
@@ -1688,6 +1685,7 @@ def edit_pair(request, PrimerDetails_id):
 
         for snp_info in primer2.snp_info.split(";"):
             data = []
+            
             for ele in snp_info.split(","):
                 if "?" not in ele:
                     data.append(ele.strip())
