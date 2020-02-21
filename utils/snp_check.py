@@ -26,42 +26,49 @@ import primer_db.models as Models
 
 sys.path.append("/mnt/storage/home/kimy/projects/HGNC_api/bin/")
 
-import HGNC_api
+import hgnc_queries
 
 ALLELE_FREQUENCY_THRESHOLD = 0.005
 hgnc_dict = {}
 
 
-def rescue_gene_symbol_with_HGNC(gene_name):
+def rescue_gene_symbol_with_HGNC(gene_symbol):
     """ Get HGNC symbol for gene symbol given if the gene symbol is not recognized in gnomAD """
 
-    if gene_name not in hgnc_dict:
-        new_gene = HGNC_api.get_new_symbol(gene_name)
+    if gene_symbol not in hgnc_dict:
+        new_symbol = hgnc_queries.get_new_symbol(gene_symbol, False)
 
-        if not new_gene:
-            # if no new symbol retrieved, check aliases
-            alias_list = HGNC_api.get_alias(gene_name)
+        if new_symbol:
+            for ref in ["37", "38"]:
+                query_res = gnomAD_queries.snp_check_query(new_symbol, ref)
 
-            if alias_list:
-                # see if the aliases get us a new gene name
-                for alias in alias_list:
-                    for ref in ["37", "38"]:
-                        query_res = gnomAD_queries.snp_check_query(alias, ref)
-        
-                        # if gnomAD recognizes the alias, get the "main" symbol of the alias
-                        if query_res:
-                            alias_id = HGNC_api.get_id(alias)
-                            new_gene = HGNC_api.get_symbol_from_id(alias_id)
+                if query_res:
+                    hgnc_dict[gene_symbol] = new_symbol
+                    return new_symbol
+                
+                time.sleep(0.0001)
+        else:
+            main_symbol = hgnc_queries.get_main_symbol(gene_symbol, False)
 
-                        time.sleep(0.0001)
+            if main_symbol:
+                for ref in ["37", "38"]:
+                    query_res = gnomAD_queries.snp_check_query(main_symbol, ref)
 
-        hgnc_dict[gene_name] = new_gene
+                    if query_res:
+                        hgnc_dict[gene_symbol] = main_symbol
+                        return main_symbol
+
+                    time.sleep(0.0001)
+            
+            else:
+                hgnc_dict[gene_symbol] = None
         
     else:
-        new_gene = hgnc_dict[gene_name]
-    
-    return new_gene
+        new_gene = hgnc_dict[gene_symbol]
+        return new_gene
 
+    return None
+    
 
 def get_snp(ref, snp, primer_start, primer_end):
     """ Given a snp and the coordinates of a primer, return list with position of snp on the primer + gnomAD link """
@@ -121,6 +128,7 @@ def main(gene, primer_start_37, primer_end_37, primer_start_38, primer_end_38):
             
             if new_gene:
                 total_snps = gnomAD_queries.snp_check_query(new_gene, ref)
+                print(total_snps)
 
                 if not total_snps:
                     # still not recognized
