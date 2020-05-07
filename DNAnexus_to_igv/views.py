@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 import subprocess
 
@@ -25,16 +26,31 @@ def find_dx_bams(sample_id):
     idx = subprocess.check_output(dx_find_idx, shell=True)
 
     if bam and idx:
+        # if bam found
         # get just the file id and index id
         split_bam = bam.split( )[-1].strip("()").split(":")
         split_idx = idx.split( )[-1].strip("()").split(":")
 
+        bam_project_id = split_bam[0]
         bam_file_id = split_bam[1]
         idx_file_id = split_idx[1]
-    else:
-        bam_file_id, idx_file_id = None, None
 
-    return bam_file_id, idx_file_id
+        # dx commands to get readable file and project names
+        dx_bam_name = "dx describe --json {}".format(bam_file_id)
+        dx_project_name = "dx describe --json {}".format(bam_project_id)
+
+        # returns a json as a string so convert back to json to select name out
+        bam_name = json.loads(subprocess.check_output(dx_bam_name, shell=True))
+        project_name = json.loads(subprocess.check_output(dx_project_name, shell=True))
+        
+        bam_name = bam_name["name"]
+        project_name = project_name["name"]
+
+    else:
+        # bam not found
+        bam_file_id, idx_file_id, bam_name, project_name = None, None, None, None
+
+    return bam_file_id, idx_file_id, bam_name, project_name
   
  
 def get_dx_urls(bam_file_id, idx_file_id):
@@ -74,7 +90,7 @@ def nexus_search(request):
             sample_id = sample_id.upper() # in case X is given lower case
          
             # find bams in DNAnexus with given sample id
-            bam_file_id, idx_file_id = find_dx_bams(sample_id)
+            bam_file_id, idx_file_id, bam_name, project_name = find_dx_bams(sample_id)
 
             if bam_file_id and idx_file_id:
 
@@ -84,10 +100,14 @@ def nexus_search(request):
                 request.session["sampleID"] = sample_id
                 request.session["bam_url"] = bam_url
                 request.session["idx_url"] = idx_url
+                request.session["bam_name"] = bam_name
+                request.session["project_name"] = project_name
 
                 context_dict["sampleID"] = sample_id
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url
+                context_dict["bam_name"] = bam_name
+                context_dict["project_name"] = project_name
 
             else:
                 messages.add_message(request,
