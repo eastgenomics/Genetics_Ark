@@ -15,18 +15,29 @@
     {% endfor %} 
 {% endif %}
 
+<div class="well">
+    
 <h2>DNAnexus to IGV</h2></br>
+
+Currently only newly sequenced samples processed through DNAnexus will be available to view through this instance of IGV.<br>
+Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV installed locally <br>
+on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
+For older samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.
+
 
 <form method="post" action="" style="padding-top:10px;" name="search_form">
     {% csrf_token %}
     {{ search_form.sampleID }}
     <br></br>
     <button name="search_form" type="submit" class = "bt btn-primary">Search</button>
-</form><br>
+</form>
+
+</div>
+
+<div class="well">
 
 {% if sampleID %}
 
-    <br>
     <div>
         Sample ID: {{ sampleID }}
         <br></br>
@@ -37,8 +48,8 @@
            <li>Index url: {{ idx_url }}</li>
         </ul>
 
-    <br></br>
-    BAMs may be viewed in web based IGV hosted on Genetics Ark:
+    <br>
+    BAMs may be viewed in web based IGV hosted on Genetics Ark here:
     <br></br>
 
     <form action="" method="post">
@@ -50,6 +61,7 @@
 
 {% endif %}
 
+</div>
 
 </html>
 </body>

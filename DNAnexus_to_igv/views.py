@@ -92,13 +92,12 @@ def nexus_search(request):
             else:
                 messages.add_message(request,
                                 messages.ERROR,
-                                "Sample {} not found in DNAnexus, either it is not available or an error has occured. Please contact the bioinformatics team.".format(sample_id),
+                                "Sample {} not found in DNAnexus, either it is not available or an error has occured.Please contact the bioinformatics team.".format(sample_id),
                                 extra_tags="alert-danger"
                             )
-
             
         if "igv_ga" in request.POST:
-            print "getting"
+            # view in igv button pressed
 
             sampleID = request.session["sampleID"]
             bam_url = request.session["bam_url"]
@@ -110,11 +109,6 @@ def nexus_search(request):
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
-
-            print type(bam_url)
-            print type(idx_url)
-            print bam_url
-            print idx_url
 
             return render(request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
