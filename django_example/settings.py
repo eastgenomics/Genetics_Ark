@@ -26,7 +26,7 @@ SECRET_KEY = '%w1)bj+9ehivnvqjv=sal*y(wiwwz5y!m@v1zeracm&5)e%xp%'
 DEBUG = True
 
 # Brugger: Uncomment for production use, and the setting will change below 
-DEBUG = False
+#DEBUG = False
 
 
 
@@ -38,6 +38,7 @@ else:
     ALLOWED_HOSTSi= ['10.212.75.240']
     ALLOWED_HOSTS = ['login01']
     ALLOWED_HOSTS = ['ga.ctrulab.uk']
+    ALLOWED_HOSTS = ['10.212.75.208']
 
 # Application definition
 
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'DNAnexus_to_igv'
 
 ]
 
@@ -92,62 +94,81 @@ WSGI_APPLICATION = 'django_example.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_django',
+#         'USER': 'easih_admin',
+#         'PASSWORD': 'easih',
+#         'HOST': 'mgsrv01',
+#         },
+
+#     'genetics_ark_db': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_1_1_0_django',
+#         'USER': 'easih_admin',
+#         'PASSWORD': 'easih',
+#         'HOST': 'mgsrv01',
+#         },
+#     }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_django',
+#         'USER': 'ccbg_admin',
+#         'PASSWORD': 'ccbg',
+#         'HOST': 'sql01',
+#         },
+
+#     'genetics_ark_db': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'genetics_ark_1_1_0',
+#         'USER': 'ccbg_admin',
+#         'PASSWORD': 'ccbg',
+#         'HOST': 'sql01',
+#         },
+#     }
+
+
+# if ( DEBUG == False ):
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': 'genetics_ark_django',
+#             'user': 'ccbg_admin',
+#             'PASSWORD': 'ccbg',
+#             'HOST': 'sql01',
+#             },
+
+#         'genetics_ark_db': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': 'genetics_ark_1_1_0',
+#             'USER': 'ccbg_admin',
+#             'PASSWORD': 'ccbg',
+#             'HOST': 'sql01',
+#             },
+#         }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_django',
-        'USER': 'easih_admin',
-        'PASSWORD': 'easih',
-        'HOST': 'mgsrv01',
-        },
+     'default': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'primer_django',
+         'USER': 'rainfoj',
+         'PASSWORD': 'primer',
+         'HOST': 'sql01',
+         },
 
-    'genetics_ark_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_1_1_0_django',
-        'USER': 'easih_admin',
-        'PASSWORD': 'easih',
-        'HOST': 'mgsrv01',
-        },
-    }
+     'genetics_ark_db': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'primer_django',
+         'USER': 'rainfoj',
+         'PASSWORD': 'primer',
+         'HOST': 'sql01',
+         },
+     }
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_django',
-        'USER': 'ccbg_admin',
-        'PASSWORD': 'ccbg',
-        'HOST': 'sql01',
-        },
-
-    'genetics_ark_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_1_1_0',
-        'USER': 'ccbg_admin',
-        'PASSWORD': 'ccbg',
-        'HOST': 'sql01',
-        },
-    }
-
-
-if ( DEBUG == False ):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark_django',
-            'user': 'ccbg_admin',
-            'PASSWORD': 'ccbg',
-            'HOST': 'sql01',
-            },
-
-        'genetics_ark_db': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark_1_1_0',
-            'USER': 'ccbg_admin',
-            'PASSWORD': 'ccbg',
-            'HOST': 'sql01',
-            },
-        }
 
 DATABASE_ROUTERS = ['django_example.router.Router']
 

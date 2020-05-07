@@ -34,4 +34,6 @@ urlpatterns = [
 
     # Admin panel, can be disabled.
     url(r'^admin/', admin.site.urls),
+
+    url(r'DNAnexus_to_igv/', include('DNAnexus_to_igv.urls'))
 ]

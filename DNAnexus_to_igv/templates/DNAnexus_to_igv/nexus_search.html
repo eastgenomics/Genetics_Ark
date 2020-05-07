@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_block %}
+
+<!-- <body style="padding-top: 80px; padding-left: 20px"> -->
+<html>
+<link rel="stylesheet" type="text/css" href="{% static 'css/link_button.css' %}">
+
+<h2>DNAnexus to IGV</h2></br>
+
+<form method="post" action="" style="padding-top:10px;" name="search_form">
+    {% csrf_token %}
+    {{ search_form.sampleID }}
+    <br></br>
+    <button name="search_form" type="submit" class = "bt btn-primary">Search</button>
+</form><br>
+
+{% if sampleID %}
+
+    <br>
+    <div>
+        Sample ID: {{ sampleID }}
+        <br>
+        <ul>
+           <li>BAM url: {{ bam_url }}</li>
+           <li>Index url: {{ idx_url }}</li>
+        </ul>
+    
+    <form action="" method="post">
+        {% csrf_token %}
+        <button name="igv_ga" type="submit" class = "bt btn-primary">View in web IGV</button>
+    </form>
+
+    </div>
+
+{% endif %}
+
+
+</html>
+</body>
+
+{% endblock %}

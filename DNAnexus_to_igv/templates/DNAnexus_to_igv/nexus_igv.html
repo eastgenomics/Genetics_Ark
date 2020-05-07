@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+
+{% block body_block %}
+<!-- {% load render_table from django_tables2 %} -->
+{% block extrastyle %}
+  <link rel="stylesheet" type="text/css"  href="/static/django_tables2/themes/paleblue/css/screen.css" %}" />
+{% endblock %}
+
+
+<h2>IGV browser for {{ sampleID }}</h2><br>
+
+{{ bam_url }}
+{{ idx_url }}
+
+   <div class="container-fluid" id="igv_browser" style="padding:5px; border:1px solid lightgray"></div>
+
+
+
+    <hr>
+{% endblock %}
+
+{% block script %}
+
+
+    $(document).ready(function () {
+
+      var div = $("#igv_browser")[0],
+         options = {
+            showNavigation: true,
+            showRuler: true,
+            showKaryo: false,
+            reference: {
+                   id: "hg19",
+                   fastaURL: "http://bams2.ctrulab.uk/Homo_sapiens_assembly37.fasta",
+            },
+            genome: "hg19",
+    {% if chrom and pos %}
+            locus: "{{chrom}}:{{pos}}",
+    {% endif %}
+             tracks: [
+                    {
+                     name: "Gencode v19",
+                     type: "annotation",
+                     format: "bed",
+                         sourceType: "file",
+                         url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz",
+                         indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz.tbi",
+                         order: Number.MAX_VALUE,
+                         visibilityWindow: 300000000,
+                         displayMode: "EXPANDED"
+                     }, 
+                     {
+                     // bams need to be served by a real web-server!
+                     url: '{{ bam_url }}',
+                     indexURL: '{{ idx_url }}',
+                     name: '{{ sampleID }}',
+                     alignmentShading: 'strand',
+                     height: 300
+                     }
+                    ]
+                };
+
+        igv.createBrowser(div, options);
+      });
+
+{% endblock %}
