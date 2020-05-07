@@ -90,8 +90,8 @@ def nexus_search(request):
             bam_url = request.session["bam_url"]
             idx_url = request.session["idx_url"]
 
-            bam_url = str(bam_url)
-            idx_url =str(idx_url)
+            bam_url = str(bam_url).strip
+            idx_url =str(idx_url).strip
 
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url
