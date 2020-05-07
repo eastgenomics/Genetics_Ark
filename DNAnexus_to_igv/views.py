@@ -92,7 +92,7 @@ def nexus_search(request):
             else:
                 messages.add_message(request,
                                 messages.ERROR,
-                                "Sample {} not found in DNAnexus, either it is not available or an error has occured.Please contact the bioinformatics team.".format(sample_id),
+                                "Sample {} not found in DNAnexus, either it is not available or an error has occured. Please contact the bioinformatics team.".format(sample_id),
                                 extra_tags="alert-danger"
                             )
             
