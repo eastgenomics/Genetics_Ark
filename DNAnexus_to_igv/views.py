@@ -9,8 +9,6 @@ from django.shortcuts import render
 import DNAnexus_to_igv.forms as Forms
 
 
-sample_id="X011613"
-
 def find_dx_bams(sample_id):
     """
     Function to find file and index id for a bam in DNAnexus given a sample id
@@ -26,17 +24,17 @@ def find_dx_bams(sample_id):
     bam = subprocess.check_output(dx_find_bam, shell=True)
     idx = subprocess.check_output(dx_find_idx, shell=True)
 
-    # get just the file id and project id
+    # get just the file id and index id
     split_bam = bam.split( )[-1].strip("()").split(":")
     split_idx = idx.split( )[-1].strip("()").split(":")
 
     bam_file_id = split_bam[1]
     idx_file_id = split_idx[1]
     
-    return bam_project_id, bam_file_id, idx_file_id
+    return bam_file_id, idx_file_id
 
 
-def get_dx_urls(bam_project_id, bam_file_id, idx_file_id):
+def get_dx_urls(bam_file_id, idx_file_id):
     """ 
     Get preauthenticated dx download urls for bam and index from given id's
     Args:
@@ -44,9 +42,6 @@ def get_dx_urls(bam_project_id, bam_file_id, idx_file_id):
     Returns:
         - bam_url, idx_url
     """
-
-    # gross mess because DNAnexus api requires everything in double quotes, 
-    # probably could be made nicer but .format() wouldn't work, future problems
 
     dx_get_bam_url = "dx make_download_url {}".format(bam_file_id)
     dx_get_idx_url = "dx make_download_url {}".format(idx_file_id)
@@ -74,10 +69,10 @@ def nexus_search(request):
             sample_id = clean_data["sampleID"]
 
             # find bams in DNAnexus with given sample id
-            bam_project_id, bam_file_id, idx_file_id = find_dx_bams(sample_id)
+            bam_file_id, idx_file_id = find_dx_bams(sample_id)
 
             # get the urls for bam and index
-            bam_url, idx_url = get_dx_urls(bam_project_id, bam_file_id, idx_file_id)
+            bam_url, idx_url = get_dx_urls(bam_file_id, idx_file_id)
 
             request.session["sampleID"] = clean_data["sampleID"]
             request.session["bam_url"] = bam_url
