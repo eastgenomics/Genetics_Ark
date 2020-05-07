@@ -2,12 +2,12 @@
 import os
 import subprocess
 
+from django.contrib import messages
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import render
 
 import DNAnexus_to_igv.forms as Forms
-
 
 def find_dx_bams(sample_id):
     """
@@ -24,16 +24,19 @@ def find_dx_bams(sample_id):
     bam = subprocess.check_output(dx_find_bam, shell=True)
     idx = subprocess.check_output(dx_find_idx, shell=True)
 
-    # get just the file id and index id
-    split_bam = bam.split( )[-1].strip("()").split(":")
-    split_idx = idx.split( )[-1].strip("()").split(":")
+    if bam and idx:
+        # get just the file id and index id
+        split_bam = bam.split( )[-1].strip("()").split(":")
+        split_idx = idx.split( )[-1].strip("()").split(":")
 
-    bam_file_id = split_bam[1]
-    idx_file_id = split_idx[1]
-    
+        bam_file_id = split_bam[1]
+        idx_file_id = split_idx[1]
+    else:
+        bam_file_id, idx_file_id = None, None
+
     return bam_file_id, idx_file_id
-
-
+  
+ 
 def get_dx_urls(bam_file_id, idx_file_id):
     """ 
     Get preauthenticated dx download urls for bam and index from given id's
@@ -67,20 +70,31 @@ def nexus_search(request):
                 clean_data = search_form.cleaned_data
             
             sample_id = clean_data["sampleID"]
-
+            sample_id = str(sample_id).strip() # in case they put spaces
+            sample_id = sample_id.upper() # in case X is given lower case
+         
             # find bams in DNAnexus with given sample id
             bam_file_id, idx_file_id = find_dx_bams(sample_id)
 
-            # get the urls for bam and index
-            bam_url, idx_url = get_dx_urls(bam_file_id, idx_file_id)
+            if bam_file_id and idx_file_id:
 
-            request.session["sampleID"] = clean_data["sampleID"]
-            request.session["bam_url"] = bam_url
-            request.session["idx_url"] = idx_url
+                # get the urls for bam and index
+                bam_url, idx_url = get_dx_urls(bam_file_id, idx_file_id)
 
-            context_dict["sampleID"] = clean_data["sampleID"]
-            context_dict["bam_url"] = bam_url
-            context_dict["idx_url"] = idx_url
+                request.session["sampleID"] = sample_id
+                request.session["bam_url"] = bam_url
+                request.session["idx_url"] = idx_url
+
+                context_dict["sampleID"] = sample_id
+                context_dict["bam_url"] = bam_url
+                context_dict["idx_url"] = idx_url
+
+            else:
+                messages.add_message(request,
+                                messages.ERROR,
+                                "Sample {} not found in DNAnexus, either it is not available or an error has occured. Please contact the bioinformatics team.".format(sample_id),
+                                extra_tags="alert-danger"
+                            )
 
             
         if "igv_ga" in request.POST:

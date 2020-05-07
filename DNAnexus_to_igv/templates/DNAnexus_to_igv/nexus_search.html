@@ -7,6 +7,14 @@
 <html>
 <link rel="stylesheet" type="text/css" href="{% static 'css/link_button.css' %}">
 
+{% if messages %} 
+    {% for message in messages %}
+        <div class="alert {{ message.tags }}" role="alert">
+            <strong>{{ message }}</strong> 
+        </div>
+    {% endfor %} 
+{% endif %}
+
 <h2>DNAnexus to IGV</h2></br>
 
 <form method="post" action="" style="padding-top:10px;" name="search_form">
@@ -21,12 +29,18 @@
     <br>
     <div>
         Sample ID: {{ sampleID }}
-        <br>
+        <br></br>
+        BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
+        <br></br>
         <ul>
            <li>BAM url: {{ bam_url }}</li>
            <li>Index url: {{ idx_url }}</li>
         </ul>
-    
+
+    <br></br>
+    BAMs may be viewed in web based IGV hosted on Genetics Ark:
+    <br></br>
+
     <form action="" method="post">
         {% csrf_token %}
         <button name="igv_ga" type="submit" class = "bt btn-primary">View in web IGV</button>
