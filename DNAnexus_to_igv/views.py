@@ -10,17 +10,33 @@ from django.shortcuts import render
 
 import DNAnexus_to_igv.forms as Forms
 
-def find_dx_bams(sample_id):
+def get_002_projects():
+    """
+    Get list of all 002 sequencing projects on DNAnexus to pull bams from
+    """
+
+    # dx command to find 002 projects
+    dx_find_projects = "dx find projects --name 002*"
+
+    projects_002 = subprocess.check_output(dx_find_projects, shell=True)
+    
+    # get just the project id's from returned string
+    projects_002 = projects_002.replace("\n", " ").split(" ")
+    project_002_list = filter(lambda x: x.startswith('project-'), projects_002)
+
+    return project_002_list
+
+def find_dx_bams(project_id, sample_id):
     """
     Function to find file and index id for a bam in DNAnexus given a sample id
     Args:
-        - sample_id
+        - project id, sample_id
     Returns:
         - bam_file_id, idx_file_id, bam_project_id, idx_project_id, bam_name, project_name
     """
     # dx commands to retrieve bam and bam.bai for given sample
-    dx_find_bam = "dx find data --all-projects --name *{}*_markdup.bam".format(sample_id)
-    dx_find_idx = "dx find data --all-projects --name *{}*_markdup.bam.bai".format(sample_id)
+    dx_find_bam = "dx find data --path {} --name *{}*_markdup.bam".format(project_id, sample_id)
+    dx_find_idx = "dx find data --path {} --name *{}*_markdup.bam.bai".format(project_id, sample_id)
 
     bam = subprocess.check_output(dx_find_bam, shell=True)
     idx = subprocess.check_output(dx_find_idx, shell=True)
@@ -28,28 +44,28 @@ def find_dx_bams(sample_id):
     if bam and idx:
         # if bam found
 
-        # get just the file and index id
-        split_bam = bam.split( )[-1].strip("()").split(":")
-        split_idx = idx.split( )[-1].strip("()").split(":")
-
-        bam_project_id = split_bam[0]
-        idx_project_id = split_idx[0]
-
-        bam_file_id = split_bam[1]
-        idx_file_id = split_idx[1]            
+        # get just the bam and index id
+        bam_file_id = bam.split( )[-1].strip("()")
+        idx_file_id = idx.split( )[-1].strip("()")
 
         # dx commands to get readable file and project names
         dx_bam_name = "dx describe --json {}".format(bam_file_id)
-        dx_project_name = "dx describe --json {}".format(bam_project_id)
+        dx_id_name = "dx describe --json {}".format(idx_file_id)
+        dx_project_name = "dx describe --json {}".format(project_id)
 
-        # returns a json as a string so convert back to json to select name out
-        bam_name = json.loads(subprocess.check_output(dx_bam_name, shell=True))
-        project_name = json.loads(subprocess.check_output(dx_project_name, shell=True))
-        
+        # returns a json as a string so convert back to json to select name and id's out
+        bam_json = json.loads(subprocess.check_output(dx_bam_name, shell=True))
+        idx_json = json.loads(subprocess.check_output(dx_id_name, shell=True))
+        project_json = json.loads(subprocess.check_output(dx_project_name, shell=True))
+
         # get bam and project names to display
-        bam_name = bam_name["name"]
-        project_name = project_name["name"]
+        bam_name = bam_json["name"]
+        project_name = project_json["name"]
 
+        # get bam and index project ids to check they're from same run
+        bam_project_id = bam_json["project"]
+        idx_project_id = idx_json["project"]
+        
     else:
         # bam not found
         bam_file_id, idx_file_id, bam_name, bam_project_id, idx_project_id, project_name = None, None, None, None, None, None
@@ -96,10 +112,19 @@ def nexus_search(request):
             sample_id = str(sample_id).strip() # in case they put spaces
             sample_id = sample_id.upper() # in case X is given lower case
          
-            # find bams in DNAnexus with given sample id
-            bam_file_id, idx_file_id, bam_project_id, idx_project_id, bam_name, project_name = find_dx_bams(sample_id)
+            # get list of 002 projects
+            project_002_list = get_002_projects()
+
+            for project in project_002_list:
+                # find bams in DNAnexus for given sample id
+                bam_file_id, idx_file_id, bam_project_id, idx_project_id, bam_name, project_name = find_dx_bams(project, sample_id)
+
+                if bam_file_id and idx_file_id:
+                    # bam and index found, no need to search rest of projects
+                    break
 
             if bam_file_id and idx_file_id:
+                # if bam and index were found
 
                 if bam_project_id != idx_project_id:
                     # bam and index not from same run
@@ -130,10 +155,12 @@ def nexus_search(request):
                     context_dict["project_name"] = project_name
 
             else:
-                # if bam and index not found
+                # if bam and index were not found
                 messages.add_message(request,
                                 messages.ERROR,
-                                "Sample {} not found in DNAnexus, either it is not available or an error has occured. Please contact the bioinformatics team.".format(sample_id),
+                                "Sample {} not found in DNAnexus, either it is not available or an error \
+                                has occured. Please contact the bioinformatics team if you believe the sample \
+                                should be available.".format(sample_id),
                                 extra_tags="alert-danger"
                             )
             

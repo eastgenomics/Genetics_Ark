@@ -15,7 +15,7 @@
     {% endfor %} 
 {% endif %}
 
-<div class="well" style="width:864px;">
+<div class="well" style="width:1000px;">
     
 <h2>DNAnexus to IGV</h2></br>
 
@@ -24,7 +24,7 @@ Enter the sample ID (e.g. X010000) in the search box and click search, this will
 on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
 For older samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.<br></br>
 
-The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.
+The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
 
 <form method="post" action="" style="padding-top:10px;" name="search_form">
     {% csrf_token %}
@@ -37,7 +37,7 @@ The IGV user guide may be found <a href="https://software.broadinstitute.org/sof
 
 {% if sampleID %}
 
-<div class="well" style="width:864px;">
+<div class="well" style="width:1000px;">
 
     <div>
         Reuqested Sample: <b>{{ sampleID }}</b><br>
@@ -47,8 +47,8 @@ The IGV user guide may be found <a href="https://software.broadinstitute.org/sof
         BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
         <br></br>
         <ul>
-           <li>BAM url: <b>{{ bam_url }}</b></li>
-           <li>Index url: <b>{{ idx_url }}</b></li>
+           <li>BAM url:<br> <b>{{ bam_url }}</b></li>
+           <li>Index url:<br> <b>{{ idx_url }}</b></li>
         </ul>
 
     <br> 
