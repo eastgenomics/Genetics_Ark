@@ -22,8 +22,9 @@
 Currently only newly sequenced samples processed through DNAnexus will be available to view through this instance of IGV.<br></br>
 Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV installed locally <br>
 on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
-For older samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.
+For older samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.<br></br>
 
+The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.
 
 <form method="post" action="" style="padding-top:10px;" name="search_form">
     {% csrf_token %}
@@ -34,21 +35,20 @@ For older samples, please continue to search in Genetics Ark in the normal way a
 
 </div>
 
-
 {% if sampleID %}
 
 <div class="well" style="width:864px;">
 
     <div>
-        Reuqested Sample: {{ sampleID }}<br>
-        Sample Name: {{ bam_name }}<br>
-        Sequencing project: {{ project_name }}
+        Reuqested Sample: <b>{{ sampleID }}</b><br>
+        Sample Name: <b>{{ bam_name }}</b><br>
+        Sequencing project: <b>{{ project_name }}</b>
         <br></br>
         BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
         <br></br>
         <ul>
-           <li>BAM url: {{ bam_url }}</li>
-           <li>Index url: {{ idx_url }}</li>
+           <li>BAM url: <b>{{ bam_url }}</b></li>
+           <li>Index url: <b>{{ idx_url }}</b></li>
         </ul>
 
     <br> 
