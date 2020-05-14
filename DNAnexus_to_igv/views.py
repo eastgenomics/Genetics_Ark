@@ -117,6 +117,8 @@ def nexus_search(request):
 
             for project in project_002_list:
                 # find bams in DNAnexus for given sample id
+                # kinda clunky but works, currently no option in dx find data to pass array of projects
+                # and apparently this is best practice
                 bam_file_id, idx_file_id, bam_project_id, idx_project_id, bam_name, project_name = find_dx_bams(project, sample_id)
 
                 if bam_file_id and idx_file_id:
