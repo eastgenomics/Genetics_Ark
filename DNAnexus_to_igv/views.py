@@ -10,6 +10,7 @@ from django.shortcuts import render
 
 import DNAnexus_to_igv.forms as Forms
 
+
 def get_002_projects():
     """
     Get list of all 002 sequencing projects on DNAnexus to pull bams from
@@ -25,6 +26,7 @@ def get_002_projects():
     project_002_list = filter(lambda x: x.startswith('project-'), projects_002)
 
     return project_002_list
+
 
 def find_dx_bams(project_id, sample_id):
     """
@@ -113,7 +115,6 @@ def get_dx_urls(bam_file_id, idx_file_id):
 
 def nexus_search(request):
     """
-
     Main search page function.
 
     On searching: 
@@ -121,7 +122,6 @@ def nexus_search(request):
     - for each project, dx_find_bams() is used to search for BAMs
     - on finding matching BAM and index, urls are generated with get_dx_urls()
     - renders page with download urls and a button to load igv.js with links
-
     """
 
     context_dict = {}
