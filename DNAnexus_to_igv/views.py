@@ -71,7 +71,7 @@ def find_dx_bams(project_id, sample_id):
     idx = subprocess.check_output(dx_find_idx, shell=True)
 
     if bam and idx:
-        # if bam found
+        # if BAM(s) found
 
         # get just the bam and index id
         bam_file_id = bam.split( )[-1].strip("()")
@@ -79,13 +79,13 @@ def find_dx_bams(project_id, sample_id):
 
         # dx commands to get readable file and project names
         dx_bam_name = "dx describe --json {}".format(bam_file_id)
-        dx_id_name = "dx describe --json {}".format(idx_file_id)
+        dx_idx_name = "dx describe --json {}".format(idx_file_id)
         dx_project_name = "dx describe --json {}".format(project_id)
 
         # returns a json as a string so convert back to json to select name 
         # and id's out
         bam_json = json.loads(subprocess.check_output(dx_bam_name, shell=True))
-        idx_json = json.loads(subprocess.check_output(dx_id_name, shell=True))
+        idx_json = json.loads(subprocess.check_output(dx_idx_name, shell=True))
         project_json = json.loads(subprocess.check_output(dx_project_name, 
                                                             shell=True))
 
@@ -96,14 +96,20 @@ def find_dx_bams(project_id, sample_id):
         # get bam and index project ids to check they're from same run
         bam_project_id = bam_json["project"]
         idx_project_id = idx_json["project"]
-        
-    else:
-        # bam not found
-        bam_file_id, idx_file_id, bam_name, bam_project_id,\
-        idx_project_id, project_name = None, None, None, None, None, None
 
-    return bam_file_id, idx_file_id, bam_project_id,\
-            idx_project_id, bam_name, project_name
+        # add required data to list
+        dx_data.append(
+                        {
+                            "bam_file_id": bam_file_id,
+                            "idx_file_id": idx_file_id,
+                            "bam_project_id": bam_project_id,
+                            "idx_project_id": idx_project_id,
+                            "bam_name": bam_name,
+                            "project_name": project_name
+                        }
+                        )
+
+    return dx_data
   
  
 def get_dx_urls(bam_file_id, idx_file_id):
