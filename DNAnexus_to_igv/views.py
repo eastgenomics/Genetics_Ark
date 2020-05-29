@@ -13,6 +13,7 @@ generated links to directly stream and view the BAMs.
 
 # -*- coding: utf-8 -*-
 
+import itertools
 import json
 import os
 import subprocess
@@ -63,6 +64,7 @@ def find_dx_bams(project_id, sample_id, dx_data):
             - bam_name (str): human name of BAM file
             - project_name (str): human name of project
             - bam_folder (str): dir path of bam file
+            - idx_folder (str): dir path of index file
     """
 
     # dx commands to retrieve bam and bam.bai for given sample
@@ -74,50 +76,62 @@ def find_dx_bams(project_id, sample_id, dx_data):
 
     bam = subprocess.check_output(dx_find_bam, shell=True)
     idx = subprocess.check_output(dx_find_idx, shell=True)
-    
-    
-
+   
     if bam and idx:
-        # if BAM(s) found
+        # if BAM(s) and index found
 
-        # get just the bam and index id
-        bam_file_id = bam.split( )[-1].strip("()")
-        idx_file_id = idx.split( )[-1].strip("()")
+        # get list from bam and idx with just file ids, needed to handle
+        # multiple bams in same project
+        bams = bam.replace("\n", " ").split(" ")
+        bams_list = filter(lambda x: x.startswith('(file-'), bams)
+        bams_list = [x.strip("()") for x in bams_list]
 
-        # dx commands to get readable file and project names
-        dx_bam_name = "dx describe --json {}".format(bam_file_id)
-        dx_idx_name = "dx describe --json {}".format(idx_file_id)
-        dx_project_name = "dx describe --json {}".format(project_id)
+        idxs = idx.replace("\n", " ").split(" ")
+        idx_list = filter(lambda x: x.startswith('(file-'), idxs)
+        idx_list = [x.strip("()") for x in idx_list]
 
-        # returns a json as a string so convert back to json to select name 
-        # and id's out
-        bam_json = json.loads(subprocess.check_output(dx_bam_name, shell=True))
-        idx_json = json.loads(subprocess.check_output(dx_idx_name, shell=True))
-        project_json = json.loads(subprocess.check_output(dx_project_name, 
-                                                            shell=True))
-        # get bam and project names to display
-        bam_name = bam_json["name"]
-        project_name = project_json["name"]
+        for bam_id, idx_id in itertools.izip(bams_list, idx_list):
+            # for each pair of bam and index, get file attributes
 
-        # get bam and index project ids to check they're from same run
-        bam_project_id = bam_json["project"]
-        idx_project_id = idx_json["project"]
+            # dx commands to get readable file and project names
+            dx_bam_name = "dx describe --json {}".format(bam_id)
+            dx_idx_name = "dx describe --json {}".format(idx_id)
+            dx_project_name = "dx describe --json {}".format(project_id)
 
-        # get dir path to display when multiple BAMs found in same project
-        bam_folder = bam_json["folder"]
+            # returns a json as a string so convert back to json to select name 
+            # and id's out
+            bam_json = json.loads(subprocess.check_output(dx_bam_name, shell=True))
+            idx_json = json.loads(subprocess.check_output(dx_idx_name, shell=True))
 
-        # add required data to list
-        dx_data.append(
-                        {
-                            "bam_file_id": bam_file_id,
-                            "idx_file_id": idx_file_id,
-                            "bam_project_id": bam_project_id,
-                            "idx_project_id": idx_project_id,
-                            "bam_name": bam_name,
-                            "project_name": project_name,
-                            "bam_folder": bam_folder
-                        }
-                        )
+            project_id = bam_json["project"]
+            project_json = json.loads(subprocess.check_output(dx_project_name, 
+                                                                shell=True))
+            
+            # get bam and project names to display
+            bam_name = bam_json["name"]
+            project_name = project_json["name"]
+
+            # get bam and index project ids to check they're from same run
+            bam_project_id = bam_json["project"]
+            idx_project_id = idx_json["project"]
+
+            # get dir path to display when multiple BAMs found in same project
+            bam_folder = bam_json["folder"]
+            idx_folder = idx_json["folder"]
+
+            # add required data to list
+            dx_data.append(
+                            {
+                                "bam_file_id": bam_id,
+                                "idx_file_id": idx_id,
+                                "bam_project_id": bam_project_id,
+                                "idx_project_id": idx_project_id,
+                                "bam_name": bam_name,
+                                "project_name": project_name,
+                                "bam_folder": bam_folder,
+                                "idx_folder": idx_folder
+                            }
+                            )
 
     return dx_data
   
@@ -191,7 +205,6 @@ def nexus_search(request):
                 # dx_data list
                 dx_data = find_dx_bams(project, sample_id, dx_data)
 
-            print dx_data
 
             if len(dx_data) == 0:
                 # dx_data empty => bam and index were not found
@@ -212,7 +225,7 @@ def nexus_search(request):
                 # check each bam and idx pair are from same project,
                 # if not exit with error
                 for bam in dx_data:
-                    if bam["bam_project_id"] != bam["idx_project_id"]:
+                    if bam["bam_folder"] != bam["idx_folder"]:
                     
                         messages.add_message(request,
                                     messages.ERROR,
