@@ -62,17 +62,20 @@ def find_dx_bams(project_id, sample_id, dx_data):
             - idx_project_id (str): project id containing BAM index
             - bam_name (str): human name of BAM file
             - project_name (str): human name of project
+            - bam_folder (str): dir path of bam file
     """
 
     # dx commands to retrieve bam and bam.bai for given sample
-    dx_find_bam = "dx find data --path {project} --name *{sample}*_markdup.bam".format(
+    dx_find_bam = "dx find data --path {project} --name {sample}*.bam".format(
         project = project_id, sample = sample_id)
 
-    dx_find_idx = "dx find data --path {project} --name *{sample}*_markdup.bam.bai".format(
+    dx_find_idx = "dx find data --path {project} --name {sample}*.bam.bai".format(
         project = project_id, sample = sample_id)
 
     bam = subprocess.check_output(dx_find_bam, shell=True)
     idx = subprocess.check_output(dx_find_idx, shell=True)
+    
+    
 
     if bam and idx:
         # if BAM(s) found
@@ -100,6 +103,9 @@ def find_dx_bams(project_id, sample_id, dx_data):
         bam_project_id = bam_json["project"]
         idx_project_id = idx_json["project"]
 
+        # get dir path to display when multiple BAMs found in same project
+        bam_folder = bam_json["folder"]
+
         # add required data to list
         dx_data.append(
                         {
@@ -108,9 +114,11 @@ def find_dx_bams(project_id, sample_id, dx_data):
                             "bam_project_id": bam_project_id,
                             "idx_project_id": idx_project_id,
                             "bam_name": bam_name,
-                            "project_name": project_name
+                            "project_name": project_name,
+                            "bam_folder": bam_folder
                         }
                         )
+
     return dx_data
   
  
@@ -168,7 +176,7 @@ def nexus_search(request):
             
             sample_id = clean_data["sampleID"]
             sample_id = str(sample_id).strip() # in case they put spaces
-            sample_id = sample_id.upper() # in case X no. is lower case
+            sample_id = sample_id.capitalize() # in case X no. is lower case
          
             print "searched for sample {}".format(sample_id)
 
@@ -183,6 +191,7 @@ def nexus_search(request):
                 # dx_data list
                 dx_data = find_dx_bams(project, sample_id, dx_data)
 
+            print dx_data
 
             if len(dx_data) == 0:
                 # dx_data empty => bam and index were not found
@@ -260,7 +269,8 @@ def nexus_search(request):
                                         "bam_url": bam_url,
                                         "idx_url": idx_url,
                                         "bam_name": bam["bam_name"],
-                                        "project_name": bam["project_name"]
+                                        "project_name": bam["project_name"],
+                                        "bam_folder": bam["bam_folder"]
                                     }
                                     )
 
@@ -272,20 +282,26 @@ def nexus_search(request):
 
         if "select_bam" in request.POST:
             # BAM has been selected, pass links for it
-                      
+
+            # save bam data before flushing session     
             selected_bam = request.POST.get("selected_bam")
-            
+            sampleID = request.session["sampleID"]
             session_bams = request.session["bam_list"]
+
+            # flush session cache to remove old search variables
+            request.session.flush()
 
             for bam in session_bams:
                 if selected_bam in bam.values():
                     # render page with links to selected bam
-                    
+
+                    request.session["sampleID"] = sampleID
                     request.session["bam_name"] = bam["bam_name"]
                     request.session["project_name"] = bam["project_name"]
                     request.session["bam_url"] = bam["bam_url"]
                     request.session["idx_url"] = bam["idx_url"]
 
+                    context_dict["sampleID"] = sampleID
                     context_dict["bam_name"] = bam["bam_name"]
                     context_dict["project_name"] = bam["project_name"]
                     context_dict["bam_url"] = bam["bam_url"]
@@ -307,6 +323,9 @@ def nexus_search(request):
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
+
+            print context_dict
+            print request.session.items()
 
             return render(
                         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict
