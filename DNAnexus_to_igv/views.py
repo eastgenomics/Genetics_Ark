@@ -130,8 +130,8 @@ def get_dx_urls(bam_file_id, idx_file_id):
     dx_get_idx_url = "dx make_download_url {}".format(idx_file_id)
 
     # generate the urls
-    bam_url = subprocess.check_output(dx_get_bam_url, shell=True)
-    idx_url = subprocess.check_output(dx_get_idx_url, shell=True)
+    bam_url = subprocess.check_output(dx_get_bam_url, shell=True).strip()
+    idx_url = subprocess.check_output(dx_get_idx_url, shell=True).strip()
 
     return bam_url, idx_url
 
@@ -157,6 +157,10 @@ def nexus_search(request):
     if request.method == 'POST':
         if "search_form" in request.POST:
             # if search button is pressed
+
+            # flush session cache to remove any old search variables
+            request.session.flush()
+
             search_form = Forms.SearchForm(request.POST)
 
             if search_form.is_valid():
@@ -166,6 +170,8 @@ def nexus_search(request):
             sample_id = str(sample_id).strip() # in case they put spaces
             sample_id = sample_id.upper() # in case X no. is lower case
          
+            print "searched for sample {}".format(sample_id)
+
             # get list of 002 projects
             project_002_list = get_002_projects()
 
@@ -177,7 +183,6 @@ def nexus_search(request):
                 # dx_data list
                 dx_data = find_dx_bams(project, sample_id, dx_data)
 
-            print dx_data
 
             if len(dx_data) == 0:
                 # dx_data empty => bam and index were not found
@@ -238,7 +243,7 @@ def nexus_search(request):
             
             else:
                 # multiple BAMs found for sample
-                
+
                 request.session["sampleID"] = sample_id
                 context_dict["sampleID"] = sample_id
                 
@@ -246,11 +251,10 @@ def nexus_search(request):
 
                 for bam in dx_data:
                     
-                    print bam
-
                     # generate the urls
-                    bam_url, idx_url = get_dx_urls(bam["bam_file_id"], bam["idx_file_id"])
-
+                    bam_url, idx_url = get_dx_urls(bam["bam_file_id"], 
+                                                    bam["idx_file_id"])
+                
                     bam_list.append(
                                     {
                                         "bam_url": bam_url,
@@ -259,21 +263,36 @@ def nexus_search(request):
                                         "project_name": bam["project_name"]
                                     }
                                     )
-                    
+
                 context_dict["bam_list"] = bam_list
                 request.session["bam_list"] = bam_list
 
-                print "session after"
-                    
-                for key, value in request.session.items():
-                    print('{} => {}'.format(key, value))
-
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+
 
         if "select_bam" in request.POST:
             # BAM has been selected, pass links for it
-            print context_dict
-           
+                      
+            selected_bam = request.POST.get("selected_bam")
+            
+            session_bams = request.session["bam_list"]
+
+            for bam in session_bams:
+                if selected_bam in bam.values():
+                    # render page with links to selected bam
+                    
+                    request.session["bam_name"] = bam["bam_name"]
+                    request.session["project_name"] = bam["project_name"]
+                    request.session["bam_url"] = bam["bam_url"]
+                    request.session["idx_url"] = bam["idx_url"]
+
+                    context_dict["bam_name"] = bam["bam_name"]
+                    context_dict["project_name"] = bam["project_name"]
+                    context_dict["bam_url"] = bam["bam_url"]
+                    context_dict["idx_url"] = bam["idx_url"]
+
+                    return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+
 
         if "igv_ga" in request.POST:
             # view in igv button pressed

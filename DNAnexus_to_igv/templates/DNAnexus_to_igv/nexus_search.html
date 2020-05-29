@@ -75,19 +75,19 @@ The IGV user guide may be found <a href="https://software.broadinstitute.org/sof
 <div class="well" style="width:1000px;">
     <div>
         More than one BAM found for sample {{ sampleID }}</b><br>
-        Please select which project to load the BAM from:</b><br>
+        Please select which project to load the BAM from:</b><br></b><br>
         
         {% for bam in bam_list %}
 
             <form action="" method="post" name="select_bam">
                 {% csrf_token %}
 
-                <input type="hidden" id="myField" value={{bam.bam_name}} >
+                <input type="hidden" name="selected_bam" value={{ bam.bam_url }} >
 
                 <button name="select_bam" type="submit" class = "bt btn-primary">Select</button>
 
                 {{ bam.bam_name }} in {{ bam.project_name }}
-                
+
             </form></b><br>
 
         {% endfor %}
