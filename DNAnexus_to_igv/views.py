@@ -31,18 +31,20 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    dx_find_projects = "dx find projects --name 002*"
+    dx_find_projects = "dx find projects --name 003_200504_J*"
 
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
     
     # get just the project id's from returned string
     projects_002 = projects_002.replace("\n", " ").split(" ")
     project_002_list = filter(lambda x: x.startswith('project-'), projects_002)
-
+    
+    print project_002_list
+    
     return project_002_list
 
 
-def find_dx_bams(project_id, sample_id):
+def find_dx_bams(project_id, sample_id, dx_data):
     """
     Function to find file and index id for a bam in DNAnexus given a 
     sample id.
@@ -50,22 +52,24 @@ def find_dx_bams(project_id, sample_id):
     Args:
         - project id (str): DNAnexus project id for 002 project
         - sample_id (str): sample no. from search field
+        - dx_data (list): list to add dict of BAM variables
 
     Returns:
-        - bam_file_id (str): file id of BAM
-        - idx_file_id (str): file id of BAM index
-        - bam_project_id (str): project id containing BAM
-        - idx_project_id (str): project id containing BAM index
-        - bam_name (str): human name of BAM file
-        - project_name (str): human name of project
+        - dx_data (list): list containing following for each BAM found:
+            - bam_file_id (str): file id of BAM
+            - idx_file_id (str): file id of BAM index
+            - bam_project_id (str): project id containing BAM
+            - idx_project_id (str): project id containing BAM index
+            - bam_name (str): human name of BAM file
+            - project_name (str): human name of project
     """
 
     # dx commands to retrieve bam and bam.bai for given sample
-    dx_find_bam = "dx find data --path {} --name *{}*_markdup.bam".format(
-        project_id, sample_id)
+    dx_find_bam = "dx find data --path {project} --name *{sample}*_markdup.bam".format(
+        project = project_id, sample = sample_id)
 
-    dx_find_idx = "dx find data --path {} --name *{}*_markdup.bam.bai".format(
-        project_id, sample_id)
+    dx_find_idx = "dx find data --path {project} --name *{sample}*_markdup.bam.bai".format(
+        project = project_id, sample = sample_id)
 
     bam = subprocess.check_output(dx_find_bam, shell=True)
     idx = subprocess.check_output(dx_find_idx, shell=True)
@@ -88,7 +92,6 @@ def find_dx_bams(project_id, sample_id):
         idx_json = json.loads(subprocess.check_output(dx_idx_name, shell=True))
         project_json = json.loads(subprocess.check_output(dx_project_name, 
                                                             shell=True))
-
         # get bam and project names to display
         bam_name = bam_json["name"]
         project_name = project_json["name"]
@@ -108,7 +111,6 @@ def find_dx_bams(project_id, sample_id):
                             "project_name": project_name
                         }
                         )
-
     return dx_data
   
  
@@ -142,8 +144,10 @@ def nexus_search(request):
     On searching: 
     - a list of 002 project ids is generated from get_002_projects()
     - for each project, dx_find_bams() is used to search for BAMs
-    - on finding matching BAM and index, urls are generated with get_dx_urls()
-    - renders page with download urls and a button to load igv.js with links
+    - on finding matching BAM and index, urls are generated with 
+      get_dx_urls()
+    - renders page with download urls and a button to load igv.js with 
+      links
 
     """
 
@@ -169,14 +173,11 @@ def nexus_search(request):
             dx_data = []
 
             for project in project_002_list:
-                # find bams in DNAnexus for given sample id
-                
-                # kinda clunky but works, currently no option in dx find 
-                # data to pass array of projects and apparently this is 
-                # best practice
-                bam_file_id, idx_file_id, bam_project_id, idx_project_id,\
-                bam_name, project_name = find_dx_bams(project, sample_id)
+                # find bams in DNAnexus for given sample id, appends to
+                # dx_data list
+                dx_data = find_dx_bams(project, sample_id, dx_data)
 
+            print dx_data
 
             if len(dx_data) == 0:
                 # dx_data empty => bam and index were not found
@@ -194,11 +195,11 @@ def nexus_search(request):
 
             else:
                 # at least 1 BAM was found
+                # check each bam and idx pair are from same project,
+                # if not exit with error
                 for bam in dx_data:
                     if bam["bam_project_id"] != bam["idx_project_id"]:
-                    # check each bam and idx pair are from same project,
-                    # if not exit with error
-
+                    
                         messages.add_message(request,
                                     messages.ERROR,
                                     """BAM and index file projects do not match. 
@@ -215,62 +216,64 @@ def nexus_search(request):
                 # one BAM found for sample
 
                 # generate the urls
-                bam_url, idx_url = get_dx_urls(bam_file_id, idx_file_id)
-
+                bam_url, idx_url = get_dx_urls(
+                                                dx_data[0]["bam_file_id"],
+                                                dx_data[0]["idx_file_id"]
+                                            )
+                
                 # add variables 
                 request.session["bam_url"] = bam_url
                 request.session["idx_url"] = idx_url
-                request.session["sampleID"] = dx_data[0]["sample_id"]
+                request.session["sampleID"] = sample_id
                 request.session["bam_name"] = dx_data[0]["bam_name"]
                 request.session["project_name"] = dx_data[0]["project_name"]
 
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url                
-                context_dict["sampleID"] = dx_data[0]["sample_id"]
+                context_dict["sampleID"] = sample_id
                 context_dict["bam_name"] = dx_data[0]["bam_name"]
                 context_dict["project_name"] = dx_data[0]["project_name"]
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
             
             else:
-                # more than one BAM found, loop over list and add to 
-                # session and context_dict
-
-                request.session["sampleID"] = bam["sample_id"]
-                context_dict["sampleID"] = bam["sample_id"]
+                # multiple BAMs found for sample
                 
-                # counter for identifying BAMs
-                bam_no = 0
+                request.session["sampleID"] = sample_id
+                context_dict["sampleID"] = sample_id
+                
+                bam_list = []
 
                 for bam in dx_data:
-                    bam_no += 1
-                    bam_dict = {}
+                    
+                    print bam
 
-            """ probably won't use, if more than 1 found, return options of which to select,
-            need to return list of dicts with all data in 
-            """
+                    # generate the urls
+                    bam_url, idx_url = get_dx_urls(bam["bam_file_id"], bam["idx_file_id"])
 
-            #         # generate the urls
-            #         bam_url, idx_url = get_dx_urls(bam["bam_file_id"], bam["idx_file_id"])
+                    bam_list.append(
+                                    {
+                                        "bam_url": bam_url,
+                                        "idx_url": idx_url,
+                                        "bam_name": bam["bam_name"],
+                                        "project_name": bam["project_name"]
+                                    }
+                                    )
+                    
+                context_dict["bam_list"] = bam_list
+                request.session["bam_list"] = bam_list
 
-            #         # add BAM number to each key to identify in template
-            #         # bam_url_no = "bam_url_{}".format(bam_no)
-            #         # idx_url_no = "idx_url_{}".format(bam_no)
-            #         # bam_name_no = "bam_name_{}".format(bam_no)
-            #         # project_name_no = "project_name_{}".format(bam_no)
+                print "session after"
+                    
+                for key, value in request.session.items():
+                    print('{} => {}'.format(key, value))
 
-            #         request.session[bam_url_no] = bam_url
-            #         request.session[idx_url_no] = idx_url
-            #         request.session[bam_name_no] = bam["bam_name"]
-            #         request.session[project_name_no] = bam["project_name"]
+                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
-            #         context_dict[bam_url_no] = bam_url
-            #         context_dict[idx_url_no] = idx_url                
-            #         context_dict[bam_name_no] = bam["bam_name"]
-            #         context_dict[project_name_no] = bam["project_name"]
-            
-            # return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
-
+        if "select_bam" in request.POST:
+            # BAM has been selected, pass links for it
+            print context_dict
+           
 
         if "igv_ga" in request.POST:
             # view in igv button pressed
