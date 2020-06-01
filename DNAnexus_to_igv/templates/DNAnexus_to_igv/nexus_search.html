@@ -20,9 +20,11 @@
 <h2>DNAnexus to IGV</h2></br>
 
 Currently only newly sequenced samples processed through DNAnexus will be available to view through this instance of IGV.<br></br>
-Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV installed locally <br>
-on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
+
+Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV if installed locally <br>
+on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br><br></br>
 For older samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.<br></br>
+Older samples will gradually be uploaded to DNAnexus over the coming weeks and be available via this page.<br></br>
 
 The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
 
@@ -30,7 +32,8 @@ The IGV user guide may be found <a href="https://software.broadinstitute.org/sof
     {% csrf_token %}
     {{ search_form.sampleID }}
     <br></br>
-    <button name="search_form" type="submit" class = "bt btn-primary">Search</button>
+    <button name="search_form" id="search" type="submit" class = "bt btn-primary">Search</button>
+
 </form>
 
 </div>
