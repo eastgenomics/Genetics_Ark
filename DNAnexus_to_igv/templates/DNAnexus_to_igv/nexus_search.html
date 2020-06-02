@@ -18,7 +18,29 @@
     * {
       font-family: "tahoma";
       font-size: 14px;
+      -webkit-font-smoothing: antialiased;
     }
+
+    .page_button{
+        color: #fff !important;
+        text-decoration: none;
+        background: #337ab7;
+        padding: 7px;
+        border-radius: 5px;
+        /* display: inline-block; */
+        border: none;
+        transition: all 0.25s ease 0s;
+        }
+
+    .page_button:hover {
+        background: #42a3e4;
+        letter-spacing: 1px;
+        -webkit-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+        -moz-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+        box-shadow: 5px 40px -10px rgba(0,0,0,0.57);
+        transition: all 0.25s ease 0s;
+        }
+
 </style>
 
 <!-- messages loader -->
@@ -62,7 +84,7 @@
         {% csrf_token %}
         {{ search_form.sampleID }}
         <br></br>
-        <button name="search_form" id="search" type="submit" class="bt btn-primary">Search</button>
+        <button name="search_form" id="search" type="submit" class="page_button">Search</button>
 
     </form>
 
@@ -99,7 +121,7 @@
 
     <form action="" method="post">
         {% csrf_token %}
-        <button name="igv_ga" type="submit" class = "bt btn-primary">View in web IGV</button>
+        <button name="igv_ga" type="submit" class = "page_button">View in web IGV</button>
     </form>
 
     </div>
@@ -124,7 +146,7 @@
 
                 <input type="hidden" name="selected_bam" value={{ bam.bam_url }} >
 
-                <button name="select_bam" type="submit" class = "bt btn-primary">Select</button>
+                <button name="select_bam" type="submit" class = "page_button">Select</button>
 
                 <b>{{ bam.bam_name }}</b> from project <b>{{ bam.project_name }}</b> path = {{ bam.bam_folder }}
 
