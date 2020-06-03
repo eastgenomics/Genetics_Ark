@@ -21,46 +21,29 @@
 
 {% block script %}
 
+<!-- Changes not tested, waiting on updating to IGV-2.5.5 but "should" work -->
 
-    $(document).ready(function () {
+var igv_div = $("#igv_browser")[0];
+var options = {
+    showNavigation: true,
+    showRuler: true,
+    showKaryo: false,
+    genome: "hg19",
+    tracks: [
+      {
+        // bams need to be served by a real web-server!
+        url: '{{ bam_url }}',
+        indexURL: '{{ idx_url }}',
+        name: '{{ sampleID }}',
+        alignmentShading: 'strand',
+        height: 300
+      }
+    ]
+  };
+igv.createBrowser(igv_div, options).
+  then(function (browser) {
+    igv.browser = browser
+  });
 
-      var div = $("#igv_browser")[0],
-         options = {
-            showNavigation: true,
-            showRuler: true,
-            showKaryo: false,
-            reference: {
-                   id: "hg19",
-                   fastaURL: "http://bams2.ctrulab.uk/Homo_sapiens_assembly37.fasta",
-            },
-            genome: "hg19",
-    {% if chrom and pos %}
-            locus: "{{chrom}}:{{pos}}",
-    {% endif %}
-             tracks: [
-                    {
-                     name: "Gencode v19",
-                     type: "annotation",
-                     format: "bed",
-                         sourceType: "file",
-                         url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz",
-                         indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz.tbi",
-                         order: Number.MAX_VALUE,
-                         visibilityWindow: 300000000,
-                         displayMode: "EXPANDED"
-                     }, 
-                     {
-                     // bams need to be served by a real web-server!
-                     url: '{{ bam_url }}',
-                     indexURL: '{{ idx_url }}',
-                     name: '{{ sampleID }}',
-                     alignmentShading: 'strand',
-                     height: 300
-                     }
-                    ]
-                };
-
-        igv.createBrowser(div, options);
-      });
 
 {% endblock %}

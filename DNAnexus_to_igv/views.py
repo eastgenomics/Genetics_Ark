@@ -54,7 +54,6 @@ def find_dx_bams(project_id, sample_id, dx_data):
     Args:
         - project id (str): DNAnexus project id for 002 project
         - sample_id (str): sample no. from search field
-        - dx_data (list): list to add dict of BAM variables
 
     Returns:
         - dx_data (list): list containing following for each BAM found:
@@ -66,9 +65,11 @@ def find_dx_bams(project_id, sample_id, dx_data):
             - project_name (str): human name of project
             - bam_folder (str): dir path of bam file
             - idx_folder (str): dir path of index file
+
     """
 
     # dx commands to retrieve bam and bam.bai for given sample
+
     dx_find_bam = "dx find data --path {project} --name {sample}*.bam".format(
         project = project_id, sample = sample_id)
 
@@ -133,7 +134,6 @@ def find_dx_bams(project_id, sample_id, dx_data):
                                 "idx_folder": idx_folder
                             }
                             )
-
     return dx_data
   
  
@@ -203,6 +203,7 @@ def nexus_search(request):
                 # find bams in DNAnexus for given sample id, appends to
                 # dx_data list
                 dx_data = find_dx_bams(project, sample_id, dx_data)
+
 
 
             if len(dx_data) == 0:
