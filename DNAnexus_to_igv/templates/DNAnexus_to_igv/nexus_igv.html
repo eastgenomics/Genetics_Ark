@@ -8,7 +8,6 @@
 {% endblock %}
 
 
-
 <h2>IGV browser for {{ sampleID }}</h2><br>
 
 
@@ -19,9 +18,9 @@
     <hr>
 {% endblock %}
 
-{% block script %}
+<!-- loading igv with passed urls -->
 
-<!-- Changes not tested, waiting on updating to IGV-2.5.5 but "should" work -->
+{% block script %}
 
 var igv_div = $("#igv_browser")[0];
 var options = {
