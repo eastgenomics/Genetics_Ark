@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 
 Django app to link Genetics Ark to samples in DNAnexus cloud platform.
@@ -10,8 +12,6 @@ along with a button to open IGV.js through Genetics Ark, passing the
 generated links to directly stream and view the BAMs.
 
 """
-
-# -*- coding: utf-8 -*-
 
 import itertools
 import json
@@ -32,6 +32,9 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
+    # dx_find_projects = "dx find projects --name 002*"
+    
+    # testing dx find    
     dx_find_projects = "dx find projects --name 003_200504_J*"
 
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
@@ -39,9 +42,7 @@ def get_002_projects():
     # get just the project id's from returned string
     projects_002 = projects_002.replace("\n", " ").split(" ")
     project_002_list = filter(lambda x: x.startswith('project-'), projects_002)
-    
-    print project_002_list
-    
+        
     return project_002_list
 
 
@@ -189,11 +190,9 @@ def nexus_search(request):
                 clean_data = search_form.cleaned_data
             
             sample_id = clean_data["sampleID"]
-            sample_id = str(sample_id).strip() # in case they put spaces
-            sample_id = sample_id.capitalize() # in case X no. is lower case
+            sample_id = str(sample_id).strip() # in case spaces
+            sample_id = sample_id.capitalize() # in case C/G/X is lower case
          
-            print "searched for sample {}".format(sample_id)
-
             # get list of 002 projects
             project_002_list = get_002_projects()
 
@@ -218,7 +217,8 @@ def nexus_search(request):
                                 extra_tags="alert-danger"
                             )
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                return render(request, 'DNAnexus_to_igv/nexus_search.html', 
+                                context_dict)
 
             else:
                 # at least 1 BAM was found
@@ -228,15 +228,15 @@ def nexus_search(request):
                     if bam["bam_folder"] != bam["idx_folder"]:
                     
                         messages.add_message(request,
-                                    messages.ERROR,
-                                    """BAM and index file projects do not match. 
-                                    Please contact the bioinformatics team.""".\
-                                    format(sample_id),
-                                    extra_tags="alert-danger"
+                                messages.ERROR,
+                                """BAM and index file projects do not match. 
+                                Please contact the bioinformatics team.""".\
+                                format(sample_id),
+                                extra_tags="alert-danger"
                                 )
 
-                        return render(request, 'DNAnexus_to_igv/nexus_search.html', 
-                                        context_dict)
+                        return render(request, 
+                            'DNAnexus_to_igv/nexus_search.html', context_dict)
                     
 
             if len(dx_data) == 1:
@@ -261,7 +261,8 @@ def nexus_search(request):
                 context_dict["bam_name"] = dx_data[0]["bam_name"]
                 context_dict["project_name"] = dx_data[0]["project_name"]
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                return render(request, 'DNAnexus_to_igv/nexus_search.html',
+                                context_dict)
             
             else:
                 # multiple BAMs found for sample
@@ -290,7 +291,8 @@ def nexus_search(request):
                 context_dict["bam_list"] = bam_list
                 request.session["bam_list"] = bam_list
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                return render(request, 'DNAnexus_to_igv/nexus_search.html',
+                                context_dict)
 
 
         if "select_bam" in request.POST:
@@ -320,7 +322,8 @@ def nexus_search(request):
                     context_dict["bam_url"] = bam["bam_url"]
                     context_dict["idx_url"] = bam["idx_url"]
 
-                    return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                    return render(request, 'DNAnexus_to_igv/nexus_search.html', 
+                                    context_dict)
 
 
         if "igv_ga" in request.POST:
@@ -336,9 +339,6 @@ def nexus_search(request):
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
-
-            print context_dict
-            print request.session.items()
 
             return render(
                         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict
