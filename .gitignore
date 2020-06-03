@@ -1,0 +1,4 @@
+*.pyc
+django_example/router.pyc
+django_example/urls.pyc
+django_example/wsgi.pyc
