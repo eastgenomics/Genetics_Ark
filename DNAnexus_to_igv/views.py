@@ -30,13 +30,13 @@ def get_002_projects():
     """
     Get list of all 002 sequencing projects on DNAnexus to pull bams from
     """
-
-    # dx command to find 002 projects
-    # dx_find_projects = "dx find projects --name 002*"
     
     # testing dx find    
-    dx_find_projects = "dx find projects --name 003_200504_J*"
+    #dx_find_projects = "dx find projects --name 003_200504_J*"
 
+    # dx command to find 002 projects
+    dx_find_projects = "dx find projects --name 002*"
+    
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
     
     # get just the project id's from returned string
