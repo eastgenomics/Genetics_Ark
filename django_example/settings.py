@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '%w1)bj+9ehivnvqjv=sal*y(wiwwz5y!m@v1zeracm&5)e%xp%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
 
 # Brugger: Uncomment for production use, and the setting will change below 
 DEBUG = False
