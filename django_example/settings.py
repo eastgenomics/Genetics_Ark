@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 
+# passwords and database credentials stored in .config NOT in version control
+from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST,\
+                    PROD_DATABASE, DEBUG_DATABASE
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -20,26 +24,22 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%w1)bj+9ehivnvqjv=sal*y(wiwwz5y!m@v1zeracm&5)e%xp%'
+SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Comment out for production
-#DEBUG = True
+DEBUG = True
 
 # Brugger: Uncomment for production use, and the setting will change below 
-DEBUG = False
-
+#DEBUG = False
 
 
 ALLOWED_HOSTS = []
 
 if ( DEBUG == False):
-    ALLOWED_HOSTS = ['ga.ctrulab.uk']
+    ALLOWED_HOSTS = PROD_HOST
 else:
-    ALLOWED_HOSTS = ['10.212.75.240']
-    ALLOWED_HOSTS = ['login01']
-    ALLOWED_HOSTS = ['ga.ctrulab.uk']
-    ALLOWED_HOSTS = ["10.212.75.208"]
+    ALLOWED_HOSTS = DEBUG_HOST
 
 # Application definition
 
@@ -94,66 +94,14 @@ WSGI_APPLICATION = 'django_example.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_django',
-        'USER': 'easih_admin',
-        'PASSWORD': 'easih',
-        'HOST': 'mgsrv01',
-        },
-
-    'genetics_ark_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_1_1_0_django',
-        'USER': 'easih_admin',
-        'PASSWORD': 'easih',
-        'HOST': 'mgsrv01',
-        },
-    }
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_django',
-        'USER': 'ccbg_admin',
-        'PASSWORD': 'ccbg',
-        'HOST': 'sql01',
-        },
-
-    'genetics_ark_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'genetics_ark_1_1_0',
-        'USER': 'ccbg_admin',
-        'PASSWORD': 'ccbg',
-        'HOST': 'sql01',
-        },
-    }
-
 
 if ( DEBUG == False ):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark_django',
-            'user': 'ccbg_admin',
-            'PASSWORD': 'ccbg',
-            'HOST': 'sql01',
-            },
+    DATABASES = PROD_DATABASE
+else:
+    DATABASES = DEBUG_DATABASE
 
-        'genetics_ark_db': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'genetics_ark_1_1_0',
-            'USER': 'ccbg_admin',
-            'PASSWORD': 'ccbg',
-            'HOST': 'sql01',
-            },
-        }
 
 DATABASE_ROUTERS = ['django_example.router.Router']
-
-
 
 
 # Password validation
