@@ -229,12 +229,12 @@ def nexus_search(request):
                     if bam["bam_folder"] != bam["idx_folder"]:
                     
                         messages.add_message(request,
-                                messages.ERROR,
-                                """BAM and index file projects do not match. 
-                                Please contact the bioinformatics team.""".\
-                                format(sample_id),
-                                extra_tags="alert-danger"
-                                )
+                            messages.ERROR,
+                            """BAM and index file projects for sample {} do \
+                            not match. Please contact the bioinformatics \
+                            team.""".format(sample_id),
+                            extra_tags="alert-danger"
+                            )
 
                         return render(request, 
                             'DNAnexus_to_igv/nexus_search.html', context_dict)
