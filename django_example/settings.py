@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 
-# passwords and database credentials stored in .config NOT in version control
+# Passwords and database credentials stored in config.py 
+# NOT IN VERSION CONTROL
 from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST,\
                     PROD_DATABASE, DEBUG_DATABASE
 
@@ -25,10 +26,10 @@ SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Comment out for production
-DEBUG = True
+#DEBUG = True
 
 # Brugger: Uncomment for production use, and the setting will change below 
-#DEBUG = False
+DEBUG = False
 
 
 ALLOWED_HOSTS = []
