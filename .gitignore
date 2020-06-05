@@ -1,2 +1,3 @@
 *.pyc
 django_example/urls.pyc
+django_example/config.py
