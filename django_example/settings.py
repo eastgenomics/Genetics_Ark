@@ -20,9 +20,6 @@ from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST,\
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = SECRET_KEY
 
@@ -91,9 +88,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'django_example.wsgi.application'
 
 
-# Database
+# Databases
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
 
 if ( DEBUG == False ):
     DATABASES = PROD_DATABASE
@@ -145,7 +141,4 @@ STATIC_PATH = os.path.join(BASE_DIR,'static')
 STATIC_ROOT      = os.path.join(BASE_DIR, 'static')
 # This is for the dev static files
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_dev')]
-
-
-
 STATIC_URL = '/static/'
