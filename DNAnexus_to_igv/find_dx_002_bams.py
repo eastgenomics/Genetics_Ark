@@ -50,6 +50,7 @@ def find_dx_bams(project_002_lists):
             - bam_folder (str): dir path of bam file
             - idx_folder (str): dir path of index file
     """
+    dx_data = []
 
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
@@ -105,50 +106,33 @@ def find_dx_bams(project_002_lists):
                                     "idx_id": idx_dict[path, bam_file+".bai"]
                                     })
             
-            sys.exit()
 
-            """Need to change for new list"""
-
-            for bam_id, idx_id in itertools.izip(bams_list, idx_list):
+            for bam in bam_idx_list:
                 # for each pair of bam and index, get file attributes
 
-                # dx commands to get readable file and project names
-                dx_bam_name = "dx describe --json {}".format(bam_id)
-                dx_idx_name = "dx describe --json {}".format(idx_id)
-                dx_project_name = "dx describe --json {}".format(project_id)
+                dx_project_name = "dx describe --json {}".format(project)
 
                 # returns a json as a string so convert back to json to select name 
-                # and id's out
-                bam_json = json.loads(subprocess.check_output(dx_bam_name, shell=True))
-                idx_json = json.loads(subprocess.check_output(dx_idx_name, shell=True))
-
-                project_id = bam_json["project"]
                 project_json = json.loads(subprocess.check_output(dx_project_name, 
                                                                     shell=True))
                 
-                # get bam and project names to display
-                bam_name = bam_json["name"]
+                # get project name to display
                 project_name = project_json["name"]
-
-                # get bam and index project ids to check they're from same run
-                bam_project_id = bam_json["project"]
-                idx_project_id = idx_json["project"]
-
-                # get dir path to display when multiple BAMs found in same project
-                bam_folder = bam_json["folder"]
-                idx_folder = idx_json["folder"]
 
                 # add required data to list
                 dx_data.append({
-                                "bam_file_id": bam_id,
-                                "idx_file_id": idx_id,
-                                "bam_project_id": bam_project_id,
-                                "idx_project_id": idx_project_id,
-                                "bam_name": bam_name,
+                                "bam_file_id": bam["bam_id"],
+                                "idx_file_id": bam["idx_id"],
+                                "project_id": project,
                                 "project_name": project_name,
-                                "bam_folder": bam_folder,
-                                "idx_folder": idx_folder
+                                "bam_name": bam["bam_file"],
+                                "idx_name": bam["idx_file"],
+                                "bam_path": bam["path"]
                                 })
+    for i in dx_data:
+        print i
+        print " "
+
 
 project_002_list = get_002_projects()
 print project_002_list
