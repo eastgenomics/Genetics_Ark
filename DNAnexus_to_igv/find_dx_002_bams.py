@@ -54,7 +54,7 @@ def find_dx_bams(project_002_lists):
     
     # empty dict to store bams for output in
     dx_data = {}
-    dx_data['bam'] = []
+    #dx_data['bam'] = []
 
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
@@ -101,18 +101,6 @@ def find_dx_bams(project_002_lists):
 
                 # add all indexes to dict
                 idx_dict[(path, file)] = file_id
-          
-            # match bams to indexes on filename and dir path
-            for path, bam_file in bam_dict:
-                if idx_dict[(path, bam_file+".bai")]:
-                    # if index with matching bam file and path is found
-                    bam_idx_list.append({
-                                    "bam_file": bam_file,
-                                    "bam_id": bam_dict[path, bam_file],
-                                    "path": path,
-                                    "idx_file": bam_file+".bai",
-                                    "idx_id": idx_dict[path, bam_file+".bai"]
-                                    })
 
             # get project name to display
             dx_project_name = "dx describe --json {}".format(project)
@@ -122,25 +110,55 @@ def find_dx_bams(project_002_lists):
                                                                 shell=True))
             project_name = project_json["name"]
 
-            for bam in bam_idx_list:
-                # for each pair of bam and index, add to dx_data
+            # match bams to indexes on filename and dir path
+            for path, bam_file in bam_dict:
+                if idx_dict[(path, bam_file+".bai")]:
+                    # if index with matching bam file and path is found
+                    # bam_idx_list.append({
+                    #                 "bam_file": bam_file,
+                    #                 "bam_id": bam_dict[path, bam_file],
+                    #                 "path": path,
+                    #                 "idx_file": bam_file+".bai",
+                    #                 "idx_id": idx_dict[path, bam_file+".bai"]
+                    #                 })
 
-                dx_data["bam"].append({
-                                "bam_file_id": bam["bam_id"],
-                                "idx_file_id": bam["idx_id"],
+                    dx_data[path+"/"+bam_file] = {
+                                "bam_file_id": bam_dict[path, bam_file],
+                                "idx_file_id": idx_dict[(path, bam_file+".bai")],
                                 "project_id": project,
                                 "project_name": project_name,
-                                "bam_name": bam["bam_file"],
-                                "idx_name": bam["idx_file"],
-                                "bam_path": bam["path"]
-                                })
+                                "bam_name": bam_file,
+                                "idx_name": bam_file+".bai",
+                                "bam_path": path
+                                }               
+
+
+
+            # for bam in bam_idx_list:
+            #     # for each pair of bam and index, add to dx_data
+
+            #     dx_data["bam"].append({
+            #                     "bam_file_id": bam["bam_id"],
+            #                     "idx_file_id": bam["idx_id"],
+            #                     "project_id": project,
+            #                     "project_name": project_name,
+            #                     "bam_name": bam["bam_file"],
+            #                     "idx_name": bam["idx_file"],
+            #                     "bam_path": bam["path"]
+            #                     })
+
+            #     dx_data[(bam["path"], bam["bam_file"])] = {
+            #                     "bam_file_id": bam["bam_id"],
+            #                     "idx_file_id": bam["idx_id"],
+            #                     "project_id": project,
+            #                     "project_name": project_name,
+            #                     "bam_name": bam["bam_file"],
+            #                     "idx_name": bam["idx_file"],
+            #                     "bam_path": bam["path"]
+            #     }
+
 
     sample = "X106868"
-
-    for i in dx_data["bam"]:
-        if sample in i["bam_name"]:
-            print i
-
 
     # write all 002 bams into output json
     with open('dx_002_bams.json', 'w') as outfile:

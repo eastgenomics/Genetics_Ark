@@ -105,7 +105,9 @@ def nexus_search(request):
                                 context_dict)
 
             # find bams for requested sample
-            sample_bams = []
+            sample_bams = [value for key, value in dx_data.iteritems() if sample_id in key]
+
+            print sample_bams
 
             for bam in json_bams["bam"]:
                 if sample_id in bam["bam_name"]:
