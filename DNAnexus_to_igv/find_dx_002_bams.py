@@ -18,8 +18,8 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    #dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
-    dx_find_projects = "dx find projects --level VIEW --name 002*"
+    dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
+    #dx_find_projects = "dx find projects --level VIEW --name 002*"
     
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
 
@@ -134,6 +134,13 @@ def find_dx_bams(project_002_lists):
                                 "idx_name": bam["idx_file"],
                                 "bam_path": bam["path"]
                                 })
+
+    sample = "X106868"
+
+    for i in dx_data["bam"]:
+        if sample in i["bam_name"]:
+            print i
+
 
     # write all 002 bams into output json
     with open('dx_002_bams.json', 'w') as outfile:

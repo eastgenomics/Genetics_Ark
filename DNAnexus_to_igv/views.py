@@ -190,19 +190,32 @@ def nexus_search(request):
             sample_id = clean_data["sampleID"]
             sample_id = str(sample_id).strip() # in case spaces
             sample_id = sample_id.capitalize() # in case C/G/X is lower case
-         
-            # get list of 002 projects
-            project_002_list = get_002_projects()
 
-            # empty list to add returned data to
-            dx_data = []
+            # load in json with bams
+            try:
+                with open('dx_002_bams.json') as json_file:
+                    json_bams = json.load(json_file)
+            # in case file hasn't been generated
+            except IOError as error:
+                messages.add_message(request,
+                                messages.ERROR,
+                                """An error has occured connecting with
+                                DNAnexus to find samples, please contact
+                                the bioinformatics team"""\
+                                extra_tags="alert-danger"
+                            )
 
-            for project in project_002_list:
-                # find bams in DNAnexus for given sample id, appends to
-                # dx_data list
-                dx_data = find_dx_bams(project, sample_id, dx_data)
+                return render(request, 'DNAnexus_to_igv/nexus_search.html', 
+                                context_dict)
 
-            if len(dx_data) == 0:
+            # find bams for requested sample
+            sample_bams = []
+            for bam in dx_data["bam"]:
+                if sample_id in bam["bam_name"]:
+                    sample_bams.append(bam)
+
+
+            if len(sample_bams) == 0:
                 # dx_data empty => bam and index were not found
                 messages.add_message(request,
                                 messages.ERROR,
@@ -217,45 +230,28 @@ def nexus_search(request):
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', 
                                 context_dict)
 
-            else:
-                # at least 1 BAM was found
-                # check each bam and idx pair are from same project,
-                # if not exit with error
-                for bam in dx_data:
-                    if bam["bam_folder"] != bam["idx_folder"]:
                     
-                        messages.add_message(request,
-                            messages.ERROR,
-                            """BAM and index file projects for sample {} do \
-                            not match. Please contact the bioinformatics \
-                            team.""".format(sample_id),
-                            extra_tags="alert-danger"
-                            )
-
-                        return render(request, 
-                            'DNAnexus_to_igv/nexus_search.html', context_dict)
-                    
-            if len(dx_data) == 1:
+            if len(sample_bams) == 1:
                 # one BAM found for sample
 
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
-                                                dx_data[0]["bam_file_id"],
-                                                dx_data[0]["idx_file_id"]
+                                                bam["bam_file_id"],
+                                                bam["idx_file_id"]
                                             )
                 
                 # add variables 
                 request.session["bam_url"] = bam_url
                 request.session["idx_url"] = idx_url
                 request.session["sampleID"] = sample_id
-                request.session["bam_name"] = dx_data[0]["bam_name"]
-                request.session["project_name"] = dx_data[0]["project_name"]
+                request.session["bam_name"] = bam["bam_name"]
+                request.session["project_name"] = bam["project_name"]
 
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url                
                 context_dict["sampleID"] = sample_id
-                context_dict["bam_name"] = dx_data[0]["bam_name"]
-                context_dict["project_name"] = dx_data[0]["project_name"]
+                context_dict["bam_name"] = bam["bam_name"]
+                context_dict["project_name"] = bam["project_name"]
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                                 context_dict)
@@ -268,7 +264,7 @@ def nexus_search(request):
                 
                 bam_list = []
 
-                for bam in dx_data:
+                for bam in sample_bams:
                     
                     # generate the urls
                     bam_url, idx_url = get_dx_urls(bam["bam_file_id"], 
@@ -279,7 +275,7 @@ def nexus_search(request):
                                     "idx_url": idx_url,
                                     "bam_name": bam["bam_name"],
                                     "project_name": bam["project_name"],
-                                    "bam_folder": bam["bam_folder"]
+                                    "bam_folder": bam["bam_path"]
                                     })
 
                 context_dict["bam_list"] = bam_list
