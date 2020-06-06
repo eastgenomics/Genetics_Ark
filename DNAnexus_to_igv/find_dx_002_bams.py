@@ -18,7 +18,8 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
+    #dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
+    dx_find_projects = "dx find projects --level VIEW --name 002*"
     
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
 
@@ -35,22 +36,25 @@ def find_dx_bams(project_002_lists):
     sample id.
 
     Args:
-        - project id (str): DNAnexus project id for 002 project
-        - sample_id (str): sample no. from search field
-        - dx_data (list): list to append info for each bam to
+        - project_002_list (list): list of all 002 dx projects
 
-    Returns:
-        - dx_data (list): list containing following for each BAM found:
+    Returns: None
+
+    Outputs:
+        - dx_002_bams.json (file): contains all 002 bams, for each: 
+    
             - bam_file_id (str): file id of BAM
             - idx_file_id (str): file id of BAM index
-            - bam_project_id (str): project id containing BAM
-            - idx_project_id (str): project id containing BAM index
             - bam_name (str): human name of BAM file
+            - idx_name (str): human name of index file
+            - project_id (str): project id containing BAM
             - project_name (str): human name of project
-            - bam_folder (str): dir path of bam file
-            - idx_folder (str): dir path of index file
+            - bam_path (str): dir path of bam file
     """
-    dx_data = []
+    
+    # empty dict to store bams for output in
+    dx_data = {}
+    dx_data['bam'] = []
 
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
@@ -67,6 +71,8 @@ def find_dx_bams(project_002_lists):
         bam_dict ={}
         idx_dict = {}
 
+        print project
+
         if bam and idx:
             # if BAM(s) and index found, should always be found
 
@@ -82,6 +88,7 @@ def find_dx_bams(project_002_lists):
                 file = bam[5].rsplit('/', 1)[1]
                 file_id = bam[-1].strip("()")
 
+                # add all bams to dict
                 bam_dict[(path, file)] = file_id         
 
             # split out index string and get required fields
@@ -92,6 +99,7 @@ def find_dx_bams(project_002_lists):
                 file = idx[5].rsplit('/', 1)[1]
                 file_id = idx[-1].strip("()")
 
+                # add all indexes to dict
                 idx_dict[(path, file)] = file_id
           
             # match bams to indexes on filename and dir path
@@ -105,22 +113,19 @@ def find_dx_bams(project_002_lists):
                                     "idx_file": bam_file+".bai",
                                     "idx_id": idx_dict[path, bam_file+".bai"]
                                     })
-            
+
+            # get project name to display
+            dx_project_name = "dx describe --json {}".format(project)
+
+            # returns a json as a string so convert back to json to select name 
+            project_json = json.loads(subprocess.check_output(dx_project_name, 
+                                                                shell=True))
+            project_name = project_json["name"]
 
             for bam in bam_idx_list:
-                # for each pair of bam and index, get file attributes
+                # for each pair of bam and index, add to dx_data
 
-                dx_project_name = "dx describe --json {}".format(project)
-
-                # returns a json as a string so convert back to json to select name 
-                project_json = json.loads(subprocess.check_output(dx_project_name, 
-                                                                    shell=True))
-                
-                # get project name to display
-                project_name = project_json["name"]
-
-                # add required data to list
-                dx_data.append({
+                dx_data["bam"].append({
                                 "bam_file_id": bam["bam_id"],
                                 "idx_file_id": bam["idx_id"],
                                 "project_id": project,
@@ -129,14 +134,14 @@ def find_dx_bams(project_002_lists):
                                 "idx_name": bam["idx_file"],
                                 "bam_path": bam["path"]
                                 })
-    for i in dx_data:
-        print i
-        print " "
 
+    # write all 002 bams into output json
+    with open('dx_002_bams.json', 'w') as outfile:
+        json.dump(dx_data, outfile, indent=2)
 
-project_002_list = get_002_projects()
-print project_002_list
+if __name__ == "__main__":
+    project_002_list = get_002_projects()
 
-find_dx_bams(project_002_list)
+    find_dx_bams(project_002_list)
 
 
