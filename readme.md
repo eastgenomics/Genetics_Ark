@@ -2,7 +2,7 @@
 
 # Genetics Ark
 
-Genetics Ark is a Django based web interface for hosting apps used by clinical scientists for managing and interpretating sequencing data. Currently, the core functionality resides in the Genetics Ark app, which connects to the Gemini MySQL variant database. This allows for scientists to search for a sample number, and then perform a reanalysis with either a set of gene(s) and / panel(s), generating a new .xlsx report. From here,they may also view the sample in the web based IGV.js.
+Genetics Ark is a Django based web interface for hosting apps used by clinical scientists for managing and interpretating sequencing data. Currently, the core functionality resides in the Genetics Ark app, which connects to the Gemini MySQL variant database. This allows for scientists to search for a sample number, and then perform a reanalysis with either a set of gene(s) and / or panel(s), generating a new .xlsx report. From here,they may also view the sample in the web based IGV.js.
 
 ## Current apps:
 
