@@ -12,6 +12,8 @@ along with a button to open IGV.js through Genetics Ark, passing the
 generated links to directly stream and view the BAMs.
 
 The dx-toolkit environment must first be sourced and user logged in.
+dx_002_bams.json must also be present in DNAnexus_to_igv/, this is
+generated from find_dx_002_bams.py
 
 """
 
@@ -27,114 +29,6 @@ from django.template import loader
 from django.shortcuts import render
 
 import DNAnexus_to_igv.forms as Forms
-
-
-def get_002_projects():
-    """
-    Get list of all 002 sequencing projects on DNAnexus to pull bams from
-
-    Args: None
-
-    Returns:
-        - project_002_list (list): list of all 002 project names 
-    """
-
-    # dx command to find 002 projects
-    dx_find_projects = "dx find projects --level VIEW --name 002*"
-    
-    projects_002 = subprocess.check_output(dx_find_projects, shell=True)
-
-    # get just the project id's from returned string
-    projects_002 = projects_002.replace("\n", " ").split(" ")
-    project_002_list = [x for x in projects_002 if x.startswith('project-')]
-
-    return project_002_list
-
-
-def find_dx_bams(project_id, sample_id, dx_data):
-    """
-    Function to find file and index id for a bam in DNAnexus given a 
-    sample id.
-
-    Args:
-        - project id (str): DNAnexus project id for 002 project
-        - sample_id (str): sample no. from search field
-        - dx_data (list): list to append info for each bam to
-
-    Returns:
-        - dx_data (list): list containing following for each BAM found:
-            - bam_file_id (str): file id of BAM
-            - idx_file_id (str): file id of BAM index
-            - bam_project_id (str): project id containing BAM
-            - idx_project_id (str): project id containing BAM index
-            - bam_name (str): human name of BAM file
-            - project_name (str): human name of project
-            - bam_folder (str): dir path of bam file
-            - idx_folder (str): dir path of index file
-    """
-
-    # dx commands to retrieve bam and bam.bai for given sample
-    dx_find_bam = "dx find data --path {project} --name {sample}*.bam".format(
-        project = project_id, sample = sample_id)
-
-    dx_find_idx = "dx find data --path {project} --name {sample}*.bam.bai".format(
-        project = project_id, sample = sample_id)
-
-    bam = subprocess.check_output(dx_find_bam, shell=True)
-    idx = subprocess.check_output(dx_find_idx, shell=True)
-
-    if bam and idx:
-        # if BAM(s) and index found
-
-        # get list from bam and idx with just file ids, needed to handle
-        # multiple bams in same project
-        bams = bam.replace("\n", " ").split(" ")
-        bams_list = [x.strip("()") for x in bams if x.startswith('(file-')]
-
-        idxs = idx.replace("\n", " ").split(" ")
-        idx_list = [x.strip("()") for x in idxs if x.startswith('(file-')]
-
-        for bam_id, idx_id in itertools.izip(bams_list, idx_list):
-            # for each pair of bam and index, get file attributes
-
-            # dx commands to get readable file and project names
-            dx_bam_name = "dx describe --json {}".format(bam_id)
-            dx_idx_name = "dx describe --json {}".format(idx_id)
-            dx_project_name = "dx describe --json {}".format(project_id)
-
-            # returns a json as a string so convert back to json to select name 
-            # and id's out
-            bam_json = json.loads(subprocess.check_output(dx_bam_name, shell=True))
-            idx_json = json.loads(subprocess.check_output(dx_idx_name, shell=True))
-
-            project_id = bam_json["project"]
-            project_json = json.loads(subprocess.check_output(dx_project_name, 
-                                                                shell=True))
-            
-            # get bam and project names to display
-            bam_name = bam_json["name"]
-            project_name = project_json["name"]
-
-            # get bam and index project ids to check they're from same run
-            bam_project_id = bam_json["project"]
-            idx_project_id = idx_json["project"]
-
-            # get dir path to display when multiple BAMs found in same project
-            bam_folder = bam_json["folder"]
-            idx_folder = idx_json["folder"]
-
-            # add required data to list
-            dx_data.append({
-                            "bam_file_id": bam_id,
-                            "idx_file_id": idx_id,
-                            "bam_project_id": bam_project_id,
-                            "idx_project_id": idx_project_id,
-                            "bam_name": bam_name,
-                            "project_name": project_name,
-                            "bam_folder": bam_folder,
-                            "idx_folder": idx_folder
-                            })
-    return dx_data
   
  
 def get_dx_urls(bam_file_id, idx_file_id):
@@ -189,19 +83,21 @@ def nexus_search(request):
             
             sample_id = clean_data["sampleID"]
             sample_id = str(sample_id).strip() # in case spaces
-            sample_id = sample_id.capitalize() # in case C/G/X is lower case
+            sample_id = sample_id.upper() # in case C/G/X is lower case
 
             # load in json with bams
             try:
-                with open('dx_002_bams.json') as json_file:
+                json_file = os.path.join(os.path.dirname(__file__),
+                                                    "dx_002_bams.json")
+                with open(json_file) as json_file:
                     json_bams = json.load(json_file)
             # in case file hasn't been generated
-            except IOError as error:
+            except IOError:
                 messages.add_message(request,
                                 messages.ERROR,
                                 """An error has occured connecting with
                                 DNAnexus to find samples, please contact
-                                the bioinformatics team"""\
+                                the bioinformatics team""",\
                                 extra_tags="alert-danger"
                             )
 
@@ -210,7 +106,8 @@ def nexus_search(request):
 
             # find bams for requested sample
             sample_bams = []
-            for bam in dx_data["bam"]:
+
+            for bam in json_bams["bam"]:
                 if sample_id in bam["bam_name"]:
                     sample_bams.append(bam)
 
