@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 
+from collections import defaultdict
 from operator import itemgetter
 
 def get_002_projects():
@@ -18,8 +19,8 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
-    #dx_find_projects = "dx find projects --level VIEW --name 002*"
+    dx_find_projects = "dx find projects --level VIEW --name 002*"
+    #dx_find_projects = "dx find projects --level VIEW --name 0002*"
     
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
 
@@ -27,6 +28,7 @@ def get_002_projects():
     projects_002 = projects_002.replace("\n", " ").split(" ")
     project_002_list = [x for x in projects_002 if x.startswith('project-')]
 
+    print project_002_list
     return project_002_list
 
 
@@ -53,8 +55,7 @@ def find_dx_bams(project_002_lists):
     """
     
     # empty dict to store bams for output in
-    dx_data = {}
-    #dx_data['bam'] = []
+    dx_data = defaultdict(list)
 
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
@@ -67,11 +68,8 @@ def find_dx_bams(project_002_lists):
         bam = subprocess.check_output(dx_find_bam, shell=True)
         idx = subprocess.check_output(dx_find_idx, shell=True)
 
-        bam_idx_list = []
-        bam_dict ={}
+        bam_dict = {}
         idx_dict = {}
-
-        print project
 
         if bam and idx:
             # if BAM(s) and index found, should always be found
@@ -80,8 +78,8 @@ def find_dx_bams(project_002_lists):
             bams = bam.split("\n")[:-1]
             idxs = idx.split("\n")[:-1]
             
-            # split out bam string and get required fields
             for bam in bams:
+                # split out bam string and get required fields
                 bam = filter(None, bam.split(" "))
 
                 path = bam[5].rsplit('/', 1)[0]
@@ -90,9 +88,9 @@ def find_dx_bams(project_002_lists):
 
                 # add all bams to dict
                 bam_dict[(path, file)] = file_id         
-
-            # split out index string and get required fields
+            
             for idx in idxs:
+                # split out index string and get required fields
                 idx = filter(None, idx.split(" "))
 
                 path = idx[5].rsplit('/', 1)[0]
@@ -114,51 +112,24 @@ def find_dx_bams(project_002_lists):
             for path, bam_file in bam_dict:
                 if idx_dict[(path, bam_file+".bai")]:
                     # if index with matching bam file and path is found
-                    # bam_idx_list.append({
-                    #                 "bam_file": bam_file,
-                    #                 "bam_id": bam_dict[path, bam_file],
-                    #                 "path": path,
-                    #                 "idx_file": bam_file+".bai",
-                    #                 "idx_id": idx_dict[path, bam_file+".bai"]
-                    #                 })
 
-                    dx_data[path+"/"+bam_file] = {
-                                "bam_file_id": bam_dict[path, bam_file],
-                                "idx_file_id": idx_dict[(path, bam_file+".bai")],
-                                "project_id": project,
-                                "project_name": project_name,
-                                "bam_name": bam_file,
-                                "idx_name": bam_file+".bai",
-                                "bam_path": path
-                                }               
-
-
-
-            # for bam in bam_idx_list:
-            #     # for each pair of bam and index, add to dx_data
-
-            #     dx_data["bam"].append({
-            #                     "bam_file_id": bam["bam_id"],
-            #                     "idx_file_id": bam["idx_id"],
-            #                     "project_id": project,
-            #                     "project_name": project_name,
-            #                     "bam_name": bam["bam_file"],
-            #                     "idx_name": bam["idx_file"],
-            #                     "bam_path": bam["path"]
-            #                     })
-
-            #     dx_data[(bam["path"], bam["bam_file"])] = {
-            #                     "bam_file_id": bam["bam_id"],
-            #                     "idx_file_id": bam["idx_id"],
-            #                     "project_id": project,
-            #                     "project_name": project_name,
-            #                     "bam_name": bam["bam_file"],
-            #                     "idx_name": bam["idx_file"],
-            #                     "bam_path": bam["path"]
-            #     }
-
-
-    sample = "X106868"
+                    if "_" in bam_file:
+                        # sample named as X001000_markdup.bam
+                        sample = bam_file.split("_", 1)[0].capitalize()
+                    else:
+                        # sample named without "_" i.e X00100.bam
+                        sample = bam_file.split(".", 1)[0].capitalize()
+                    
+                    # defaultdict with list for each sample
+                    dx_data[sample].append({
+                            "bam_file_id": bam_dict[path, bam_file],
+                            "idx_file_id": idx_dict[(path, bam_file+".bai")],
+                            "project_id": project,
+                            "project_name": project_name,
+                            "bam_name": bam_file,
+                            "idx_name": bam_file+".bai",
+                            "bam_path": path
+                            })
 
     # write all 002 bams into output json
     with open('dx_002_bams.json', 'w') as outfile:
