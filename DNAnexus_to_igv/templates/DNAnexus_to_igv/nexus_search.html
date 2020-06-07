@@ -47,7 +47,7 @@
 {% if messages %} 
     {% for message in messages %}
         <div class="alert {{ message.tags }}" role="alert">
-            <strong>{{ message }}</strong> 
+            <strong>{{ message|linebreaksbr }}</strong> 
         </div>
     {% endfor %} 
 {% endif %}

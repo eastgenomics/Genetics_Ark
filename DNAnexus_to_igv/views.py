@@ -26,6 +26,7 @@ import subprocess
 from django.contrib import messages
 from django.http import HttpResponse
 from django.template import loader
+from django.utils.safestring import mark_safe
 from django.shortcuts import render
 
 import DNAnexus_to_igv.forms as Forms
@@ -104,25 +105,20 @@ def nexus_search(request):
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', 
                                 context_dict)
 
-            # find bams for requested sample
-            sample_bams = [value for key, value in dx_data.iteritems() if sample_id in key]
-
-            print sample_bams
-
-            for bam in json_bams["bam"]:
-                if sample_id in bam["bam_name"]:
-                    sample_bams.append(bam)
-
-
-            if len(sample_bams) == 0:
-                # dx_data empty => bam and index were not found
+            try:
+                # select bams for sample
+                sample_bams = json_bams[sample_id]
+            except KeyError:
+                # sample_id not in json
                 messages.add_message(request,
                                 messages.ERROR,
-                                """Sample {} not found in DNAnexus, either it 
-                                is not available or an error has occured. 
-                                Please contact the bioinformatics team if you 
+                                mark_safe(
+                                """Sample {} not found in DNAnexus, either it\
+                                is not available, the full sample name was not\
+                                correctly given or another error has occured.\n 
+                                Please contact the bioinformatics team if you\
                                 believe the sample should be available.""".\
-                                format(sample_id),
+                                format(sample_id)),
                                 extra_tags="alert-danger"
                             )
 
@@ -135,22 +131,22 @@ def nexus_search(request):
 
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
-                                                bam["bam_file_id"],
-                                                bam["idx_file_id"]
+                                                sample_bams[0]["bam_file_id"],
+                                                sample_bams[0]["idx_file_id"]
                                             )
                 
                 # add variables 
                 request.session["bam_url"] = bam_url
                 request.session["idx_url"] = idx_url
                 request.session["sampleID"] = sample_id
-                request.session["bam_name"] = bam["bam_name"]
-                request.session["project_name"] = bam["project_name"]
+                request.session["bam_name"] = sample_bams[0]["bam_name"]
+                request.session["project_name"] = sample_bams[0]["project_name"]
 
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url                
                 context_dict["sampleID"] = sample_id
-                context_dict["bam_name"] = bam["bam_name"]
-                context_dict["project_name"] = bam["project_name"]
+                context_dict["bam_name"] = sample_bams[0]["bam_name"]
+                context_dict["project_name"] = sample_bams[0]["project_name"]
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                                 context_dict)

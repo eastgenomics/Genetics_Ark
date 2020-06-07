@@ -55,6 +55,7 @@ def find_dx_bams(project_002_lists):
     """
     
     # empty dict to store bams for output in
+    # use defaultdict to handle add or update of keys
     dx_data = defaultdict(list)
 
     for project in project_002_list:
@@ -115,10 +116,10 @@ def find_dx_bams(project_002_lists):
 
                     if "_" in bam_file:
                         # sample named as X001000_markdup.bam
-                        sample = bam_file.split("_", 1)[0].capitalize()
+                        sample = bam_file.split("_", 1)[0].upper()
                     else:
                         # sample named without "_" i.e X00100.bam
-                        sample = bam_file.split(".", 1)[0].capitalize()
+                        sample = bam_file.split(".", 1)[0].upper()
                     
                     # defaultdict with list for each sample
                     dx_data[sample].append({
