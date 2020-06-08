@@ -1,4 +1,6 @@
+# config.py must NOT be in version control
+django_example/config.py
+
 *.pyc
 django_example/urls.pyc
-django_example/config.py
-DNAnexus_to_igv/dx_002_bams.json
+django_example/wsgi.pyc
