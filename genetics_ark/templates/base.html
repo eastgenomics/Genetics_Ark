@@ -75,7 +75,7 @@
 
 	   {% comment %}
 	   {% endcomment %}
-
+            <li><a href="{% url 'nexus_search' %}">DNAnexus-IGV</a></li>
             <li><a href="{% url 'primers_index' %}">Primer designer </a></li>
             <li><a href="{% url 'projects_list' %}">Projects </a></li>
            {% if user.is_authenticated %}

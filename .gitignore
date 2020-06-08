@@ -1,7 +1,6 @@
 # config.py must NOT be in version control
 django_example/config.py
+
 *.pyc
-django_example/router.pyc
 django_example/urls.pyc
 django_example/wsgi.pyc
-

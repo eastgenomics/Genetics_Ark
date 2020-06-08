@@ -20,17 +20,17 @@ from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST,\
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Comment out for production
 #DEBUG = True
 
 # Brugger: Uncomment for production use, and the setting will change below 
 DEBUG = False
-
 
 ALLOWED_HOSTS = []
 
@@ -39,23 +39,26 @@ if ( DEBUG == False):
 else:
     ALLOWED_HOSTS = DEBUG_HOST
 
+
 # Application definition
 
 INSTALLED_APPS = [
-    'genetics_ark',          # The apps we are developing
+    'genetics_ark',       # The apps we are developing
     'primer_designer',
+    'DNAnexus_to_igv',
+
     'widget_tweaks', # Makes rendering forms a lot easier
-#    'debug_toolbar', # Awesome for debugging django sites
     'django_tables2',# make nice tables
+#   'debug_toolbar', # Awesome for debugging django sites
+    
     # Standard stuff
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-
-]
+    'django.contrib.staticfiles' 
+    ]
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -99,7 +102,6 @@ else:
 
 
 DATABASE_ROUTERS = ['django_example.router.Router']
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
