@@ -105,11 +105,11 @@ def nexus_search(request):
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', 
                                 context_dict)
 
-            try:
-                # select bams for sample
-                sample_bams = json_bams[sample_id]
-            except KeyError:
-                # sample_id not in json
+            # select bams matching sample id            
+            sample_bams = [v for k,v in json_bams.iteritems() if k.startswith(sample_id)]
+
+            if len(sample_bams) == 0:
+                # no bams found
                 messages.add_message(request,
                                 messages.ERROR,
                                 mark_safe(
@@ -126,40 +126,41 @@ def nexus_search(request):
                                 context_dict)
 
                     
-            if len(sample_bams) == 1:
-                # one BAM found for sample
+            if len(sample_bams[0]) == 1 and len(sample_bams) == 1:
+                # one sample found with one bam
 
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
-                                                sample_bams[0]["bam_file_id"],
-                                                sample_bams[0]["idx_file_id"]
+                                            sample_bams[0][0]["bam_file_id"],
+                                            sample_bams[0][0]["idx_file_id"]
                                             )
                 
                 # add variables 
                 request.session["bam_url"] = bam_url
                 request.session["idx_url"] = idx_url
                 request.session["sampleID"] = sample_id
-                request.session["bam_name"] = sample_bams[0]["bam_name"]
-                request.session["project_name"] = sample_bams[0]["project_name"]
+                request.session["bam_name"] = sample_bams[0][0]["bam_name"]
+                request.session["project_name"] = sample_bams[0][0]["project_name"]
 
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url                
                 context_dict["sampleID"] = sample_id
-                context_dict["bam_name"] = sample_bams[0]["bam_name"]
-                context_dict["project_name"] = sample_bams[0]["project_name"]
+                context_dict["bam_name"] = sample_bams[0][0]["bam_name"]
+                context_dict["project_name"] = sample_bams[0][0]["project_name"]
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                                 context_dict)
             
             else:
-                # multiple BAMs found for sample
+                # multiple BAMs and / or samples found
 
                 request.session["sampleID"] = sample_id
                 context_dict["sampleID"] = sample_id
                 
                 bam_list = []
-
-                for bam in sample_bams:
+                
+                for bam in itertools.chain.from_iterable(sample_bams):
+                    # can be mix of lists and nested lists
                     
                     # generate the urls
                     bam_url, idx_url = get_dx_urls(bam["bam_file_id"], 

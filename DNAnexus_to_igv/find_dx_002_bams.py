@@ -19,8 +19,8 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
+    #dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
     dx_find_projects = "dx find projects --level VIEW --name 002*"
-    #dx_find_projects = "dx find projects --level VIEW --name 0002*"
     
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
 
@@ -28,7 +28,6 @@ def get_002_projects():
     projects_002 = projects_002.replace("\n", " ").split(" ")
     project_002_list = [x for x in projects_002 if x.startswith('project-')]
 
-    print project_002_list
     return project_002_list
 
 
@@ -137,6 +136,7 @@ def find_dx_bams(project_002_lists):
         json.dump(dx_data, outfile, indent=2)
 
 if __name__ == "__main__":
+    
     project_002_list = get_002_projects()
 
     find_dx_bams(project_002_list)
