@@ -1,3 +1,14 @@
+"""
+Searches DNAnexus cloud platform for all available 002 projects, and 
+creates a .json output file containing all samples with available BAMs,
+along with required attributes to generate dx download links.
+
+Must be reguarly run (i.e. via cron) to keep up to date with new 
+sequencing runs.
+
+Jethro Rainford 080620
+"""
+
 import itertools
 import json
 import os
