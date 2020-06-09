@@ -42,7 +42,7 @@ def get_002_projects():
     return project_002_list
 
 
-def find_dx_bams(project_002_lists):
+def find_dx_bams(project_002_list):
     """
     Function to find file and index id for a bam in DNAnexus given a 
     sample id.
