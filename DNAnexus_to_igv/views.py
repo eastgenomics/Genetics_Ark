@@ -86,13 +86,15 @@ def nexus_search(request):
             sample_id = str(sample_id).strip() # in case spaces
             sample_id = sample_id.upper() # in case C/G/X is lower case
 
-            # load in json with bams
             try:
+              # load in json with all bams and dx attributes needed to
+              # search and generate dx download links
+              # if json is not present in same dir it will raise IOError
                 json_file = os.path.join(os.path.dirname(__file__),
                                                     "dx_002_bams.json")
                 with open(json_file) as json_file:
                     json_bams = json.load(json_file)
-            # in case file hasn't been generated
+            
             except IOError:
                 messages.add_message(request,
                                 messages.ERROR,
