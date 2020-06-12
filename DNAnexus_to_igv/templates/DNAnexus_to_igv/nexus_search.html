@@ -95,6 +95,30 @@
 
 </div>
 
+{% if not bam_name and not bam_list %}
+<!-- if normal search field used, remove direct link fields -->
+
+<div class="well" style="width:1000px;">
+
+    <h3>Load direct from URL</h3></br>
+
+    To load BAMs directly in to IGV hosted on Genetics Ark please paste the BAM and index url in the respective fields below.
+    This may be used for viewing samples outside of standard seqencing runs (i.e. during development work) where 
+    DNAnexus links have been provided by the bioinformatics team.
+
+    <!-- form for main search -->
+    <form method="post" action="" style="padding-top:10px;" name="url_form" >
+        {% csrf_token %}
+        {{ url_form.bam_url_form }}<br>
+        {{ url_form.idx_url_form }}<br>
+        <button name="url_form" id="search" type="submit" class="page_button">Search</button>
+
+    </form>
+
+</div>
+
+{% endif %}
+
 
 {% if bam_name %}
 
