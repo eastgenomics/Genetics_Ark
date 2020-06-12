@@ -239,9 +239,8 @@ def nexus_search(request):
                                 URLs used:
                                 BAM: {bam_url}
                                 Index: {idx_url}""".format(bam_url=bam_url,
-                                    idx_url=idx_url),\
-                            extra_tags="alert-danger"
-                        )
+                                    idx_url=idx_url), extra_tags="alert-danger"
+                                )
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', 
                                 context_dict)
