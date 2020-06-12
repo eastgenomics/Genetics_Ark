@@ -223,7 +223,7 @@ def nexus_search(request):
 
             if not "bai" in bam_url and "bai" in idx_url:
                 # check urls in correct fields
-                context_dict["sample_id"] = "direct urls"
+                context_dict["sampleID"] = "direct urls"
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url
 
