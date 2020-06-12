@@ -218,18 +218,34 @@ def nexus_search(request):
             if url_form.is_valid():
                 clean_data = url_form.cleaned_data
 
-            print clean_data
+            bam_url = str(clean_data["bam_url_form"]).strip()
+            idx_url = str(clean_data["idx_url_form"]).strip()
 
-            bam_url = str(clean_data["bam_url_form"]).strip
-            idx_url = str(clean_data["idx_url_form"]).strip
+            if not "bai" in bam_url and "bai" in idx_url:
+                # check urls in correct fields
+                context_dict["sample_id"] = "direct urls"
+                context_dict["bam_url"] = bam_url
+                context_dict["idx_url"] = idx_url
 
-            context_dict["sample_id"] = "direct urls"
-            context_dict["bam_url"] = bam_url
-            context_dict["idx_url"] = idx_url
-
-            return render(
-                        request, 'DNAnexus_to_igv/nexus_igv.html', context_dict
+                return render(
+                            request, 'DNAnexus_to_igv/nexus_igv.html', context_dict
+                            )
+            else:
+                messages.add_message(request,
+                            messages.ERROR,
+                            """An error has occured loading IGV from the\
+                                provided URLs. Please check URLs are correct\
+                                and have been pasted in the correct fields.
+                                URLs used:
+                                BAM: {bam_url}
+                                Index: {idx_url}""".format(bam_url=bam_url,
+                                    idx_url=idx_url),\
+                            extra_tags="alert-danger"
                         )
+
+                return render(request, 'DNAnexus_to_igv/nexus_search.html', 
+                                context_dict)
+
         
 
         if "igv_ga" in request.POST:
