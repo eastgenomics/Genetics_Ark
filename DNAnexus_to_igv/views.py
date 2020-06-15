@@ -69,6 +69,7 @@ def nexus_search(request):
 
     context_dict = {}
     context_dict["search_form"] = Forms.SearchForm()
+    context_dict["url_form"] = Forms.urlForm()
 
     if request.method == 'POST':
         if "search_form" in request.POST:
@@ -211,6 +212,42 @@ def nexus_search(request):
 
                     return render(request, 'DNAnexus_to_igv/nexus_search.html', 
                                     context_dict)
+
+        if "url_form" in request.POST:
+            # if direct url button is pressed
+            url_form = Forms.urlForm(request.POST)
+
+            if url_form.is_valid():
+                clean_data = url_form.cleaned_data
+
+            bam_url = str(clean_data["bam_url_form"]).strip()
+            idx_url = str(clean_data["idx_url_form"]).strip()
+
+            if not "bai" in bam_url and "bai" in idx_url:
+                # check urls in correct fields
+                context_dict["sampleID"] = "direct urls"
+                context_dict["bam_url"] = bam_url
+                context_dict["idx_url"] = idx_url
+
+                return render(
+                            request, 'DNAnexus_to_igv/nexus_igv.html', context_dict
+                            )
+            else:
+                messages.add_message(request,
+                            messages.ERROR,
+                            """An error has occured loading IGV from the\
+                                provided URLs. Please check URLs are correct\
+                                and have been pasted in the correct fields.
+                                URLs used:
+                                BAM: {bam_url}
+                                Index: {idx_url}""".format(bam_url=bam_url,
+                                    idx_url=idx_url), extra_tags="alert-danger"
+                                )
+
+                return render(request, 'DNAnexus_to_igv/nexus_search.html', 
+                                context_dict)
+
+        
 
         if "igv_ga" in request.POST:
             # view in igv button pressed
