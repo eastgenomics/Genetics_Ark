@@ -30,7 +30,6 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    #dx_find_projects = "dx find projects --level VIEW --name 003_200504_J*"
     dx_find_projects = "dx find projects --level VIEW --name 002*"
     
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
@@ -71,10 +70,10 @@ def find_dx_bams(project_002_list):
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
         dx_find_bam = "dx find data --path {project} --name *.bam".format(
-            project = project)
+            project=project)
 
         dx_find_idx = "dx find data --path {project} --name *.bam.bai".format(
-            project = project)
+            project=project)
 
         bam = subprocess.check_output(dx_find_bam, shell=True)
         idx = subprocess.check_output(dx_find_idx, shell=True)
