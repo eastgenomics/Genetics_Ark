@@ -2,13 +2,14 @@
 
 # Genetics Ark
 
-Genetics Ark is a Django based web interface for hosting apps used by clinical scientists for managing and interpretating sequencing data. Currently, the core functionality resides in the Genetics Ark app, which connects to the Gemini MySQL variant database. This allows for scientists to search for a sample number, and then perform a reanalysis with either a set of gene(s) and / panel(s), generating a new .xlsx report. From here,they may also view the sample in the web based IGV.js.
+Genetics Ark is a Django based web interface for hosting apps used by clinical scientists for managing and interpretating sequencing data. Currently, the core functionality resides in the Genetics Ark app, which connects to the Gemini MySQL variant database. This allows for scientists to search for a sample number, and then perform a reanalysis with either a set of gene(s) and / or panel(s), generating a new .xlsx report. From here,they may also view the sample in the web based IGV.js.
 
 ## Current apps:
 
  - **Primer designer**: app for designing new sequencing primers, utilises primer3 for designing primers and returns a .pdf report.
   
- - **DNAnexus_to_igv**: app to link samples stored in the DNAnexus cloud platform with Genetics Ark. On searching for a sample, if it is found within a "002" sequencing project within DNAnexus, download urls are provided for the BAM and index file to load within IGV installed on a PC. A link to stream the BAM directly to IGV.js is also provided.
+ - **DNAnexus_to_igv**: app to link samples stored in the DNAnexus cloud platform with Genetics Ark. On searching for a sample, if it is found within a "002" sequencing project within DNAnexus, download urls are provided for the BAM and index file to load within IGV installed on a PC. A link to stream the BAM directly to IGV.js is also provided.<br>
+n.b. find_dx_002_bams.py must first be run to generate a .json of samples in DNAnexus, this should be regularly run to stay up to date (i.e. adding as a cron job). 
 
 ## Apps in development:
 
