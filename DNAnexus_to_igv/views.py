@@ -39,6 +39,7 @@ from django_example.config import AUTH_TOKEN
 login = "dx login --token {} --noprojects".format(AUTH_TOKEN)
 subprocess.check_output(login, shell=True)
 
+
 def get_dx_urls(bam_file_id, idx_file_id):
     """ 
     Get preauthenticated dx download urls for bam and index
@@ -106,8 +107,8 @@ def nexus_search(request):
             except IOError:
                 messages.add_message(request,
                                 messages.ERROR,
-                                """An error has occured connecting with
-                                DNAnexus to find samples, please contact
+                                """An error has occured connecting with\
+                                DNAnexus to find samples, please contact\
                                 the bioinformatics team""",\
                                 extra_tags="alert-danger"
                             )

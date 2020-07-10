@@ -37,7 +37,6 @@ def get_002_projects():
 
     # dx command to find 002 projects
     dx_find_projects = "dx find projects --level VIEW --name 002*"
-    #dx_find_projects = "dx find projects --level VIEW --name 002* --auth-token {}".format(AUTH_TOKEN)
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
 
     # get just the project id's from returned string
@@ -75,15 +74,8 @@ def find_dx_bams(project_002_list):
 
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
-        # dx_find_bam = "dx find data --path {project} --name *.bam --auth-token {token}".format(
-        #     project=project, token=AUTH_TOKEN)
-
-        # dx_find_idx = "dx find data --path {project} --name *.bam.bai --auth-token {token}".format(
-        #     project=project, token=AUTH_TOKEN)
-
         dx_find_bam = "dx find data --path {project} --name *.bam".format(
             project=project)
-
         dx_find_idx = "dx find data --path {project} --name *.bam.bai".format(
             project=project)
 
@@ -124,7 +116,6 @@ def find_dx_bams(project_002_list):
 
             # get project name to display
             dx_project_name = "dx describe --json {project}".format(project=project)
-            #dx_project_name = "dx describe --json {project} --auth-token {token}".format(project=project, token=AUTH_TOKEN)
 
             # returns a json as a string so convert back to json to select name 
             project_json = json.loads(subprocess.check_output(dx_project_name, 
