@@ -39,6 +39,11 @@ from django_example.config import AUTH_TOKEN
 login = "dx login --token {} --noprojects".format(AUTH_TOKEN)
 subprocess.check_output(login, shell=True)
 
+# module load dx toolkit, required for apache user
+subprocess.check_output("ml dnanexus", shell=True)
+source = "source {}/dx-toolkit/environment".format("${DXROOT}")
+subprocess.check_output(source, shell=True)
+
 
 def get_dx_urls(bam_file_id, idx_file_id):
     """ 
