@@ -22,16 +22,24 @@ import json
 import os
 import re
 import subprocess
+import sys
 
 from django.contrib import messages
 from django.http import HttpResponse
-from django.template import loader
+from django.template import loader 
 from django.utils.safestring import mark_safe
 from django.shortcuts import render
 
 import DNAnexus_to_igv.forms as Forms
-  
- 
+
+# authentication token for DNAnexus
+from django_example.config import AUTH_TOKEN
+
+# log in to DNAnexus for queries
+login = "dx login --token {} --noprojects".format(AUTH_TOKEN)
+subprocess.check_output(login, shell=True)
+
+
 def get_dx_urls(bam_file_id, idx_file_id):
     """ 
     Get preauthenticated dx download urls for bam and index
@@ -44,8 +52,8 @@ def get_dx_urls(bam_file_id, idx_file_id):
         - idx_url (str): DNAnexus url for downloading index file
     """
 
-    dx_get_bam_url = "dx make_download_url {}".format(bam_file_id)
-    dx_get_idx_url = "dx make_download_url {}".format(idx_file_id)
+    dx_get_bam_url = "dx make_download_url {id}".format(id=bam_file_id)
+    dx_get_idx_url = "dx make_download_url {id}".format(id=idx_file_id)
 
     # generate the urls
     bam_url = subprocess.check_output(dx_get_bam_url, shell=True).strip()
@@ -99,8 +107,8 @@ def nexus_search(request):
             except IOError:
                 messages.add_message(request,
                                 messages.ERROR,
-                                """An error has occured connecting with
-                                DNAnexus to find samples, please contact
+                                """An error has occured connecting with\
+                                DNAnexus to find samples, please contact\
                                 the bioinformatics team""",\
                                 extra_tags="alert-danger"
                             )

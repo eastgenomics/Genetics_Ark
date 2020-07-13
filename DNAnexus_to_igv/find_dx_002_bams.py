@@ -5,6 +5,7 @@ along with required attributes to generate dx download links.
 
 Must be reguarly run (i.e. via cron) to keep up to date with new 
 sequencing runs.
+Also need to ensure the output json is in the DNAnexus_to_igv dir.
 
 Jethro Rainford 080620
 """
@@ -19,6 +20,11 @@ import sys
 from collections import defaultdict
 from operator import itemgetter
 
+# token for DNAnexus log in
+sys.path.insert(0, "../")
+from django_example.config import AUTH_TOKEN
+
+
 def get_002_projects():
     """
     Get list of all 002 sequencing projects on DNAnexus to pull bams from
@@ -31,7 +37,6 @@ def get_002_projects():
 
     # dx command to find 002 projects
     dx_find_projects = "dx find projects --level VIEW --name 002*"
-    
     projects_002 = subprocess.check_output(dx_find_projects, shell=True)
 
     # get just the project id's from returned string
@@ -71,7 +76,6 @@ def find_dx_bams(project_002_list):
         # dx commands to retrieve bam and bam.bai for given sample
         dx_find_bam = "dx find data --path {project} --name *.bam".format(
             project=project)
-
         dx_find_idx = "dx find data --path {project} --name *.bam.bai".format(
             project=project)
 
@@ -111,7 +115,7 @@ def find_dx_bams(project_002_list):
                 idx_dict[(path, file)] = file_id
 
             # get project name to display
-            dx_project_name = "dx describe --json {}".format(project)
+            dx_project_name = "dx describe --json {project}".format(project=project)
 
             # returns a json as a string so convert back to json to select name 
             project_json = json.loads(subprocess.check_output(dx_project_name, 
@@ -146,6 +150,10 @@ def find_dx_bams(project_002_list):
         json.dump(dx_data, outfile, indent=2)
 
 if __name__ == "__main__":
+
+    # log in to DNAnexus to do queries 
+    login = "dx login --token {} --noprojects".format(AUTH_TOKEN)
+    subprocess.check_output(login, shell=True)
     
     project_002_list = get_002_projects()
 
