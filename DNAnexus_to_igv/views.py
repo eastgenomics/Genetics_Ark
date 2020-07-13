@@ -51,7 +51,7 @@ def get_dx_urls(bam_file_id, idx_file_id):
     
     Args:
         - bam_file_id (str): file id of BAM 
-        - idx_file_id (str): file if of BAM index`
+        - idx_file_id (str): file if of BAM index
     Returns:
         - bam_url (str): DNAnexus url for downloading BAM file
         - idx_url (str): DNAnexus url for downloading index file
