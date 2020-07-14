@@ -36,8 +36,7 @@ import DNAnexus_to_igv.forms as Forms
 from django_example.config import AUTH_TOKEN
 
 # module load dx toolkit, required for apache user
-subprocess.check_output(' eval $(/usr/share/lmod/lmod/libexec/ml_cmd "dnanexus")', shell=True)
-source = "source {}/dx-toolkit/environment".format("${DXROOT}")
+source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment"
 subprocess.check_output(source, shell=True)
 
 # log in to DNAnexus for queries
