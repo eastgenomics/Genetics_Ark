@@ -24,6 +24,9 @@ from operator import itemgetter
 sys.path.insert(0, "../")
 from django_example.config import AUTH_TOKEN
 
+# path to source toolkit because apache
+source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
+
 
 def get_002_projects():
     """
@@ -37,7 +40,7 @@ def get_002_projects():
 
     # dx command to find 002 projects
     dx_find_projects = "dx find projects --level VIEW --name 002*"
-    projects_002 = subprocess.check_output(dx_find_projects, shell=True)
+    projects_002 = subprocess.check_output(source+dx_find_projects, shell=True)
 
     # get just the project id's from returned string
     projects_002 = projects_002.replace("\n", " ").split(" ")
@@ -79,8 +82,8 @@ def find_dx_bams(project_002_list):
         dx_find_idx = "dx find data --path {project} --name *.bam.bai".format(
             project=project)
 
-        bam = subprocess.check_output(dx_find_bam, shell=True)
-        idx = subprocess.check_output(dx_find_idx, shell=True)
+        bam = subprocess.check_output(source+dx_find_bam, shell=True)
+        idx = subprocess.check_output(source+dx_find_idx, shell=True)
 
         bam_dict = {}
         idx_dict = {}
@@ -115,10 +118,10 @@ def find_dx_bams(project_002_list):
                 idx_dict[(path, file)] = file_id
 
             # get project name to display
-            dx_project_name = "dx describe --json {project}".format(project=project)
+            dx_project_name = "source+dx describe --json {project}".format(project=project)
 
             # returns a json as a string so convert back to json to select name 
-            project_json = json.loads(subprocess.check_output(dx_project_name, 
+            project_json = json.loads(subprocess.check_output(source+dx_project_name, 
                                                                 shell=True))
             project_name = project_json["name"]
 
@@ -151,8 +154,11 @@ def find_dx_bams(project_002_list):
 
 if __name__ == "__main__":
 
+    source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
+    subprocess.check_output(source, shell=True)
+
     # log in to DNAnexus to do queries 
-    login = "dx login --token {} --noprojects".format(AUTH_TOKEN)
+    login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
     subprocess.check_output(login, shell=True)
     
     project_002_list = get_002_projects()
