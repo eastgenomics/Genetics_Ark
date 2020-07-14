@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     # log in to DNAnexus to do queries 
     login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
-    subprocess.check_output(login, shell=True)
+    subprocess.check_output(source+login, shell=True)
     
     project_002_list = get_002_projects()
 

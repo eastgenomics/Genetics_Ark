@@ -41,7 +41,7 @@ subprocess.check_output(source, shell=True)
 
 # log in to DNAnexus for queries
 login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
-subprocess.check_output(login, shell=True)
+subprocess.check_output(source+login, shell=True)
 
 
 def get_dx_urls(bam_file_id, idx_file_id):
