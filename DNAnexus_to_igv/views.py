@@ -36,11 +36,11 @@ import DNAnexus_to_igv.forms as Forms
 from django_example.config import AUTH_TOKEN
 
 # module load dx toolkit, required for apache user
-source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment"
+source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
 subprocess.check_output(source, shell=True)
 
 # log in to DNAnexus for queries
-login = "dx login --token {} --noprojects".format(AUTH_TOKEN)
+login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
 subprocess.check_output(login, shell=True)
 
 
@@ -60,8 +60,8 @@ def get_dx_urls(bam_file_id, idx_file_id):
     dx_get_idx_url = "dx make_download_url {id}".format(id=idx_file_id)
 
     # generate the urls
-    bam_url = subprocess.check_output(dx_get_bam_url, shell=True).strip()
-    idx_url = subprocess.check_output(dx_get_idx_url, shell=True).strip()
+    bam_url = subprocess.check_output(source+dx_get_bam_url, shell=True).strip()
+    idx_url = subprocess.check_output(source+dx_get_idx_url, shell=True).strip()
 
     return bam_url, idx_url
 
