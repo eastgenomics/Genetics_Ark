@@ -118,7 +118,7 @@ def find_dx_bams(project_002_list):
                 idx_dict[(path, file)] = file_id
 
             # get project name to display
-            dx_project_name = "source+dx describe --json {project}".format(project=project)
+            dx_project_name = "dx describe --json {project}".format(project=project)
 
             # returns a json as a string so convert back to json to select name 
             project_json = json.loads(subprocess.check_output(source+dx_project_name, 
