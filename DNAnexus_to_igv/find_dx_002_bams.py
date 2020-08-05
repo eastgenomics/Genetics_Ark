@@ -39,7 +39,7 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    dx_find_projects = "dx find projects --level VIEW --name 002_*CP*"
+    dx_find_projects = "dx find projects --level VIEW --name 002_*"
     projects_002 = subprocess.check_output(source+dx_find_projects, shell=True)
 
     # get just the project id's from returned string
