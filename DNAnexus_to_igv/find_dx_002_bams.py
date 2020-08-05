@@ -39,7 +39,7 @@ def get_002_projects():
     """
 
     # dx command to find 002 projects
-    dx_find_projects = "dx find projects --level VIEW --name 002*"
+    dx_find_projects = "dx find projects --level VIEW --name 002_*CP*"
     projects_002 = subprocess.check_output(source+dx_find_projects, shell=True)
 
     # get just the project id's from returned string
@@ -88,6 +88,7 @@ def find_dx_bams(project_002_list):
         bam_dict = {}
         idx_dict = {}
 
+
         if bam and idx:
             # if BAM(s) and index found, should always be found
 
@@ -99,9 +100,19 @@ def find_dx_bams(project_002_list):
                 # split out bam string and get required fields
                 bam = filter(None, bam.split(" "))
 
-                path = bam[5].rsplit('/', 1)[0]
-                file = bam[5].rsplit('/', 1)[1]
-                file_id = bam[-1].strip("()")
+                if len(bam) == 7:
+                    # path has no spaces, should have fields:
+                    # status, date, time, size, units, path/name, file-id
+                    path = bam[5].rsplit('/', 1)[0]
+                    file = bam[5].rsplit('/', 1)[1]
+                    file_id = bam[-1].strip("()")
+                else:
+                    # path is gross and has spaces
+                    # take fields that make up path and join with "_"
+                    # will include file name at end so split off
+                    path = "_".join(map(str, bam[5:-1])).rsplit("/", 1)[0]
+                    file = bam[-2].split('/', 1)[1]
+                    file_id = bam[-1].strip("()")
 
                 # add all bams to dict
                 bam_dict[(path, file)] = file_id         
@@ -110,9 +121,17 @@ def find_dx_bams(project_002_list):
                 # split out index string and get required fields
                 idx = filter(None, idx.split(" "))
 
-                path = idx[5].rsplit('/', 1)[0]
-                file = idx[5].rsplit('/', 1)[1]
-                file_id = idx[-1].strip("()")
+                if len(idx) == 7:
+                    # path has no spaces, should have fields:
+                    # status, date, time, size, units, path/name, file-id
+                    path = idx[5].rsplit('/', 1)[0]
+                    file = idx[5].rsplit('/', 1)[1]
+                    file_id = idx[-1].strip("()")
+                else:
+                    # path is gross and has spaces, do same as bam above
+                    path = "_".join(map(str, idx[5:-1])).rsplit("/", 1)[0]
+                    file = idx[-2].split('/', 1)[1]
+                    file_id = idx[-1].strip("()")
 
                 # add all indexes to dict
                 idx_dict[(path, file)] = file_id
