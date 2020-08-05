@@ -28,14 +28,6 @@
     <!-- Font Awesome CSS, icons for bam viewer -->
     <link href="/static/css/font-awesome.min.css" rel="stylesheet" />
 
-    <!-- Font Awesome CSS
-    <link rel="stylesheet" type="text/css"
-          href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"/>
- -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
   </head>
 
   <body>
@@ -71,7 +63,6 @@
                 </div>
 	     {% endblock %}
 
-<!--                <li><a href="/gemini/">GeminiDB</a></li> -->
 
 	   {% comment %}
 	   {% endcomment %}
@@ -92,26 +83,7 @@
 
     <div class="container-fluid">
       <div class="row">
-          {% block side_block %}
-    {% comment %}
-        <div class="col-lg-2 sidebar">
-       This is the leftside navigation bar
-	    <ul class="list-unstyled">
 
-            <li><a href="{% url 'company_list' %}" class='btn btm-sm alert-info btn-block' width=130>Companies</a></li>
-            <li><a href="{% url 'company_add' %}" class='btn btm-sm alert-info btn-block' width=130>Add company</a></li>
-
-            <li><hr></li>
-            <li><a href="{% url 'contact_list' %}" class='btn btm-sm alert-info btn-block' width=130>Contacts</a></li>
-            <li><a href="{% url 'contact_add' %}" class='btn btm-sm alert-info btn-block' width=130>Add contact</a></li>
-
-            <li><hr></li>
-            <li><a href="{% url 'doc_notes' %}" class='btn btm-sm alert-info btn-block' width=130>Notes</a></li>
-
-	    </ul>
-    {% endcomment %}
-
-	  {% endblock %}
         </div>
         <div class="col-sm-9 col-sm-offset-2 col-md-10 col-md-offset-2 main">
     {% comment %}
@@ -136,25 +108,7 @@
     <script type="text/javascript" src="/static/js/ccbg.js"></script>
     <script type="text/javascript" src="/static/js/jquery-ui.js"></script>
 
-    <!-- Bootstrap core JavaScript
-    <script src="{% static "js/ctru.js" %}"></script>
-
-    <script type="text/javascript" src="/static/js/jquery.jeditable.js"></script>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="http://getbootstrap.com/dist/js/bootstrap.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <!-- <script src="http://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
-     -->
-
-
     <script type="text/javascript" src="/static/js/igv-2.5.5.min.js"></script>
-
-
-   <script>
-   {% block script %}
-   {% endblock %}
-   </script>
 
   </body>
 </html>
