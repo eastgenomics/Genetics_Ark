@@ -77,7 +77,7 @@ def find_dx_bams(project_002_list):
     # use defaultdict to handle add or update of keys
     dx_data = defaultdict(list)
 
-    # empty dict to add bams / index if not in pair
+    # empty dict to add bams to if index is missing
     missing_bam = defaultdict(list)
 
     for project in project_002_list:
