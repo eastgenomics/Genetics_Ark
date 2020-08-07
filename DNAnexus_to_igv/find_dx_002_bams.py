@@ -17,6 +17,8 @@ import re
 import subprocess
 import sys
 
+import datetime as date
+
 from collections import defaultdict
 from operator import itemgetter
 
@@ -74,6 +76,9 @@ def find_dx_bams(project_002_list):
     # empty dict to store bams for output in
     # use defaultdict to handle add or update of keys
     dx_data = defaultdict(list)
+
+    # empty dict to add bams / index if not in pair
+    missing_bam = defaultdict(list)
 
     for project in project_002_list:
         # dx commands to retrieve bam and bam.bai for given sample
@@ -146,7 +151,7 @@ def find_dx_bams(project_002_list):
 
             # match bams to indexes on filename and dir path
             for path, bam_file in bam_dict:
-                if idx_dict[(path, bam_file+".bai")]:
+                if idx_dict.get((path, bam_file+".bai")):
                     # if index with matching bam file and path is found
 
                     if "_" in bam_file:
@@ -166,10 +171,24 @@ def find_dx_bams(project_002_list):
                             "idx_name": bam_file+".bai",
                             "bam_path": path
                             })
+                else:
+                    # bam missing index
+                    missing_bam[bam_file].append({
+                                "added_to_dict":  date.datetime.now()\
+                                .strftime("%Y-%m-%d %H:%M:%S"),
+                                "project_id": project,
+                                "project_name": project_name,
+                                "path": path
+                    })
 
     # write all 002 bams into output json
     with open('dx_002_bams.json', 'w') as outfile:
         json.dump(dx_data, outfile, indent=2)
+    
+    if missing_bam:
+        print(missing_bam)
+        with open('dx_missing_bam.json', 'w') as missing_file:
+            json.dump(missing_bam, missing_file, indent=2)
 
 if __name__ == "__main__":
 
