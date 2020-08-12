@@ -108,15 +108,17 @@ def find_dx_bams(project_002_list):
                 if len(bam) == 7:
                     # path has no spaces, should have fields:
                     # status, date, time, size, units, path/name, file-id
-                    path = bam[5].rsplit('/', 1)[0]
-                    file = bam[5].rsplit('/', 1)[1]
+                    
+                    path, file = os.path.split(bam[5])
                     file_id = bam[-1].strip("()")
+
                 else:
                     # path is gross and has spaces
                     # take fields that make up path and join with "_"
                     # will include file name at end so split off
-                    path = "_".join(map(str, bam[5:-1])).rsplit("/", 1)[0]
-                    file = bam[-2].split('/', 1)[1]
+
+                    path_file = "_".join(map(str, bam[5:-1]))
+                    path, file = os.path.split(path_file)
                     file_id = bam[-1].strip("()")
 
                 # add all bams to dict
@@ -129,13 +131,14 @@ def find_dx_bams(project_002_list):
                 if len(idx) == 7:
                     # path has no spaces, should have fields:
                     # status, date, time, size, units, path/name, file-id
-                    path = idx[5].rsplit('/', 1)[0]
-                    file = idx[5].rsplit('/', 1)[1]
+                    
+                    path, file = os.path.split(idx[5])
                     file_id = idx[-1].strip("()")
                 else:
                     # path is gross and has spaces, do same as bam above
-                    path = "_".join(map(str, idx[5:-1])).rsplit("/", 1)[0]
-                    file = idx[-2].split('/', 1)[1]
+                    
+                    path_file = "_".join(map(str, idx[5:-1]))
+                    path, file = os.path.split(path_file)
                     file_id = idx[-1].strip("()")
 
                 # add all indexes to dict

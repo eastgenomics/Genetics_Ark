@@ -39,10 +39,6 @@ from django_example.config import AUTH_TOKEN
 source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
 subprocess.check_output(source, shell=True)
 
-# log in to DNAnexus for queries
-#login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
-#subprocess.check_output(source+login, shell=True)
-
 
 def get_dx_urls(bam_file_id, idx_file_id):
     """ 
