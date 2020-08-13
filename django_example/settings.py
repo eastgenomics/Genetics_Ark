@@ -15,7 +15,7 @@ import os
 # Passwords and database credentials stored in config.py 
 # NOT IN VERSION CONTROL
 from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST,\
-                    PROD_DATABASE, DEBUG_DATABASE, GA_TOKEN
+                    PROD_DATABASE, DEBUG_DATABASE, GOOGLE_ANALYTICS
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
