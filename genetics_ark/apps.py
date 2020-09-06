@@ -1,7 +1,5 @@
-from __future__ import unicode_literals
-
 from django.apps import AppConfig
 
 
-class RolodexConfig(AppConfig):
+class GeneticsArkConfig(AppConfig):
     name = 'genetics_ark'
