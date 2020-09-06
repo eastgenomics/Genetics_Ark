@@ -4,3 +4,4 @@ django_example/config.py
 *.pyc
 django_example/urls.pyc
 django_example/wsgi.pyc
+ga_core/config.py
