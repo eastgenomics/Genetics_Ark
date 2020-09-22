@@ -4,11 +4,13 @@ Django settings for ga_core project.
 """
 import os
 
+from django.contrib.messages import constants as messages
 from pathlib import Path
+
 
 # Passwords and database credentials stored in config.py 
 # NOT IN VERSION CONTROL
-from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, PROD_DATABASE, DEBUG_DATABASE, GOOGLE_ANALYTICS
+from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,9 +19,9 @@ SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-#DEBUG= False
+# DEBUG= False
 
-if ( DEBUG == False):
+if (DEBUG is False):
     ALLOWED_HOSTS = PROD_HOST
 else:
     ALLOWED_HOSTS = DEBUG_HOST
@@ -66,6 +68,15 @@ TEMPLATES = [
         },
     },
 ]
+
+
+MESSAGE_TAGS = {
+        messages.DEBUG: 'alert-secondary',
+        messages.INFO: 'alert-info',
+        messages.SUCCESS: 'alert-success',
+        messages.WARNING: 'alert-warning',
+        messages.ERROR: 'alert-danger',
+ }
 
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 

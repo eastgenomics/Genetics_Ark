@@ -469,7 +469,7 @@ table.alt tbody tr td {
 /* Highlights */
 .highlights {
   width: 100%;
-  margin: 2.5rem 0;
+  margin: 10rem 0;
   display: -moz-flex;
   display: -webkit-flex;
   display: -ms-flex;
@@ -1461,7 +1461,7 @@ ul.icons {
   -webkit-justify-content: center;
   -ms-justify-content: center;
   justify-content: center;
-  background-image: url("../../images/dna_bg.jpg");
+  background-image: url("../../images/dna_bg.svg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

@@ -14,15 +14,10 @@
     left: 200px;
     }
 
-    * {
-      font-family: "tahoma";
-      font-size: 14px;
-      -webkit-font-smoothing: antialiased;
-    }
-
     .page_button{
         color: #fff !important;
         text-decoration: none;
+        
         background: #337ab7;
         padding: 7px;
         border-radius: 5px;
@@ -47,7 +42,7 @@
 <!-- messages loader -->
 {% if messages %} 
     {% for message in messages %}
-        <div class="alert {{ message.tags }}" role="alert">
+        <div class="alert {{ message.tags }} alert-dismissible" role="alert" id="message" style="position: absolute; width: 100%">
             <strong>{{ message|linebreaksbr }}</strong> 
         </div>
     {% endfor %} 
@@ -66,7 +61,7 @@
 </script>
 
 
-<div class="well" style="width:1000px; margin:0 auto; padding-top: 50px;">
+<div style="width:1000px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
     
     <h2>DNAnexus to IGV</h2></br>
 
@@ -84,8 +79,8 @@
     <!-- form for main search -->
     <form method="post" action="" style="padding-top:10px;" name="search_form" onsubmit="return spinner_function()">
         {% csrf_token %}
-        {{ search_form.sampleID }}
-        <br>
+        {{ search_form.sampleID }}<br>
+         
         <button name="search_form" id="search" type="submit" class="page_button">Search</button>
 
     </form>
