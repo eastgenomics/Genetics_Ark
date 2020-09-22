@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_block %}
+<html>
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'css/link_button.css' %}"> -->
+
+<style>
+    .spinner{
+        position: relative;      
+    /* height: 75px;
+    width: 75px; */
+    bottom: 80px;
+    left: 200px;
+    }
+
+    * {
+      font-family: "tahoma";
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page_button{
+        color: #fff !important;
+        text-decoration: none;
+        background: #337ab7;
+        padding: 7px;
+        border-radius: 5px;
+        line-height: 1;
+        height: 30px;
+        /* display: inline-block; */
+        border: none;
+        transition: all 0.25s ease 0s;
+        }
+
+    .page_button:hover {
+        background: #42a3e4;
+        letter-spacing: 1px;
+        -webkit-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+        -moz-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.57);
+        box-shadow: 5px 40px -10px rgba(0,0,0,0.57);
+        transition: all 0.25s ease 0s;
+        }
+
+</style>
+
+<!-- messages loader -->
+{% if messages %} 
+    {% for message in messages %}
+        <div class="alert {{ message.tags }}" role="alert">
+            <strong>{{ message|linebreaksbr }}</strong> 
+        </div>
+    {% endfor %} 
+{% endif %}
+
+
+<!-- function to display loading spinner on form submit -->
+<script>
+    function spinner_function() {
+        var x = document.getElementById("spinner");
+        if (x.style.display === "none") 
+            {x.style.display = "block";}
+        else 
+            {x.style.display = "none";}
+    }
+</script>
+
+
+<div class="well" style="width:1000px; margin:0 auto; padding-top: 50px;">
+    
+    <h2>DNAnexus to IGV</h2></br>
+
+    Currently only newly sequenced samples processed through DNAnexus will be available to view through this instance of IGV.<br></br>
+
+    This page may be used to generate URLs to view BAMs on IGV installed locally on your PC, or to view directly within IGV on Genetics Ark. <br></br>
+
+    Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV if installed locally <br>
+    on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
+    For older (pre-2020) samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.<br>
+    These older samples will gradually be uploaded to DNAnexus over the coming weeks and be available via this page.<br></br>
+
+    The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
+
+    <!-- form for main search -->
+    <form method="post" action="" style="padding-top:10px;" name="search_form" onsubmit="return spinner_function()">
+        {% csrf_token %}
+        {{ search_form.sampleID }}
+        <br>
+        <button name="search_form" id="search" type="submit" class="page_button">Search</button>
+
+    </form>
+
+    <!-- loading spinner -->
+    <div id="spinner" class="spinner" style="display:none">
+        <img id='spinner' src='/static/images/cloud2.gif' alt="Please wait .."  style="width:75px;height:50px;"> 
+        <b>Searching DNAnexus for samples</b>
+    </div>
+
+</div>
+
+{% if not bam_name and not bam_list %}
+<!-- if normal search field used, remove direct link fields -->
+
+<div class="well" style="width:1000px; margin:0 auto;">
+
+    <h3>Load direct from URL</h3></br>
+
+    To load BAMs directly in to IGV hosted on Genetics Ark please paste the BAM and index url in the respective fields below.
+    This may be used for viewing samples outside of standard seqencing runs (i.e. during development work) where 
+    DNAnexus links have been provided by the bioinformatics team.
+
+    <!-- form for main search -->
+    <form method="post" action="" style="padding-top:10px;" name="url_form" >
+        {% csrf_token %}
+        {{ url_form.bam_url_form }}<br>
+        {{ url_form.idx_url_form }}<br>
+        <button name="url_form" id="search" type="submit" class="page_button">Load in IGV</button>
+
+    </form>
+
+</div>
+
+{% endif %}
+
+
+{% if bam_name %}
+
+<!-- Single BAM found for sample -->
+
+<div class="well" style="width:1000px; margin:0 auto;">
+
+    <div>
+        Requested Sample: <b>{{ sampleID }}</b><br>
+        Sample Name: <b>{{ bam_name }}</b><br>
+        Sequencing project: <b>{{ project_name }}</b>
+        <br></br>
+        BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
+        <br></br>
+        <ul>
+           <li>BAM url:<br> <b>{{ bam_url }}</b></li>
+           <li>Index url:<br> <b>{{ idx_url }}</b></li>
+        </ul>
+
+    <br> 
+    BAMs may be viewed in web based IGV hosted on Genetics Ark here:
+    <br></br>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <button name="igv_ga" type="submit" class = "page_button">View in web IGV</button>
+    </form>
+
+    </div>
+</div>
+
+{% endif %}
+
+
+{% if bam_list %}
+
+<!-- multple bams for sample returned, give option to select which to use -->
+
+<div class="well" style="width:1000px; margin:0 auto;">
+    <div>
+        More than one BAM found for sample {{ sampleID }}</b><br>
+        Please select which project to load the BAM from:</b><br></b><br>
+        
+        {% for bam in bam_list %}
+
+            <form action="" method="post" name="select_bam">
+                {% csrf_token %}
+
+                <input type="hidden" name="selected_bam" value={{ bam.bam_url }} >
+
+                <button name="select_bam" type="submit" class = "page_button">Select</button>&emsp;
+
+                <b>{{ bam.bam_name }}</b> from project <b>{{ bam.project_name }}</b> path = {{ bam.bam_folder }}
+
+            </form></b><br>
+
+        {% endfor %}
+
+    </div>
+</div>
+
+
+{% endif %}
+
+</html>
+</body>
+
+{% endblock %}
