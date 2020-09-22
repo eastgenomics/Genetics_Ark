@@ -1,31 +1,26 @@
 
 {% extends 'base.html' %}
-{% load widget_tweaks %}
-
-
 
 {% block body_block %}
 
-
-
-
-
-<div class="row center-block">
-<h2> Enter regions  </h2>
-<form role="form"  id="panel_form" method="post" action={% url 'primers_index' %}>
-
-{% csrf_token %}
-  <div class="col-lg-4">
-    <div class="input-group">
-      {{regions_form.regions|add_class:"form-control"|attr:"placeholder: eg: name x:123213 grch37"}}
-    </div><!-- /input-group -->
-    <div class="input-group">
-      <span class="input-group-btn">
-        <button class="btn alert-success" type="submit">Design primers</button>
-      </span>
-    </div><!-- /input-group -->
-  </div><!-- /.col-lg-6 -->
-</div><!-- /.row -->
+<div style="width:1500px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
+  <h2> Primer Designer</h2><br>
+  <h3>  &nbsp&nbsp Enter regions  </h3>
+  
+  <form role="form"  id="panel_form" method="post" action={% url 'primers_index' %}>
+  {% csrf_token %}
+    <div class="col-lg-4">
+      <div class="input-group">
+        {{regions_form.regions}}
+      </div>
+      <br>
+      <div class="input-group">
+        <span class="input-group-btn">
+          <button class="btn alert-success" type="submit">Design primers</button>
+        </span>
+      </div>
+    </div>
+</div>
 
 
 </form>

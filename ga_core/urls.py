@@ -24,7 +24,8 @@ urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('genetics_ark/', include('genetics_ark.urls')),
-    path('', include('DNAnexus_to_igv.urls'))
+    path('', include('DNAnexus_to_igv.urls')),
+    path('', include('primer_designer.urls'))
     ] 
 print(urlpatterns)
 
