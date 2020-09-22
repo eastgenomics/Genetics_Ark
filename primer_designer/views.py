@@ -1,12 +1,10 @@
-from django.shortcuts import render
-
 import os
-import string 
-import random 
+import string
+import random
 import subprocess
 import shlex
 import shutil
-import time 
+import time
 import datetime
 import json
 import pprint as pp
@@ -14,144 +12,132 @@ import re
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
-from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
+import primer_designer.forms as Forms
 
-import primer_designer.forms  as Forms
 
-#@login_required(login_url='/login/')
+# @login_required(login_url='/login/')
+
+# def index(request):
+#     return render(request, "base.html")
+
 def index(request):
-    return render( request, "base.html")
-
-
-
-# company related urls
-def index( request ):
 
     if request.method == 'POST':
-        regions_form = Forms.RegionsForm( request.POST )
-
-#        pp.pprint( request.POST )
-#        pp.pprint( company_form['name'] )
-
+        regions_form = Forms.RegionsForm(request.POST)
 
         # One or more valid regions where entered.
-        if  regions_form.is_valid():
+        if regions_form.is_valid():
 
-            print"Passing data along"
-            pp.pprint( regions_form.data['regions'] )
+            print("Passing data along")
+            pp.pprint(regions_form.data['regions'])
 
-
-            return create( request, regions_form.data['regions'] )
+            return create(request, regions_form.data['regions'])
 
         else:
+            pp.pprint(regions_form.errors)
 
-            pp.pprint( regions_form.errors)
-
-            return render( request, "primer_designer/index.html", {'regions_form': regions_form})
-        
+            return render(request, "primer_designer/index.html", {
+                'regions_form': regions_form
+            })
     else:
-        
-        return render( request, "primer_designer/index.html", {'regions_form': Forms.RegionsForm()})
+        return render(request, "primer_designer/index.html", {
+            'regions_form': Forms.RegionsForm()
+        })
 
 
 def random_string(length=10):
-    """ Creates a random string 
+    """ Creates a random string
 
     Args:
       length (int): length of string to generate, default 10
 
-    returns:
-      string
+    Returns:
+        - random_string (str): str of random characters
 
-    raises:
-      None
+    Raises: None
     """
 
     random_string = ""
     # Choose from lowercase, uppercase,  and digits
     alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits
     for n in range(0, length):
-        random_string += random.choice( alphabet )
+        random_string += random.choice(alphabet)
 
     return random_string
+
 
 def time_stamp():
     """ return a time stamp to ensure primer designs dont clash
 
-    Returns
-     string 
-
+    Returns:
+        - time_string (str): time stamp string
     """
-
-    now = time.gmtime()
-    time_string = time.strftime("%Y%m%d_%H%M%S", now)
+    # now = time.gmtime()
+    time_string = time.strftime("%Y%m%d_%H%M%S", time.gmtime())
 
     return time_string
-    
 
 
-def create( request, regions, infile=None ):
+def create(request, regions, infile=None):
 
     path = "static/tmp/"
 
     random_tmp = random_string()
 
-    infile = "{}.txt".format( time_stamp() )
+    infile = "{}.txt".format(time_stamp())
 
-
-    pp.pprint( regions )
-
+    pp.pprint(regions)
 
     if infile is None:
         infile = random_tmp
 
-
-
-    outfh = open( "{path}{infile}".format( path=path, infile=infile), "w")
-    outfh.write( regions )
+    outfh = open("{path}{infile}".format(path=path, infile=infile), "w")
+    outfh.write(regions)
     outfh.close()
 
-    cmd = "/software/packages/primer_designer/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
-    cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
+    # cmd = "/software/packages/primer_designer/bulk_design.py {infile}
+    # {working_dir} ".format(infile=infile, working_dir=path)
+    cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py\
+        {infile} {working_dir} ".format(infile=infile, working_dir=path)
 
-    context_dict =  { 'key': random_string }
-    context_dict[ 'infile' ] = infile
+    context_dict = {'key': random_string}
+    context_dict['infile'] = infile
 
     stderr_file_name = "{}{}.stderr".format(path, random_tmp)
-    stdout_file_name = "{}{}.stdout".format(path, random_tmp)
+    stderr_file = open(stderr_file_name, "w+")
 
-    stderr_file = open( stderr_file_name, "w+" )
-    stdout_file = open( stdout_file_name, "w+" )
+    stdout_file_name = "{}{}.stdout".format(path, random_tmp)
+    stdout_file = open(stdout_file_name, "w+")
 
     context_dict['tmp_key'] = random_tmp
 
-    cmd = shlex.split( cmd )
+    cmd = shlex.split(cmd)
 
-    p = subprocess.Popen( cmd , shell=False, stderr = stderr_file , stdout = stdout_file)
+    p = subprocess.Popen(
+        cmd, shell=False, stderr=stderr_file, stdout=stdout_file)
 
-    
-    return render( request, "primer_designer/create.html", context_dict )
+    return render(request, "primer_designer/create.html", context_dict)
 
 
-def primers_done_ajax( request, tmp_key ):
-    
+def primers_done_ajax(request, tmp_key):
+
     path = 'static/tmp/'
 
-    stdout_name = "{}{}.stdout".format( path, tmp_key)
-    print stdout_name
+    stdout_name = "{}{}.stdout".format(path, tmp_key)
+    print(stdout_name)
 
 
-    result_dict = {'status': 'running' }
+    result_dict = {'status': 'running'}
 
-    if ( os.path.isfile( stdout_name )):
-        fh = open( stdout_name, 'rU')
+    if (os.path.isfile(stdout_name)):
+        fh = open(stdout_name, 'rU')
         lines = ""
         for line in fh.readlines():
-            line = line.rstrip( "\n" )
-            print line
-            lines += line +"<br>"
+            line = line.rstrip("\n")
+            print(line)
+            lines += line + "<br>"
 
             if line == 'SUCCESS':
                 result_dict['status'] = 'done'
@@ -159,16 +145,11 @@ def primers_done_ajax( request, tmp_key ):
                 result_dict['file'] = re.sub(r'Output file: ', '', line)
             elif re.match('Died at', line):
                 result_dict['status'] = 'failed'
-                
 
-    pp.pprint( lines )
-        
+    pp.pprint(lines)
+
     result_dict['progress'] = lines
-    
-    response_text = json.dumps(result_dict, separators=(',',':'))
+
+    response_text = json.dumps(result_dict, separators=(',', ':'))
 #    pp.pprint( response_text )
     return HttpResponse(response_text, content_type="application/json")
-
-
-
-
