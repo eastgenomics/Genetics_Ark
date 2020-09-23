@@ -17,19 +17,18 @@ import subprocess
 import sys
 
 import datetime as date
+import dxpy as dx
 
 from collections import defaultdict
 from operator import itemgetter
 
 # token for DNAnexus log in
-# from ga_core.config import AUTH_TOKEN
-AUTH_TOKEN = "AStCLndMIsZin5Y1YFDWh4qYmhhOzb1h"
+from ga_core.config import AUTH_TOKEN
 
-sys.path.insert(0, "../")
 
-# path to source toolkit because apache
-# source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
-source = ""
+# sys.path.insert(0, "../")
+# # path to source toolkit because apache
+# # source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
 
 
 def get_002_projects():
@@ -41,19 +40,9 @@ def get_002_projects():
     Returns:
         - project_002_list (list): list of all 002 project names
     """
-
-    # dx command to find 002 projects
-    dx_find_projects = "dx find projects --level VIEW --name 002_*"
-    projects_002 = subprocess.check_output(
-        source + dx_find_projects, shell=True)
-    print(projects_002)
-    print("  ")
-    # get just the project id's from returned string
-    projects_002 = projects_002.decode().replace("\n", " ").split(" ")
-    print(projects_002)
-
-    project_002_list = [x for x in projects_002 if x.startswith('project-')]
-
+    projects = dx.search.find_projects(name="002*", name_mode="glob")
+    project_002_list = [x["id"] for x in projects]
+    
     return project_002_list
 
 
@@ -87,81 +76,47 @@ def find_dx_bams(project_002_list):
     missing_bam = defaultdict(list)
 
     for project in project_002_list:
-        # dx commands to retrieve bam and bam.bai for given sample
-        dx_find_bam = "dx find data --path {project} --name *.bam".format(
-            project=project)
-        dx_find_idx = "dx find data --path {project} --name *.bam.bai".format(
-            project=project)
-
-        bam = subprocess.check_output(
-            source + dx_find_bam, shell=True).decode()
-        idx = subprocess.check_output(
-            source + dx_find_idx, shell=True).decode()
-
+ 
         bam_dict = {}
         idx_dict = {}
+    
+        bams = []
+        idxs = []
 
+        bam_files = list(dx.search.find_data_objects(
+            name="*bam", name_mode="glob", project=project))
+        
+        # get full info for every bam and index in all projects
+        for bam in bam_files:
+            obj = dx.dxfile.DXFile(dxid=bam["id"], project=project)
+            info = obj.describe()
+            bams.append(info)
+        
+        idx_files = list(dx.search.find_data_objects(
+            name="*bam.bai", name_mode="glob", project=project))
+        
+        for idx in idx_files:
+            obj = dx.dxfile.DXFile(dxid=idx["id"], project=project)
+            info = obj.describe()
+            idxs.append(info)
+            
 
-        if bam and idx:
+        if bams and idxs:
             # if BAM(s) and index found, should always be found
 
-            # list returned as one string
-            bams = bam.split("\n")[:-1]
-            idxs = idx.split("\n")[:-1]
-
+            # get just path, name and id of each bam and index
             for bam in bams:
-                # split out bam string and get required fields
-                bam = list(filter(None, bam.split(" ")))
-                print(bam)
-
-                if len(bam) == 7:
-                    # path has no spaces, should have fields:
-                    # status, date, time, size, units, path/name, file-id
-
-                    path, file = os.path.split(bam[5])
-                    file_id = bam[-1].strip("()")
-
-                else:
-                    # path is gross and has spaces
-                    # take fields that make up path and join with "_"
-                    # will include file name at end so split off
-
-                    path_file = "_".join(map(str, bam[5:-1]))
-                    path, file = os.path.split(path_file)
-                    file_id = bam[-1].strip("()")
-
-                # add all bams to dict
-                bam_dict[(path, file)] = file_id
+                bam_dict[(bam["folder"], bam["name"])] = bam["id"]
 
             for idx in idxs:
-                # split out index string and get required fields
-                idx = list(filter(None, idx.split(" ")))
+                idx_dict[(idx["folder"], idx["name"])] = idx["id"]
 
-                if len(idx) == 7:
-                    # path has no spaces, should have fields:
-                    # status, date, time, size, units, path/name, file-id
-
-                    path, file = os.path.split(idx[5])
-                    file_id = idx[-1].strip("()")
-                else:
-                    # path is gross and has spaces, do same as bam above
-
-                    path_file = "_".join(map(str, idx[5:-1]))
-                    path, file = os.path.split(path_file)
-                    file_id = idx[-1].strip("()")
-
-                # add all indexes to dict
-                idx_dict[(path, file)] = file_id
 
             # get project name to display
-            dx_project_name = "dx describe --json {project}".format(
-                project=project)
-
-            # returns a json as a string so convert back to json to select name
-            project_json = json.loads(subprocess.check_output(
-                source + dx_project_name, shell=True
-            ))
-            project_name = project_json["name"]
+            p = dx.dxproject.DXProject(project)
+            project_info = p.describe()
+            project_name = project_info["name"]
+            
 
             # match bams to indexes on filename and dir path
             for path, bam_file in bam_dict:
@@ -209,10 +164,15 @@ if __name__ == "__main__":
 
     # source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
     # subprocess.check_output(source, shell=True)
-    source = ""
+
     # log in to DNAnexus to do queries
-    login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
-    subprocess.check_output(source + login, shell=True)
+    # login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
+    #subprocess.check_output(source + login, shell=True)
+
+    DX_SECURITY_CONTEXT = {
+        "auth_token_type": "Bearer",
+        "auth_token": AUTH_TOKEN
+    }
 
     project_002_list = get_002_projects()
 
