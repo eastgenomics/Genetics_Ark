@@ -5,3 +5,4 @@ django_example/config.py
 django_example/urls.pyc
 django_example/wsgi.pyc
 ga_core/config.py
+static/tmp/*
