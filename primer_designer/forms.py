@@ -21,38 +21,22 @@ class RegionsForm(forms.Form):
         cleaned_data = self.cleaned_data
 
         for line in cleaned_data['regions'].split("\n"):
-            print("line", line)
-            #print("'{}'").format(line)
+           
             line = line.rstrip("\r")
             fields = line.split(" ")
-            print(fields)
-            # each line should have 3 pieces of information
+
             if (len(fields) != 3):
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    """Required fields have not been given ({})""".format(
-                        line
-                    ),
-                    extra_tags="alert-danger"
-                )
+                # each line should have 3 pieces of information
                 raise forms.ValidationError(
                     "{} does not contain the required 3 fields".format(line))
 
-            # Check on valid reference names
             if fields[2].lower() not in ['grch37', 'grch38']:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    """Invalid build given ({})""".format(fields[2]),
-                    extra_tags="alert-danger"
-                )
+                # Check on valid reference names
                 raise forms.ValidationError("{} invalid reference name".format(
                     fields[2]))
 
             pos_fields = re.split("[:-]", fields[1])
-            print(pos_fields)
-            print("Fields:", "--".join(pos_fields))
+
             if len(pos_fields) < 2:
                 raise forms.ValidationError("Region needs a : between\
                     chromosome and position ({})".format(fields[1]))

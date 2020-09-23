@@ -1,3 +1,4 @@
+import ast
 import os
 import string
 import random
@@ -9,6 +10,7 @@ import datetime
 import json
 import pprint as pp
 import re
+import time
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
@@ -37,7 +39,16 @@ def index(request):
             return create(request, regions_form.data['regions'])
 
         else:
-            pp.pprint(regions_form.errors)
+            error = ast.literal_eval(pp.pformat(regions_form.errors))
+            
+            messages.add_message(
+                request,
+                messages.ERROR,
+                """Error in given primer design input: ({})""".format(
+                    error["regions"][0]
+                ),
+                extra_tags="alert-danger"
+            )
 
             return render(request, "primer_designer/index.html", {
                 'regions_form': regions_form
@@ -80,7 +91,7 @@ def time_stamp():
 
     return time_string
 
-
+ 
 def create(request, regions, infile=None):
 
     path = "static/tmp/"
@@ -98,8 +109,6 @@ def create(request, regions, infile=None):
     outfh.write(regions)
     outfh.close()
 
-    # cmd = "/software/packages/primer_designer/bulk_design.py {infile}
-    # {working_dir} ".format(infile=infile, working_dir=path)
     cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py\
         {infile} {working_dir} ".format(infile=infile, working_dir=path)
 
@@ -115,11 +124,16 @@ def create(request, regions, infile=None):
     context_dict['tmp_key'] = random_tmp
 
     cmd = shlex.split(cmd)
-    print(cmd)
-    p = subprocess.Popen(
+
+    p = subprocess.run(
         cmd, shell=False, stderr=stderr_file, stdout=stdout_file)
     
-    print(p)
+
+    outfile_name = infile.replace(".txt", ".zip")
+    outfile = os.path.join(path, outfile_name)
+    
+    context_dict["outfile_name"] = outfile_name
+    context_dict["url"] = outfile
 
     return render(request, "primer_designer/create.html", context_dict)
 
