@@ -1,15 +1,14 @@
 import ast
-import os
-import string
-import random
-import subprocess
-import shlex
-import shutil
-import time
 import datetime
 import json
+import os
 import pprint as pp
+import random
 import re
+import shlex
+import shutil
+import string
+import subprocess
 import time
 
 from django.http import HttpResponseRedirect, HttpResponse
@@ -19,11 +18,6 @@ from django.contrib.auth.decorators import login_required
 
 import primer_designer.forms as Forms
 
-
-# @login_required(login_url='/login/')
-
-# def index(request):
-#     return render(request, "base.html")
 
 def index(request):
 
@@ -86,7 +80,6 @@ def time_stamp():
     Returns:
         - time_string (str): time stamp string
     """
-    # now = time.gmtime()
     time_string = time.strftime("%Y%m%d_%H%M%S", time.gmtime())
 
     return time_string
@@ -136,38 +129,3 @@ def create(request, regions, infile=None):
     context_dict["url"] = outfile
 
     return render(request, "primer_designer/create.html", context_dict)
-
-
-def primers_done_ajax(request, tmp_key):
-
-    path = 'static/tmp/'
-
-    stdout_name = "{}{}.stdout".format(path, tmp_key)
-    print(stdout_name)
-    print("primers done ajax function")
-
-
-    result_dict = {'status': 'running'}
-
-    if (os.path.isfile(stdout_name)):
-        fh = open(stdout_name, 'rU')
-        lines = ""
-        for line in fh.readlines():
-            line = line.rstrip("\n")
-            print(line)
-            lines += line + "<br>"
-
-            if line == 'SUCCESS':
-                result_dict['status'] = 'done'
-            elif re.match('Output file: ', line):
-                result_dict['file'] = re.sub(r'Output file: ', '', line)
-            elif re.match('Died at', line):
-                result_dict['status'] = 'failed'
-
-    pp.pprint(lines)
-
-    result_dict['progress'] = lines
-
-    response_text = json.dumps(result_dict, separators=(',', ':'))
-#    pp.pprint( response_text )
-    return HttpResponse(response_text, content_type="application/json")
