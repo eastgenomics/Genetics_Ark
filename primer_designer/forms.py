@@ -2,6 +2,7 @@ import re
 import pprint as pp
 
 from django import forms
+from django.contrib import messages
 from django.forms import ModelForm
 
 
@@ -20,30 +21,45 @@ class RegionsForm(forms.Form):
         cleaned_data = self.cleaned_data
 
         for line in cleaned_data['regions'].split("\n"):
-
-            print("'{}'").format(line)
+            print("line", line)
+            #print("'{}'").format(line)
             line = line.rstrip("\r")
-            fields = re.split(r'[\t ]+', line)
+            fields = line.split(" ")
+            print(fields)
             # each line should have 3 pieces of information
             if (len(fields) != 3):
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    """Required fields have not been given ({})""".format(
+                        line
+                    ),
+                    extra_tags="alert-danger"
+                )
                 raise forms.ValidationError(
                     "{} does not contain the required 3 fields".format(line))
 
             # Check on valid reference names
             if fields[2].lower() not in ['grch37', 'grch38']:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    """Invalid build given ({})""".format(fields[2]),
+                    extra_tags="alert-danger"
+                )
                 raise forms.ValidationError("{} invalid reference name".format(
                     fields[2]))
 
             pos_fields = re.split("[:-]", fields[1])
-
+            print(pos_fields)
             print("Fields:", "--".join(pos_fields))
             if len(pos_fields) < 2:
                 raise forms.ValidationError("Region needs a : between\
                     chromosome and position ({})".format(fields[1]))
 
             chromosomes = [str(x) for x in range(1, 23)]
-            chromosomes = chromosomes.extend(['X', 'Y', 'MT'])
-
+            chromosomes.extend(['X', 'Y', 'MT'])
+            print(chromosomes)
             # Check on valid chromosome names
             if pos_fields[0].upper() not in chromosomes:
                 raise forms.ValidationError(

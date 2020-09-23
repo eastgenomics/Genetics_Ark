@@ -1,60 +1,59 @@
 {% extends 'base.html' %}
 
-
 {% block body_block %}
+
 {% load render_table from django_tables2 %}
 
 
-<h1>Running primer designer</h1><br>
+<div style="width:1500px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
 
 
- <div id="report_create" class='data_area' data-analysis_id="{{ analysis.id }}" data-tmp_key="{{ tmp_key }}">
-
-  <img id='spinner' src='/static/images/spinner.gif' alt="Please wait .."  style="width:100px;height:100;">
-
-{% comment %}
-{% endcomment %}
+    <h1>Running primer designer</h1><br>
 
 
+    <div id="report_create" class='data_area' data-analysis_id="{{ analysis.id }}" data-tmp_key="{{ tmp_key }}">
+
+      <img id='spinner' src='/static/images/spinner.gif' alt="Please wait .."  style="width:100px;height:100;">
+
+    {% comment %}
+    {% endcomment %}
 
 
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 
+      <div class="panel panel-warning" id="{{ analysis.runfolder.name }}_panel" data-rpid="{{ rpid }}" data-gid="{{ entry.gid }}">
+        <div class="panel-heading" role="tab">
+          <class="panel-title">
+          <H4>
+      <a  role="button" data-toggle="collapse" data-parent="#accordion" href="#{{ analysis.runfolder.name }}_body" aria-expanded="false" aria-controls="{{ analysis.runfolder.name }}_body" > <span class="glyphicon glyphicon-search" aria-hidden="true"></span></a>
+      progress 
+          </H4>
+        </div>
+        <div id="{{ analysis.runfolder.name }}_body" class="panel-collapse collapse" role="tabpanel" aria-labelledby="{{ analysis.runfolder.name }}">
+          <div class="panel-body">
+          <div id='progress'>
+          </div>
 
-<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-
-  <div class="panel panel-warning" id="{{ analysis.runfolder.name }}_panel" data-rpid="{{ rpid }}" data-gid="{{ entry.gid }}">
-    <div class="panel-heading" role="tab">
-      <class="panel-title">
-       <H4>
-	<a  role="button" data-toggle="collapse" data-parent="#accordion" href="#{{ analysis.runfolder.name }}_body" aria-expanded="false" aria-controls="{{ analysis.runfolder.name }}_body" > <span class="glyphicon glyphicon-search" aria-hidden="true"></span></a>
-	progress 
-      </H4>
+      </div>
     </div>
-    <div id="{{ analysis.runfolder.name }}_body" class="panel-collapse collapse" role="tabpanel" aria-labelledby="{{ analysis.runfolder.name }}">
-      <div class="panel-body">
-       <div id='progress'>
-       </div>
+      </div>
+    </div>
 
-  </div>
+    </div>
+
+    <div id='report_link' class='data_area'>
+
+
+    </div>
+
+    <br>
 </div>
-  </div>
-</div>
-
-</div>
-
- <div id='report_link' class='data_area'>
-
-
- </div>
-
-<br>
 
 	  
 {% endblock %}
 
 
 {% block script %}
-
 $(function () {
 
   // We want to keep controld of users not doing cross posting, so we
@@ -106,7 +105,7 @@ $(function () {
                 if (json['status'] == 'running') {
 
 		       $('#progress').html(json['progress'])
-                       setTimeout(function() {poll()}, 5000);
+                       setTimeout(function() {poll()}, 100);
                        return;
                 }
                 else if (json['status'] == 'done') {
@@ -146,4 +145,5 @@ $(function () {
 
 
 });
+
 {% endblock %}

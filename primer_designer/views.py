@@ -11,6 +11,7 @@ import pprint as pp
 import re
 
 from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -69,7 +70,7 @@ def random_string(length=10):
 
 
 def time_stamp():
-    """ return a time stamp to ensure primer designs dont clash
+    """ Return a time stamp to ensure primer designs dont clash
 
     Returns:
         - time_string (str): time stamp string
@@ -114,9 +115,11 @@ def create(request, regions, infile=None):
     context_dict['tmp_key'] = random_tmp
 
     cmd = shlex.split(cmd)
-
+    print(cmd)
     p = subprocess.Popen(
         cmd, shell=False, stderr=stderr_file, stdout=stdout_file)
+    
+    print(p)
 
     return render(request, "primer_designer/create.html", context_dict)
 
@@ -127,6 +130,7 @@ def primers_done_ajax(request, tmp_key):
 
     stdout_name = "{}{}.stdout".format(path, tmp_key)
     print(stdout_name)
+    print("primers done ajax function")
 
 
     result_dict = {'status': 'running'}
