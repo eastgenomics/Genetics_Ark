@@ -32,6 +32,15 @@
 			</ul>
 		</nav>
 	
+	<!-- messages loader -->
+	{% if messages %} 
+	{% for message in messages %}
+		<div class="alert {{ message.tags }} alert-dismissible" role="alert" id="message" style="position: absolute; width: 100%">
+			<strong>{{ message|linebreaksbr }}</strong> 
+		</div>
+	{% endfor %} 
+	{% endif %}
+	
 	{% block body_block %}
 	<!-- body block for inheriting page content -->
 
@@ -46,6 +55,9 @@
 		<script src="/static/assets/js/breakpoints.min.js"></script>
 		<script src="/static/assets/js/util.js"></script>
 		<script src="/static/assets/js/main.js"></script>
+		<script src="/static/assets/js/jquery-ui.js"></script>
+		<script src="/static/assets/js/typeahead.bundle-0.11.1.js"></script>
+		<script src="/static/assets/js/ccbg.js"></script>
 		<script>
 			// function to fade messages out
 			var s = document.getElementById('message').style;
