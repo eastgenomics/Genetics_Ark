@@ -17,6 +17,7 @@ generated from find_dx_002_bams.py
 
 """
 
+import dxpy as dx
 import itertools
 import json
 import os
@@ -48,7 +49,8 @@ DX_SECURITY_CONTEXT = {
         "auth_token": AUTH_TOKEN
     }
 
-def get_dx_urls(bam_file_id, idx_file_id):
+def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
+                idx_file_name, project_id):
     """
     Get preauthenticated dx download urls for bam and index
 
@@ -60,19 +62,21 @@ def get_dx_urls(bam_file_id, idx_file_id):
         - idx_url (str): DNAnexus url for downloading index file
     """
 
-    dx_get_bam_url = "dx --auth-token {token} make_download_url {id}".format(
-        id=bam_file_id, token=AUTH_TOKEN)
-    dx_get_idx_url = "dx --auth-token {token} make_download_url {id}".format(
-        id=idx_file_id, token=AUTH_TOKEN)
-
-    # generate the urls
-    bam_url = subprocess.check_output(
-        source + dx_get_bam_url, shell=True).strip()
-    idx_url = subprocess.check_output(
-        source + dx_get_idx_url, shell=True).strip()
+    bam_info = dx.bindings.dxfile.DXFile(dxid=bam_file_id, project=project_id)
+    bam = bam_info.get_download_url(
+        duration=3600, preauthenticated=True,
+        project=project_id, filename=bam_file_name
+    )
     
-    bam_url = bam_url.decode()
-    idx_url = idx_url.decode()
+    idx_info = dx.bindings.dxfile.DXFile(dxid=idx_file_id, project=project_id)
+    idx = idx_info.get_download_url(
+        duration=3600, preauthenticated=True,
+        project=project_id, filename=idx_file_name
+    )
+
+    # returns tuple with url as first
+    bam_url = bam[0]
+    idx_url = idx[0]
 
     return bam_url, idx_url
 
@@ -157,11 +161,14 @@ def nexus_search(request):
 
             if len(sample_bams[0]) == 1 and len(sample_bams) == 1:
                 # one sample found with one bam
-
+                print(sample_bams)
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
                     sample_bams[0][0]["bam_file_id"],
-                    sample_bams[0][0]["idx_file_id"]
+                    sample_bams[0][0]["bam_name"],
+                    sample_bams[0][0]["idx_file_id"],
+                    sample_bams[0][0]["idx_name"],
+                    sample_bams[0][0]["project_id"]
                 )
 
                 # add variables
@@ -195,7 +202,12 @@ def nexus_search(request):
 
                     # generate the urls
                     bam_url, idx_url = get_dx_urls(
-                        bam["bam_file_id"], bam["idx_file_id"])
+                        bam["bam_file_id"],
+                        bam["bam_name0"],
+                        bam["idx_file_id"],
+                        bam["idx_name"],
+                        bam["project_id"]
+                    )
 
                     bam_list.append({
                         "bam_url": bam_url,
