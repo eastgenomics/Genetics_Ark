@@ -22,13 +22,9 @@ import dxpy as dx
 from collections import defaultdict
 from operator import itemgetter
 
-# token for DNAnexus log in
+# token for DNAnexus authentication
+sys.path.insert(0, "../")
 from ga_core.config import AUTH_TOKEN
-
-
-# sys.path.insert(0, "../")
-# # path to source toolkit because apache
-# # source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
 
 
 def get_002_projects():
@@ -120,9 +116,13 @@ def find_dx_bams(project_002_list):
 
             # match bams to indexes on filename and dir path
             for path, bam_file in bam_dict:
+                if "tmp" in path:
+                    # check if bam is in CP tmp dir, pass if True
+                    continue
+
                 if idx_dict.get((path, bam_file + ".bai")):
                     # if index with matching bam file and path is found
-
+                    
                     if "_" in bam_file:
                         # sample named as X001000_markdup.bam
                         sample = bam_file.split("_", 1)[0].upper()
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     # log in to DNAnexus to do queries
     # login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
-    #subprocess.check_output(source + login, shell=True)
+    # subprocess.check_output(source + login, shell=True)
 
     DX_SECURITY_CONTEXT = {
         "auth_token_type": "Bearer",
