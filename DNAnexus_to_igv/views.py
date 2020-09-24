@@ -218,6 +218,7 @@ def nexus_search(request):
                     })
 
                 context_dict["bam_list"] = bam_list
+                context_dict["bam_no"] = len(bam_list)
                 request.session["bam_list"] = bam_list
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
