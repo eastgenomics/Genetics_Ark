@@ -36,14 +36,6 @@ import DNAnexus_to_igv.forms as Forms
 # authentication token for DNAnexus
 from ga_core.config import AUTH_TOKEN
 
-# module load dx toolkit, required for apache user
-# source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/\
-# environment;"
-
-# subprocess.check_output(source, shell=True)
-
-source = ""
-
 DX_SECURITY_CONTEXT = {
         "auth_token_type": "Bearer",
         "auth_token": AUTH_TOKEN

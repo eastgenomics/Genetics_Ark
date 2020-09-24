@@ -162,13 +162,7 @@ def find_dx_bams(project_002_list):
 
 if __name__ == "__main__":
 
-    # source = "source /mnt/storage/apps/software/dnanexus/0.289.1/dx-toolkit/environment;"
-    # subprocess.check_output(source, shell=True)
-
-    # log in to DNAnexus to do queries
-    # login = "dx login --token {} --noprojects --save".format(AUTH_TOKEN)
-    # subprocess.check_output(source + login, shell=True)
-
+    # env variable for dx authentication
     DX_SECURITY_CONTEXT = {
         "auth_token_type": "Bearer",
         "auth_token": AUTH_TOKEN
