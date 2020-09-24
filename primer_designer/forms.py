@@ -11,8 +11,8 @@ class RegionsForm(forms.Form):
 
     regions = forms.CharField(widget=forms.Textarea(
         attrs={
-            'placeholder': "placeholder: eg: name x:123213 grch37",
-           
+            'placeholder': "eg: name x:123213 grch37",
+  
         }
     ))
 
