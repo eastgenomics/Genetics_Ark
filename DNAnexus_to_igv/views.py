@@ -43,6 +43,10 @@ from ga_core.config import AUTH_TOKEN
 
 source = ""
 
+DX_SECURITY_CONTEXT = {
+        "auth_token_type": "Bearer",
+        "auth_token": AUTH_TOKEN
+    }
 
 def get_dx_urls(bam_file_id, idx_file_id):
     """
@@ -66,6 +70,9 @@ def get_dx_urls(bam_file_id, idx_file_id):
         source + dx_get_bam_url, shell=True).strip()
     idx_url = subprocess.check_output(
         source + dx_get_idx_url, shell=True).strip()
+    
+    bam_url = bam_url.decode()
+    idx_url = idx_url.decode()
 
     return bam_url, idx_url
 
@@ -126,7 +133,6 @@ def nexus_search(request):
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
 
-            print(json_bams)
             # select bams matching sample id
             sample_bams = [
                 v for k, v in json_bams.items() if k.startswith(sample_id)]
@@ -278,8 +284,10 @@ def nexus_search(request):
             bam_url = request.session["bam_url"]
             idx_url = request.session["idx_url"]
 
-            bam_url = str(bam_url).strip
-            idx_url = str(idx_url).strip
+    
+            bam_url = str(bam_url).strip()
+            idx_url = str(idx_url).strip()
+
 
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url
