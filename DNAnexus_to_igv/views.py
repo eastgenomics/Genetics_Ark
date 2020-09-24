@@ -203,7 +203,7 @@ def nexus_search(request):
                     # generate the urls
                     bam_url, idx_url = get_dx_urls(
                         bam["bam_file_id"],
-                        bam["bam_name0"],
+                        bam["bam_name"],
                         bam["idx_file_id"],
                         bam["idx_name"],
                         bam["project_id"]
