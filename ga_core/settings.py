@@ -28,6 +28,11 @@ else:
 
 
 INSTALLED_APPS = [
+    # own apps
+    'genetics_ark',
+    'accounts',
+    'DNAnexus_to_igv',
+    'primer_designer',
     # default django
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,12 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
-    # own apps
-    'genetics_ark',
-    'DNAnexus_to_igv',
-    'primer_designer'
+    'crispy_forms'
 
 ]
+
+# django crispy forms for nice form rendering
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -133,3 +139,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'root')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+LOGIN_REDIRECT_URL = 'home'
