@@ -1684,10 +1684,10 @@ body {
     opacity: 0.05; }
 
 #header {
-  -moz-align-items: center;
+  /* -moz-align-items: center;
   -webkit-align-items: center;
   -ms-align-items: center;
-  align-items: center;
+  align-items: center; */
   display: -moz-flex;
   display: -webkit-flex;
   display: -ms-flex;
@@ -1711,6 +1711,7 @@ body {
   #header a:hover {
     color: #ffffff;
   }
+  
   #header > .logo {
     color: #c2c2c2;
     font-size: 1rem;
@@ -1720,13 +1721,23 @@ body {
     padding: 0 1.25rem;
     text-decoration: none; }
   
-  #header > .logout {
+  #header > .user > .logout {
     color: inherit;
-    display: inline-block;
-    padding: 0 0.75rem;
     text-decoration: none;
-    margin-right: -80%;
-    
+  }
+
+  #header > .user {
+    color: inherit;
+    text-align: right;
+    text-decoration: none;
+    position: relative; 
+    display:inline;
+    padding-right: 10px;
+    margin-left:auto; margin-right:0
+  }
+
+  #header > .user > a:hover {
+    color: white
   }
   
     #header > nav > a {

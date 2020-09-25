@@ -16,7 +16,13 @@
 		<!-- Header -->
 		<header id="header">
 			<a class="logo" href="/">GENETICS ARK</a>
-			<a class="logout" href="/accounts/log_out">Log out &nbsp&nbsp | &nbsp&nbsp</a> 		
+			<!-- Just display user info if logged in (i.e. hide from log in / sign up page) -->
+			{% if request.user.is_authenticated %}
+				<div class="user">
+					<a>Logged in as user: {{ request.user.username }}</a>
+					<a class="logout" href="/accounts/log_out"> &nbsp&nbsp | &nbsp&nbsp Log out &nbsp&nbsp | &nbsp&nbsp</a>
+				</div>
+			{% endif %}
 			<nav>
 				<a href="#menu">Menu</a>
 			</nav>

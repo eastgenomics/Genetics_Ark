@@ -10,15 +10,14 @@ username_validator = UnicodeUsernameValidator()
 
 class SignUpForm(UserCreationForm):
     first_name = forms.CharField(
-        max_length=12, min_length=4, required=True, 
+        max_length=15, min_length=2, required=True, 
         help_text='Required: First Name',
         widget=forms.TextInput(attrs={
             'class': 'form-control', 'placeholder': 'First Name'
-
         })
     )
     last_name = forms.CharField(
-        max_length=12, min_length=4, required=True,
+        max_length=15, min_length=2, required=True,
         help_text='Required: Last Name',
         widget=(forms.TextInput(attrs={'class': 'form-control'}))
     )
