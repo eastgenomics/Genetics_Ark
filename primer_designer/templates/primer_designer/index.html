@@ -3,6 +3,13 @@
 
 {% block body_block %}
 
+<style>
+  .spinner {
+    display: flex;
+    align-items: center;
+    padding-left: 1%;
+  }
+</style>
 
 <!-- function to display loading spinner on form submit -->
 <script>
@@ -36,8 +43,8 @@
   </form>
   <!-- loading spinner -->
   <div id="spinner" class="spinner" style="display:none">
-    Designing primers...
-    <img id='spinner' src='/static/images/dna_loader.gif' alt="Please wait .."  style="width:150px;height:100px;"> 
+    <span style="vertical-align:middle">Designing primers...</span>
+    <img id='spinner' src='/static/images/dna_loader.gif' alt="Please wait .."  style="width:300px;height:165px; vertical-align:middle">
   </div>
 </div>
 
