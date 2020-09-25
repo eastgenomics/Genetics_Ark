@@ -4,6 +4,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
 
 username_validator = UnicodeUsernameValidator()
 
@@ -47,6 +48,14 @@ class SignUpForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
+    def clean_email(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get("email")
+        if not "nhs.uk" in email:
+            raise ValidationError("Only NHS email addresses allowed")
+        return email
+    
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2',)
+    
