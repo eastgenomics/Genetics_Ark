@@ -7,7 +7,7 @@ import random
 import re
 import shlex
 import shutil
-import string
+import string as str
 import subprocess
 import time
 
@@ -34,7 +34,7 @@ def index(request):
 
         else:
             error = ast.literal_eval(pp.pformat(regions_form.errors))
-            
+
             messages.add_message(
                 request,
                 messages.ERROR,
@@ -66,8 +66,8 @@ def random_string(length=10):
     """
 
     random_string = ""
-    # Choose from lowercase, uppercase,  and digits
-    alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    # Choose from lowercase, uppercase, and digits
+    alphabet = str.ascii_lowercase + str.ascii_uppercase + str.digits
     for n in range(0, length):
         random_string += random.choice(alphabet)
 
@@ -84,7 +84,7 @@ def time_stamp():
 
     return time_string
 
- 
+
 def create(request, regions, infile=None):
 
     path = "static/tmp/"
@@ -120,11 +120,11 @@ def create(request, regions, infile=None):
 
     p = subprocess.run(
         cmd, shell=False, stderr=stderr_file, stdout=stdout_file)
-    
+
 
     outfile_name = infile.replace(".txt", ".zip")
     outfile = os.path.join(path, outfile_name)
-    
+
     context_dict["outfile_name"] = outfile_name
     context_dict["url"] = outfile
 

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% load static %}
 
 {% block body_block %}
@@ -90,12 +91,10 @@
         <img id='spinner' src='/static/images/cloud2.gif' alt="Please wait .."  style="width:75px;height:50px;"> 
         <b>Searching DNAnexus for samples</b>
     </div>
-
 </div>
 
 {% if not bam_name and not bam_list %}
 <!-- if normal search field used, remove direct link fields -->
-
 <div class="well" style="width:1000px; margin:0 auto; padding-bottom: 50px;">
 
     <h3>Load direct from URL</h3></br>
@@ -114,14 +113,11 @@
     </form>
 
 </div>
-
 {% endif %}
 
 
 {% if bam_name %}
-
 <!-- Single BAM found for sample -->
-
 <div class="well" style="width:1000px; margin:0 auto; padding-bottom: 50px;">
 
     <div>
@@ -147,12 +143,10 @@
 
     </div>
 </div>
-
 {% endif %}
 
 
 {% if bam_list %}
-
 <!-- multple bams for sample returned, give option to select which to use -->
 
 <div class="well" style="width:1000px; margin:0 auto; padding-bottom: 50px;">
@@ -177,8 +171,6 @@
 
     </div>
 </div>
-
-
 {% endif %}
 
 </html>

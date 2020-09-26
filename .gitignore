@@ -8,3 +8,4 @@ ga_core/config.py
 DNAnexus_to_igv/dx_missing_bam.json
 DNAnexus_to_igv/dx_002_bams.json
 static/tmp/*
+.vscode/settings.json

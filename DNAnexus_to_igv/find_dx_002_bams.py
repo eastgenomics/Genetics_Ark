@@ -38,7 +38,7 @@ def get_002_projects():
     """
     projects = dx.search.find_projects(name="002*", name_mode="glob")
     project_002_list = [x["id"] for x in projects]
-    
+
     return project_002_list
 
 
@@ -72,30 +72,29 @@ def find_dx_bams(project_002_list):
     missing_bam = defaultdict(list)
 
     for project in project_002_list:
- 
+
         bam_dict = {}
         idx_dict = {}
-    
+
         bams = []
         idxs = []
 
         bam_files = list(dx.search.find_data_objects(
             name="*bam", name_mode="glob", project=project))
-        
+
         # get full info for every bam and index in all projects
         for bam in bam_files:
             obj = dx.dxfile.DXFile(dxid=bam["id"], project=project)
             info = obj.describe()
             bams.append(info)
-        
+
         idx_files = list(dx.search.find_data_objects(
             name="*bam.bai", name_mode="glob", project=project))
-        
+
         for idx in idx_files:
             obj = dx.dxfile.DXFile(dxid=idx["id"], project=project)
             info = obj.describe()
             idxs.append(info)
-            
 
         if bams and idxs:
             # if BAM(s) and index found, should always be found
@@ -112,7 +111,6 @@ def find_dx_bams(project_002_list):
             p = dx.dxproject.DXProject(project)
             project_info = p.describe()
             project_name = project_info["name"]
-            
 
             # match bams to indexes on filename and dir path
             for path, bam_file in bam_dict:
@@ -122,7 +120,7 @@ def find_dx_bams(project_002_list):
 
                 if idx_dict.get((path, bam_file + ".bai")):
                     # if index with matching bam file and path is found
-                    
+
                     if "_" in bam_file:
                         # sample named as X001000_markdup.bam
                         sample = bam_file.split("_", 1)[0].upper()

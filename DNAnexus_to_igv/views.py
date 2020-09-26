@@ -36,10 +36,12 @@ import DNAnexus_to_igv.forms as Forms
 # authentication token for DNAnexus
 from ga_core.config import AUTH_TOKEN
 
+# set env variable for dxpy authentication
 DX_SECURITY_CONTEXT = {
-        "auth_token_type": "Bearer",
-        "auth_token": AUTH_TOKEN
-    }
+    "auth_token_type": "Bearer",
+    "auth_token": AUTH_TOKEN
+}
+
 
 def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
@@ -59,7 +61,7 @@ def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
         duration=3600, preauthenticated=True,
         project=project_id, filename=bam_file_name
     )
-    
+
     idx_info = dx.bindings.dxfile.DXFile(dxid=idx_file_id, project=project_id)
     idx = idx_info.get_download_url(
         duration=3600, preauthenticated=True,
@@ -109,7 +111,7 @@ def nexus_search(request):
             try:
                 # load in json with all bams and dx attributes needed to
                 # search and generate dx download links
-                # if json is not present in same dir it will raise IOError
+                # if json is not present it will raise IOError
                 json_file = os.path.join(
                     os.path.dirname(__file__), "dx_002_bams.json")
 
@@ -289,10 +291,8 @@ def nexus_search(request):
             bam_url = request.session["bam_url"]
             idx_url = request.session["idx_url"]
 
-    
             bam_url = str(bam_url).strip()
             idx_url = str(idx_url).strip()
-
 
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url

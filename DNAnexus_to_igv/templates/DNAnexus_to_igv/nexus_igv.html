@@ -11,40 +11,38 @@
 </head>
 
 <body class="card border-light" style="width:95%; margin:0 auto; padding-top: 75px; padding-bottom: 50px;">
-    <h2>IGV browser for {{ sampleID }}</h2>
+    
+  <h2>IGV browser for {{ sampleID }}</h2>
 
-    <div id="igv-div" style="padding:5px; border:1px solid lightgray; background-color: white;"></div>
+  <div id="igv-div" style="padding:5px; border:1px solid lightgray; background-color: white;"></div>
 
-      <!-- loading igv with passed urls -->
+  <!-- loading igv with passed urls -->
+  <script type="text/javascript">
+  var igv_div = document.getElementById("igv-div");
+  var options = {
+      showNavigation: true,
+      showRuler: true,
+      showKaryo: false,
+      genome: "hg19",
+      tracks: [
+        {
+          // bams need to be served by a real web-server!
+          url: '{{ bam_url }}',
+          indexURL: '{{ idx_url }}',
+          name: '{{ sampleID }}',
+          alignmentShading: 'strand',
+          height: 625
+        }
+      ]
+    };
+  igv.createBrowser(igv_div, options)
+    .then(function (browser) {
+      igv.browser = browser
+    });
 
-    <script type="text/javascript">
-    var igv_div = document.getElementById("igv-div");
-    var options = {
-        showNavigation: true,
-        showRuler: true,
-        showKaryo: false,
-        genome: "hg19",
-        tracks: [
-          {
-            // bams need to be served by a real web-server!
-            url: '{{ bam_url }}',
-            indexURL: '{{ idx_url }}',
-            name: '{{ sampleID }}',
-            alignmentShading: 'strand',
-            height: 625
-          }
-        ]
-      };
-    igv.createBrowser(igv_div, options)
-      .then(function (browser) {
-        igv.browser = browser
-      });
-
-    </script>
+  </script>
 
 </body>
 </html>
 
 {% endblock %}
-
-
