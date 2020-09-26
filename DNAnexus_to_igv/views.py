@@ -37,9 +37,12 @@ import DNAnexus_to_igv.forms as Forms
 from ga_core.config import AUTH_TOKEN
 
 DX_SECURITY_CONTEXT = {
-        "auth_token_type": "Bearer",
-        "auth_token": AUTH_TOKEN
-    }
+    "auth_token_type": "Bearer",
+    "auth_token": AUTH_TOKEN
+}
+
+# set token to env
+dx.set_security_context(DX_SECURITY_CONTEXT)
 
 def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
