@@ -38,7 +38,7 @@ def get_002_projects():
     """
     projects = dx.search.find_projects(name="002*", name_mode="glob")
     project_002_list = [x["id"] for x in projects]
-
+    print(project_002_list)
     return project_002_list
 
 
@@ -165,6 +165,8 @@ if __name__ == "__main__":
         "auth_token_type": "Bearer",
         "auth_token": AUTH_TOKEN
     }
+    # set token to env
+    dx.set_security_context(DX_SECURITY_CONTEXT)
 
     project_002_list = get_002_projects()
 

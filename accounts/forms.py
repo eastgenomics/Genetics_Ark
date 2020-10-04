@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
@@ -50,7 +52,7 @@ class SignUpForm(UserCreationForm):
     def clean_email(self):
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
-        if not "nhs.uk" in email:
+        if not re.search(r'@[a-z.]*nhs', email):
             raise ValidationError("Only NHS email addresses allowed")
         return email
     
