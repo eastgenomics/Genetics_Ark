@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 
 username_validator = UnicodeUsernameValidator()
 
+
 class SignUpForm(UserCreationForm):
     first_name = forms.CharField(
         max_length=15, min_length=2, required=True, 

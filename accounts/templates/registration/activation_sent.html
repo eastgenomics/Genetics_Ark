@@ -4,13 +4,8 @@
 {% block body_block %}
 
 <div style="width:1000px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
-
-    <form method="POST" class="uniForm" autocomplete="off">
-        {% csrf_token %}
-        {{form|crispy}}
-        <input type="submit" value="SignUp">
-    </form>
-
+    <h3>Activation link sent. Please activate your account by following the link in the email.</h3>
+    <a href="/"> Return to log in</a>
 </div>
 
 {% endblock %}
