@@ -94,9 +94,9 @@ def sign_up(request):
 
             # email = EmailMessage(subject, message)
             # email.send()
-
+            print(user.profile.email)
             send_mail(subject, message, 'emeeglh@gmail.com',
-                [user.profile.email], fail_silently=False)
+                      [user.profile.email], fail_silently=False)
 
             return render(request, 'registration/activation_sent.html')
         else:

@@ -1,6 +1,5 @@
 """
 Django settings for ga_core project.
-
 """
 import os
 
@@ -10,7 +9,8 @@ from pathlib import Path
 
 # Passwords and database credentials stored in config.py 
 # NOT IN VERSION CONTROL
-from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS
+from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
+    EMAIL_USER, EMAIL_PASSWORD
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_tables2',
     'crispy_forms'
-
 ]
 
 # django crispy forms for nice form rendering
@@ -84,13 +83,12 @@ MESSAGE_TAGS = {
     messages.SUCCESS: 'alert-success',
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
- }
+}
 
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
 # Database
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -128,6 +126,16 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+
+# Settings for account app email verification
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = EMAIL_USER
+EMAIL_HOST_PASSWORD = EMAIL_PASSWORD
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'default from email'
 
 
 # Static files (CSS, JavaScript, Images)
