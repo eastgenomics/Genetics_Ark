@@ -167,7 +167,7 @@
     function checkProject() {
         var x = document.forms["igv_form"]["project_name"].value;
         if (x.includes("dev")) {
-            if (confirm("The selected sample BAM is from development data and NOT a normal sequencing run.\n Please confirm if you still want to load IGV.")) {
+            if (confirm("The selected data is for development use and must not be used for service work.\n Please confirm if you still want to load IGV.")) {
                 confirm = true;
             } else {
                 confirm = false;
