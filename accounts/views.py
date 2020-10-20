@@ -1,19 +1,14 @@
-from django.contrib.auth.models import User
+from django.contrib import messages
 from django.contrib.auth import login, logout, get_user_model, authenticate
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_text, force_bytes
 from django.utils.http import urlsafe_base64_decode
-
-
-from django.core.mail import EmailMessage
-from django.core.mail import send_mail
-
-
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
@@ -22,7 +17,7 @@ from ga_core.settings import ALLOWED_HOSTS
 
 @login_required
 def index(request):
-    return render(request, 'accounts/index.html')
+    return render(request, '/')
 
 
 def log_out(request):
