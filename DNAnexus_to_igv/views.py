@@ -205,12 +205,20 @@ def nexus_search(request):
                         bam["project_id"]
                     )
 
+                    if "dev" in bam["project_name"]:
+                        # if dev data project add development after path
+                        path = "({}) - DEVELOPMENT".format(
+                            bam["bam_path"]
+                        )
+                    else:
+                        path = "({})".format(bam["bam_path"])
+
                     bam_list.append({
                         "bam_url": bam_url,
                         "idx_url": idx_url,
                         "bam_name": bam["bam_name"],
                         "project_name": bam["project_name"],
-                        "bam_folder": bam["bam_path"]
+                        "bam_folder": path
                     })
 
                 context_dict["bam_list"] = bam_list
