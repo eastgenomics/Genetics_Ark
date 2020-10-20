@@ -102,7 +102,9 @@ def nexus_search(request):
             # if search button is pressed
 
             # flush session cache to remove any old search variables
-            request.session.flush()
+            for key in list(request.session.keys()):
+                if "auth" not in key:
+                    del request.session[key]
 
             search_form = Forms.SearchForm(request.POST)
 
@@ -233,14 +235,15 @@ def nexus_search(request):
 
         if "select_bam" in request.POST:
             # BAM has been selected, pass links for it
-
             # save bam data before flushing session
             selected_bam = request.POST.get("selected_bam")
             sampleID = request.session["sampleID"]
             session_bams = request.session["bam_list"]
 
             # flush session cache to remove old search variables
-            request.session.flush()
+            for key in list(request.session.keys()):
+                if "auth" not in key:
+                    del request.session[key]
 
             for bam in session_bams:
                 if selected_bam in bam.values():
