@@ -26,6 +26,7 @@ import subprocess
 import sys
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import loader
 from django.utils.safestring import mark_safe
@@ -44,6 +45,7 @@ DX_SECURITY_CONTEXT = {
 
 # set token to env
 dx.set_security_context(DX_SECURITY_CONTEXT)
+
 
 def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
@@ -77,6 +79,7 @@ def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
+@login_required
 def nexus_search(request):
     """
     Main search page function.
