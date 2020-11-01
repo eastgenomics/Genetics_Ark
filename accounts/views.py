@@ -3,16 +3,13 @@ from django.contrib.auth import login, logout, get_user_model, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.encoding import force_text, force_bytes
 from django.utils.http import urlsafe_base64_decode
 
 
-from django.core.mail import EmailMessage
-from django.core.mail import send_mail
-
+from django.core.mail import EmailMessage, send_mail
 
 
 from .forms import SignUpForm
@@ -37,21 +34,12 @@ def log_out(request):
 
 
 def activate(request, uid, token):
-    print("uid", uid)
-    print("token", token)
     try:
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    # checking if the user exists, if the token is valid.
-    if user is not None:
-        print("valid user", user)
-    if account_activation_token.check_token(user, token):
-        print("activation token goodness", token)
-
     if user is not None and account_activation_token.check_token(user, token):
-        print("valid and activating")
         # if valid set active true
         user.is_active = True
         # set signup_confirmation true
@@ -81,7 +69,7 @@ def sign_up(request):
             subject = 'Please Activate Your Account'
 
             message = render_to_string(
-                'registration/activation_request.html', 
+                'registration/activation_request.html',
                 {
                     'user': user,
                     'domain': current_site.domain,
@@ -90,11 +78,6 @@ def sign_up(request):
                 }
             )
 
-            # print(message)
-
-            # email = EmailMessage(subject, message)
-            # email.send()
-            print(user.profile.email)
             send_mail(subject, message, 'emeeglh@gmail.com',
                       [user.profile.email], fail_silently=False)
 

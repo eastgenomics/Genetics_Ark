@@ -10,4 +10,5 @@ class AccountActivationTokenGenerator(PasswordResetTokenGenerator):
         )
 
 
+# generates activation token to email
 account_activation_token = AccountActivationTokenGenerator()

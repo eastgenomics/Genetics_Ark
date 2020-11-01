@@ -19,8 +19,8 @@ from django.contrib.auth.decorators import login_required
 import primer_designer.forms as Forms
 
 
+@login_required
 def index(request):
-
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
 
@@ -85,6 +85,7 @@ def time_stamp():
     return time_string
 
 
+@login_required
 def create(request, regions, infile=None):
 
     path = "static/tmp/"

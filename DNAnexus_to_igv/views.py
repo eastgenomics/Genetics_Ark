@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """
-
 Django app to link Genetics Ark to samples in DNAnexus cloud platform.
 
 A sample ID is taken as input through a search field, this is queried
@@ -14,7 +13,6 @@ generated links to directly stream and view the BAMs.
 The dx-toolkit environment must first be sourced and user logged in.
 dx_002_bams.json must also be present in DNAnexus_to_igv/, this is
 generated from find_dx_002_bams.py
-
 """
 
 import dxpy as dx
@@ -26,6 +24,7 @@ import subprocess
 import sys
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import loader
 from django.utils.safestring import mark_safe
@@ -44,6 +43,7 @@ DX_SECURITY_CONTEXT = {
 
 # set token to env
 dx.set_security_context(DX_SECURITY_CONTEXT)
+
 
 def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
@@ -77,6 +77,7 @@ def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
+@login_required
 def nexus_search(request):
     """
     Main search page function.
@@ -86,8 +87,7 @@ def nexus_search(request):
     - for each project, dx_find_bams() is used to search for BAMs
     - on finding matching BAM and index, urls are generated with
       get_dx_urls()
-    - renders page with download urls and a button to load igv.js with
-      links
+    - renders page with download urls and a button to load igv.js with links
     """
 
     context_dict = {}
@@ -157,7 +157,6 @@ def nexus_search(request):
 
             if len(sample_bams[0]) == 1 and len(sample_bams) == 1:
                 # one sample found with one bam
-                print(sample_bams)
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
                     sample_bams[0][0]["bam_file_id"],
