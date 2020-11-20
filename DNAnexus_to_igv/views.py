@@ -30,7 +30,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import loader
 from django.utils.safestring import mark_safe
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 import DNAnexus_to_igv.forms as Forms
 
@@ -47,7 +47,7 @@ DX_SECURITY_CONTEXT = {
 dx.set_security_context(DX_SECURITY_CONTEXT)
 
 
-def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
+def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
     """
     Get preauthenticated dx download urls for bam and index
@@ -60,21 +60,39 @@ def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
         - idx_url (str): DNAnexus url for downloading index file
     """
 
-    bam_info = dx.bindings.dxfile.DXFile(dxid=bam_file_id, project=project_id)
-    bam = bam_info.get_download_url(
-        duration=3600, preauthenticated=True,
-        project=project_id, filename=bam_file_name
-    )
+    try:
+        bam_info = dx.bindings.dxfile.DXFile(
+            dxid=bam_file_id, project=project_id
+        )
+        bam = bam_info.get_download_url(
+            duration=3600, preauthenticated=True,
+            project=project_id, filename=bam_file_name
+        )
 
-    idx_info = dx.bindings.dxfile.DXFile(dxid=idx_file_id, project=project_id)
-    idx = idx_info.get_download_url(
-        duration=3600, preauthenticated=True,
-        project=project_id, filename=idx_file_name
-    )
+        idx_info = dx.bindings.dxfile.DXFile(
+            xid=idx_file_id, project=project_id
+        )
+        idx = idx_info.get_download_url(
+            duration=3600, preauthenticated=True,
+            project=project_id, filename=idx_file_name
+        )
 
-    # returns tuple with url as first
-    bam_url = bam[0]
-    idx_url = idx[0]
+        # returns tuple with url as first
+        bam_url = bam[0]
+        idx_url = idx[0]
+    except Exception:
+        # error connecting to DNAnexus or in generating url, pass error
+        # message to alert banner
+        messages.add_message(
+            request,
+            messages.ERROR,
+            """Error in generating DNAnexus URLs for sample {} in project {}.
+            Please contact the bioinformatics team""".format(
+                sample_id, project_id
+            )
+        )
+        bam_url = None
+        idx_url = None
 
     return bam_url, idx_url
 
@@ -165,12 +183,21 @@ def nexus_search(request):
                 print(sample_bams)
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
+                    request,
+                    sample_id,
                     sample_bams[0][0]["bam_file_id"],
                     sample_bams[0][0]["bam_name"],
                     sample_bams[0][0]["idx_file_id"],
                     sample_bams[0][0]["idx_name"],
                     sample_bams[0][0]["project_id"]
                 )
+
+                if bam_url is None or idx_url is None:
+                    # error generating urls, display message
+                    return render(
+                        request, 'DNAnexus_to_igv/nexus_search.html',
+                        context_dict
+                    )
 
                 # add variables
                 request.session["bam_url"] = bam_url
@@ -203,12 +230,21 @@ def nexus_search(request):
 
                     # generate the urls
                     bam_url, idx_url = get_dx_urls(
+                        request,
+                        sample_id,
                         bam["bam_file_id"],
                         bam["bam_name"],
                         bam["idx_file_id"],
                         bam["idx_name"],
                         bam["project_id"]
                     )
+
+                    if bam_url is None or idx_url is None:
+                        # error generating urls, display message
+                        return render(
+                            request, 'DNAnexus_to_igv/nexus_search.html',
+                            context_dict
+                        )
 
                     if "dev" in bam["project_name"]:
                         # if dev data project add development after path
