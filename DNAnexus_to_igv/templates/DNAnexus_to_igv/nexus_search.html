@@ -50,18 +50,6 @@
 {% endif %}
 
 
-<!-- function to display loading spinner on form submit -->
-<script>
-    function spinner_function() {
-        var x = document.getElementById("spinner");
-        if (x.style.display === "none") 
-            {x.style.display = "block";}
-        else 
-            {x.style.display = "none";}
-    }
-</script>
-
-
 <div style="width:1000px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
     
     <h2>DNAnexus to IGV</h2></br>
@@ -136,8 +124,9 @@
     BAMs may be viewed in web based IGV hosted on Genetics Ark here:
     <br></br>
 
-    <form action="" method="post">
+    <form action="" method="post" name="igv_form" onsubmit="return checkProject()">
         {% csrf_token %}
+        <input type="hidden" name="project_name" value={{ project_name }}>
         <button name="igv_ga" type="submit" class = "page_button">View in web IGV</button>
     </form>
 
@@ -163,7 +152,7 @@
 
                 <button name="select_bam" type="submit" class = "page_button">Select</button>&emsp;
 
-                <b>{{ bam.bam_name }}</b> from project <b>{{ bam.project_name }}</b> ({{ bam.bam_folder }})
+                <b>{{ bam.bam_name }}</b> from project <b>{{ bam.project_name }}</b> {{ bam.bam_folder }}
 
             </form></b><br>
 
@@ -173,6 +162,31 @@
 </div>
 {% endif %}
 
+<!-- function to check if selected sample is in the 002 dev data project and req. confirmation to load-->
+<script>
+    function checkProject() {
+        var x = document.forms["igv_form"]["project_name"].value;
+        if (x.includes("dev")) {
+            if (confirm("The selected data is for development use and must not be used for service work.\n Please confirm if you still want to load IGV.")) {
+                confirm = true;
+            } else {
+                confirm = false;
+            }
+            return confirm;
+        }
+    }
+</script>
+
+<!-- function to display loading spinner on form submit -->
+<script>
+    function spinner_function() {
+        var x = document.getElementById("spinner");
+        if (x.style.display === "none") 
+            {x.style.display = "block";}
+        else 
+            {x.style.display = "none";}
+    }
+</script>
 </html>
 </body>
 

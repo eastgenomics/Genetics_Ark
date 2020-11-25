@@ -28,7 +28,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template import loader
 from django.utils.safestring import mark_safe
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 import DNAnexus_to_igv.forms as Forms
 
@@ -45,7 +45,7 @@ DX_SECURITY_CONTEXT = {
 dx.set_security_context(DX_SECURITY_CONTEXT)
 
 
-def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
+def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
     """
     Get preauthenticated dx download urls for bam and index
@@ -58,21 +58,39 @@ def get_dx_urls(bam_file_id, bam_file_name, idx_file_id,
         - idx_url (str): DNAnexus url for downloading index file
     """
 
-    bam_info = dx.bindings.dxfile.DXFile(dxid=bam_file_id, project=project_id)
-    bam = bam_info.get_download_url(
-        duration=3600, preauthenticated=True,
-        project=project_id, filename=bam_file_name
-    )
+    try:
+        bam_info = dx.bindings.dxfile.DXFile(
+            dxid=bam_file_id, project=project_id
+        )
+        bam = bam_info.get_download_url(
+            duration=3600, preauthenticated=True,
+            project=project_id, filename=bam_file_name
+        )
 
-    idx_info = dx.bindings.dxfile.DXFile(dxid=idx_file_id, project=project_id)
-    idx = idx_info.get_download_url(
-        duration=3600, preauthenticated=True,
-        project=project_id, filename=idx_file_name
-    )
+        idx_info = dx.bindings.dxfile.DXFile(
+            xid=idx_file_id, project=project_id
+        )
+        idx = idx_info.get_download_url(
+            duration=3600, preauthenticated=True,
+            project=project_id, filename=idx_file_name
+        )
 
-    # returns tuple with url as first
-    bam_url = bam[0]
-    idx_url = idx[0]
+        # returns tuple with url as first
+        bam_url = bam[0]
+        idx_url = idx[0]
+    except Exception:
+        # error connecting to DNAnexus or in generating url, pass error
+        # message to alert banner
+        messages.add_message(
+            request,
+            messages.ERROR,
+            """Error in generating DNAnexus URLs for sample {} in project {}.
+            Please contact the bioinformatics team""".format(
+                sample_id, project_id
+            )
+        )
+        bam_url = None
+        idx_url = None
 
     return bam_url, idx_url
 
@@ -99,7 +117,9 @@ def nexus_search(request):
             # if search button is pressed
 
             # flush session cache to remove any old search variables
-            request.session.flush()
+            for key in list(request.session.keys()):
+                if "auth" not in key:
+                    del request.session[key]
 
             search_form = Forms.SearchForm(request.POST)
 
@@ -159,12 +179,21 @@ def nexus_search(request):
                 # one sample found with one bam
                 # generate the urls
                 bam_url, idx_url = get_dx_urls(
+                    request,
+                    sample_id,
                     sample_bams[0][0]["bam_file_id"],
                     sample_bams[0][0]["bam_name"],
                     sample_bams[0][0]["idx_file_id"],
                     sample_bams[0][0]["idx_name"],
                     sample_bams[0][0]["project_id"]
                 )
+
+                if bam_url is None or idx_url is None:
+                    # error generating urls, display message
+                    return render(
+                        request, 'DNAnexus_to_igv/nexus_search.html',
+                        context_dict
+                    )
 
                 # add variables
                 request.session["bam_url"] = bam_url
@@ -197,6 +226,8 @@ def nexus_search(request):
 
                     # generate the urls
                     bam_url, idx_url = get_dx_urls(
+                        request,
+                        sample_id,
                         bam["bam_file_id"],
                         bam["bam_name"],
                         bam["idx_file_id"],
@@ -204,12 +235,27 @@ def nexus_search(request):
                         bam["project_id"]
                     )
 
+                    if bam_url is None or idx_url is None:
+                        # error generating urls, display message
+                        return render(
+                            request, 'DNAnexus_to_igv/nexus_search.html',
+                            context_dict
+                        )
+
+                    if "dev" in bam["project_name"]:
+                        # if dev data project add development after path
+                        path = "({}) - DEVELOPMENT".format(
+                            bam["bam_path"]
+                        )
+                    else:
+                        path = "({})".format(bam["bam_path"])
+
                     bam_list.append({
                         "bam_url": bam_url,
                         "idx_url": idx_url,
                         "bam_name": bam["bam_name"],
                         "project_name": bam["project_name"],
-                        "bam_folder": bam["bam_path"]
+                        "bam_folder": path
                     })
 
                 context_dict["bam_list"] = bam_list
@@ -221,14 +267,15 @@ def nexus_search(request):
 
         if "select_bam" in request.POST:
             # BAM has been selected, pass links for it
-
             # save bam data before flushing session
             selected_bam = request.POST.get("selected_bam")
             sampleID = request.session["sampleID"]
             session_bams = request.session["bam_list"]
 
             # flush session cache to remove old search variables
-            request.session.flush()
+            for key in list(request.session.keys()):
+                if "auth" not in key:
+                    del request.session[key]
 
             for bam in session_bams:
                 if selected_bam in bam.values():

@@ -22,10 +22,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', home, name='home'),
+    path('genetics_ark/', include('genetics_ark.urls')),
     path('admin/', admin.site.urls),
     path('', include("accounts.urls")),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('genetics_ark/', include('genetics_ark.urls')),
     path('', include('DNAnexus_to_igv.urls')),
     path('', include('primer_designer.urls'))
 ]

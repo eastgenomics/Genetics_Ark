@@ -38,7 +38,8 @@ def get_002_projects():
     """
     projects = dx.search.find_projects(name="002*", name_mode="glob")
     project_002_list = [x["id"] for x in projects]
-    print(project_002_list)
+    print("Total 002 projects found:", len(project_002_list))
+
     return project_002_list
 
 
