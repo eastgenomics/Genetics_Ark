@@ -266,6 +266,7 @@ hr {
   line-height: 16px;
   background: #f3f4f5;
   padding: 10px 8px;
+  max-width: 275px;
   border-radius: 10px;
   border: 1px solid #95a4a700;
   color: rgb(92, 90, 90);
