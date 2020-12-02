@@ -18,6 +18,7 @@ generated from find_dx_002_bams.py
 import dxpy as dx
 import itertools
 import json
+import logging
 import os
 import re
 import subprocess
@@ -89,6 +90,10 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
                 sample_id, project_id
             )
         )
+        logging.error(
+            "Error generating dx download URLS for sample {} in project\
+                {}".format(sample_id, project_id)
+        )
         bam_url = None
         idx_url = None
 
@@ -149,6 +154,10 @@ def nexus_search(request):
                     the bioinformatics team""",
                     extra_tags="alert-danger"
                 )
+                logging.error(
+                    "Failed to load sample list from JSON, most likely the\
+                        JSON has not been generated with find_dx_002_bams.py"
+                )
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
@@ -165,11 +174,15 @@ def nexus_search(request):
                     mark_safe(
                         """Sample {} not found in DNAnexus, either it is not\
                         available, the full sample name was not correctly\
-                        given or another error has occured.\n Please contact\
+                        given or another error has occured. Please contact\
                         the bioinformatics team if you believe the sample\
                         should be available.""".format(sample_id)),
                     extra_tags="alert-danger"
                 )
+                logging.error((
+                    """Sample not found in JSON. Either sample name mistyped
+                    or an error in finding the BAMs for the sample."""
+                ))
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
@@ -237,6 +250,21 @@ def nexus_search(request):
 
                     if bam_url is None or idx_url is None:
                         # error generating urls, display message
+                        messages.add_message(
+                            request, messages.ERROR,
+                            mark_safe(
+                                "An error has occurred generating the required\
+                                download URLs for {}. Please raise a ticket on\
+                                the bioinformatics help desk.".format(
+                                    sample_id
+                                ), extra_tags="alert-danger"
+                            )
+                        )
+                        logging.error(
+                            "Error generating dx urls for sample {}, bam and \
+                            / or index url are none. BAM url: {}, index url:\
+                            {}".format(sample_id, bam_url, idx_url)
+                        )
                         return render(
                             request, 'DNAnexus_to_igv/nexus_search.html',
                             context_dict
@@ -348,6 +376,8 @@ def nexus_search(request):
 
             return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                           context_dict)
+
+    logging.debug("here")
 
     # just display the form with search box on navigating to page
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)

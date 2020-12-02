@@ -1,13 +1,14 @@
 """
 Django settings for ga_core project.
 """
+import logging.config
 import os
 
 from django.contrib.messages import constants as messages
 from pathlib import Path
 
 
-# Passwords and database credentials stored in config.py 
+# Passwords and database credentials stored in config.py
 # NOT IN VERSION CONTROL
 from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
     EMAIL_USER, EMAIL_PASSWORD
@@ -102,16 +103,20 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.\
+            UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.\
+            MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.\
+            CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.\
+            NumericPasswordValidator',
     },
 ]
 
@@ -136,6 +141,44 @@ EMAIL_HOST_USER = EMAIL_USER
 EMAIL_HOST_PASSWORD = EMAIL_PASSWORD
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'default from email'
+
+# Settings for logging
+log_dir = os.path.join(BASE_DIR, "logs")
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    # Handlers
+    'handlers': {
+        'debug-file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': f'{log_dir}/ga-debug.log',
+        },
+        'error-file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': f'{log_dir}/ga-error.log',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    # Loggers
+    'loggers': {
+        'ga_debug': {
+            'handlers': ['debug-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')
+        },
+        'ga_error': {
+            'handlers': ['error-file'],
+            'level': 'ERROR',
+            'propagate': True,
+            'level': "ERROR"
+        },
+    },
+}
 
 
 # Static files (CSS, JavaScript, Images)
