@@ -23,7 +23,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 # token for DNAnexus authentication
-sys.path.insert(0, "../")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
 from ga_core.config import AUTH_TOKEN
 
 
@@ -38,6 +38,18 @@ def get_002_projects():
     """
     projects = dx.search.find_projects(name="002*", name_mode="glob")
     project_002_list = [x["id"] for x in projects]
+
+    try:
+        dev_project = dx.search.find_projects(
+            name="003_ga_dev_data", name_mode="glob"
+        )
+        dev_project_id = dev_project[0]["id"]
+        project_002_list.append(dev_project_id)
+
+    except Exception:
+        print("Failed getting id for  project 003_ga_dev_data, does it exist?")
+        pass
+
     print("Total 002 projects found:", len(project_002_list))
 
     return project_002_list
