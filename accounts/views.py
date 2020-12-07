@@ -33,7 +33,7 @@ def log_out(request):
 def activate(request, uid, token):
     try:
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+    except (TypeError, ValueError, OverflowError):
         user = None
 
     if user is not None and account_activation_token.check_token(user, token):
@@ -43,7 +43,12 @@ def activate(request, uid, token):
         user.profile.signup_confirmation = True
         user.save()
         login(request, user)
-        return redirect('home')
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "Activation successful!"
+        )
+        return render(request, 'genetics_ark/genetics_ark.html')
     else:
         return render(request, 'registration/activation_invalid.html')
 
