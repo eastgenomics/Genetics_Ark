@@ -36,6 +36,10 @@ import DNAnexus_to_igv.forms as Forms
 # authentication token for DNAnexus
 from ga_core.config import AUTH_TOKEN
 
+from ga_core.settings import LOGGING
+
+error_log = logging.getLogger("ga_error")
+
 # set env variable for dxpy authentication
 DX_SECURITY_CONTEXT = {
     "auth_token_type": "Bearer",
@@ -90,10 +94,10 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
                 sample_id, project_id
             )
         )
-        logging.error(
-            "Error generating dx download URLS for sample {} in project\
-                {}".format(sample_id, project_id)
-        )
+        logging.error(re.sub(
+            r'\s+', ' ', """Error generating dx download URLS for sample
+            {} in project {}""".format(sample_id, project_id)
+        ))
         bam_url = None
         idx_url = None
 
@@ -154,10 +158,11 @@ def nexus_search(request):
                     the bioinformatics team""",
                     extra_tags="alert-danger"
                 )
-                logging.error(
-                    "Failed to load sample list from JSON, most likely the\
-                        JSON has not been generated with find_dx_002_bams.py"
-                )
+                logging.error(re.sub(
+                    r'\s+', ' ', """Failed to load sample list from JSON, most
+                    likely the JSON has not been generated with
+                    find_dx_002_bams.py"""
+                ))
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
@@ -179,10 +184,11 @@ def nexus_search(request):
                         should be available.""".format(sample_id)),
                     extra_tags="alert-danger"
                 )
-                logging.error((
-                    """Sample not found in JSON. Either sample name mistyped
-                    or an error in finding the BAMs for the sample."""
-                ))
+                error_log.error((re.sub(
+                    r'\s+', ' ', """Sample {} not found in JSON. Either sample
+                    name mistyped or an error in finding the BAMs for the
+                    sample.""".format(sample_id)
+                )))
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
@@ -257,14 +263,14 @@ def nexus_search(request):
                                 download URLs for {}. Please raise a ticket on\
                                 the bioinformatics help desk.".format(
                                     sample_id
-                                ), extra_tags="alert-danger"
-                            )
+                                )), extra_tags="alert-danger"
                         )
-                        logging.error(
-                            "Error generating dx urls for sample {}, bam and \
-                            / or index url are none. BAM url: {}, index url:\
-                            {}".format(sample_id, bam_url, idx_url)
-                        )
+                        logging.error((re.sub(
+                            r'\s+', ' ', """Error generating dx urls for sample
+                            {}, bam and or index url are none. BAM url: {},
+                            index url: {}""".format(
+                                sample_id, bam_url, idx_url)
+                        )))
                         return render(
                             request, 'DNAnexus_to_igv/nexus_search.html',
                             context_dict
@@ -376,8 +382,6 @@ def nexus_search(request):
 
             return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                           context_dict)
-
-    logging.debug("here")
 
     # just display the form with search box on navigating to page
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
