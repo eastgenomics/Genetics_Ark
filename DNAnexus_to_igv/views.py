@@ -33,9 +33,7 @@ from django.shortcuts import render, redirect
 
 import DNAnexus_to_igv.forms as Forms
 
-# authentication token for DNAnexus
-from ga_core.config import AUTH_TOKEN
-
+from ga_core.config import AUTH_TOKEN  # auth token for DNAnexus
 from ga_core.settings import LOGGING
 
 error_log = logging.getLogger("ga_error")
@@ -84,8 +82,7 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
         bam_url = bam[0]
         idx_url = idx[0]
     except Exception:
-        # error connecting to DNAnexus or in generating url, pass error
-        # message to alert banner
+        # error connecting to DNAnexus or in generating url
         messages.add_message(
             request,
             messages.ERROR,
