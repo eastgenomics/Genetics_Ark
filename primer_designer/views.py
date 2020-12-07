@@ -7,7 +7,7 @@ import random
 import re
 import shlex
 import shutil
-import string as str
+import string
 import subprocess
 import time
 
@@ -54,7 +54,7 @@ def index(request):
         })
 
 
-def random_string(length=10):
+def random_string():
     """ Creates a random string
 
     Args:
@@ -62,15 +62,10 @@ def random_string(length=10):
 
     Returns:
         - random_string (str): str of random characters
-
-    Raises: None
     """
-
-    random_string = ""
-    # Choose from lowercase, uppercase, and digits
-    alphabet = str.ascii_lowercase + str.ascii_uppercase + str.digits
-    for n in range(0, length):
-        random_string += random.choice(alphabet)
+    random_string = ''.join(random.choices(
+        string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10
+    ))
 
     return random_string
 
