@@ -164,9 +164,11 @@ def nexus_search(request):
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
 
-            # select bams matching sample id
+            # select bams matching sample id, return original entry from
+            # JSON by mtahcing against upper name and search term
             sample_bams = [
-                v for k, v in json_bams.items() if k.startswith(sample_id)]
+                v for k, v in json_bams.items() if sample_id in v[0]['bam_name'].upper()
+            ]
 
             if len(sample_bams) == 0:
                 # no bams found
