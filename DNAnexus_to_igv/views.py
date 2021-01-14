@@ -60,24 +60,34 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
         - bam_url (str): DNAnexus url for downloading BAM file
         - idx_url (str): DNAnexus url for downloading index file
     """
+    print(sample_id)
+    print(bam_file_id)
+    print(bam_file_name)
+    print("")
+    print(idx_file_id)
+    print(idx_file_name)
+    print(project_id)
 
     try:
+        print("1")
         bam_info = dx.bindings.dxfile.DXFile(
             dxid=bam_file_id, project=project_id
         )
+        print("2")
         bam = bam_info.get_download_url(
             duration=3600, preauthenticated=True,
             project=project_id, filename=bam_file_name
         )
-
+        print("3")
         idx_info = dx.bindings.dxfile.DXFile(
-            xid=idx_file_id, project=project_id
+            dxid=idx_file_id, project=project_id
         )
+        print("4")
         idx = idx_info.get_download_url(
             duration=3600, preauthenticated=True,
             project=project_id, filename=idx_file_name
         )
-
+        print("5")
         # returns tuple with url as first
         bam_url = bam[0]
         idx_url = idx[0]
@@ -365,8 +375,14 @@ def nexus_search(request):
                               context_dict)
 
 
-        if "igv_ga" in request.POST:
+        if "igv_ga_37" in request.POST or "igv_ga_38" in request.POST:
             # view in igv button pressed
+
+            # check for reference by button name pressed
+            if "igv_ga_37" in request.POST:
+                reference = "hg19"
+            else:
+                reference = "hg38"
 
             sampleID = request.session["sampleID"]
             bam_url = request.session["bam_url"]
@@ -378,6 +394,7 @@ def nexus_search(request):
             context_dict["sampleID"] = sampleID
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
+            context_dict["reference"] = reference
 
             return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                           context_dict)

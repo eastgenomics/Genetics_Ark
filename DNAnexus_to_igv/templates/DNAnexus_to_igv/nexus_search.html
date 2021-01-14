@@ -50,7 +50,7 @@
 {% endif %}
 
 
-<div style="width:1000px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
+<div style="width:1100px; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
     
     <h2>DNAnexus to IGV</h2></br>
 
@@ -83,7 +83,7 @@
 
 {% if not bam_name and not bam_list %}
 <!-- if normal search field used, remove direct link fields -->
-<div class="well" style="width:1000px; margin:0 auto; padding-bottom: 50px;">
+<div class="well" style="width:1100px; margin:0 auto; padding-bottom: 50px;">
 
     <h3>Load direct from URL</h3></br>
 
@@ -106,7 +106,7 @@
 
 {% if bam_name %}
 <!-- Single BAM found for sample -->
-<div class="well" style="width:1000px; margin:0 auto; padding-bottom: 50px;">
+<div class="well" style="width:1100px; margin:0 auto; padding-bottom: 50px;">
 
     <div>
         Requested Sample: <b>{{ sampleID }}</b><br>
@@ -116,18 +116,29 @@
         BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
         <br></br>
         <ul>
-           <li>BAM url:<br> <b>{{ bam_url }}</b></li>
-           <li>Index url:<br> <b>{{ idx_url }}</b></li>
+           <li>BAM url: <b><span id='bam_url'></span>{{ bam_url }}</span></b>&nbsp;&nbsp;<input 
+            type="image" src="/static/images/clipboard.png"
+            onclick="CopyToClipboard('bam_url')" width="20" height="20"/></li>
+           
+            <li>Index url: <b><span id='idx_url'></span>{{ idx_url }}</span></b>&nbsp;&nbsp;<input 
+            type="image" src="/static/images/clipboard.png"
+            onclick="CopyToClipboard('idx_url')" width="20" height="20"/></li>
         </ul>
 
-    <br> 
+    <br>
     BAMs may be viewed in web based IGV hosted on Genetics Ark here:
     <br></br>
 
     <form action="" method="post" name="igv_form" onsubmit="return checkProject()">
         {% csrf_token %}
         <input type="hidden" name="project_name" value={{ project_name }}>
-        <button name="igv_ga" type="submit" class = "page_button">View in web IGV</button>
+        <button name="igv_ga_37" type="submit" display:inline-block; class = "page_button">View in web IGV (GRCh37)</button>
+    </form>
+    <br>
+    <form action="" method="post" name="igv_form" onsubmit="return checkProject()">
+        {% csrf_token %}
+        <input type="hidden" name="project_name" value={{ project_name }}>
+        <button name="igv_ga_38" type="submit" display:inline-block; class = "page_button">View in web IGV (GRCh38)</button>
     </form>
 
     </div>
@@ -138,7 +149,7 @@
 {% if bam_list %}
 <!-- multple bams for sample returned, give option to select which to use -->
 
-<div class="well" style="width:1000px; margin:0 auto; padding-bottom: 50px;">
+<div class="well" style="width:1100px; margin:0 auto; padding-bottom: 50px;">
     <div>
         <b>{{ bam_no}}</b> BAMs found for sample <b>{{ sampleID }}</b><br>
         Please select which project to load the BAM from:</b><br></b><br>
@@ -185,6 +196,18 @@
             {x.style.display = "block";}
         else 
             {x.style.display = "none";}
+    }
+</script>
+
+    <!-- Function to copy text to clipboard -->
+<script>
+    function CopyToClipboard(id) {
+        var r = document.createRange();
+        r.selectNode(document.getElementById(id));
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(r);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
     }
 </script>
 </html>
