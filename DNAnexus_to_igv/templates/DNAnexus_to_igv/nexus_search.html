@@ -114,31 +114,35 @@
         BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
         <br></br>
         <ul>
-            <li>BAM url: <b><span id='bam_url'></span>{{ bam_url }}</span></b>&nbsp;&nbsp;<input 
+            <li>BAM url: <b><span id='bam_url'>{{ bam_url }}</span></b>&nbsp;&nbsp;<input 
             type="image" src="/static/images/clipboard.png"
             onclick="CopyToClipboard('bam_url')" width="20" height="20"/></li>
 
-            <li>Index url: <b><span id='idx_url'></span>{{ idx_url }}</span></b>&nbsp;&nbsp;<input 
+            <li>Index url: <b><span id='idx_url'>{{ idx_url }}</span></b>&nbsp;&nbsp;<input 
             type="image" src="/static/images/clipboard.png"
             onclick="CopyToClipboard('idx_url')" width="20" height="20"/></li>
         </ul>
+    </div>
 
     <br>
-    BAMs may be viewed in web based IGV hosted on Genetics Ark here:
+    Load BAMs for sample in web IGV with appropriate reference build: 
     <br></br>
 
-    <form action="" method="post" name="igv_form" onsubmit="return checkProject()">
-        {% csrf_token %}
-        <input type="hidden" name="project_name" value={{ project_name }}>
-        <button name="igv_ga_37" type="submit" display:inline-block; class = "page_button">View in web IGV (GRCh37)</button>
-    </form>
-    <br>
-    <form action="" method="post" name="igv_form" onsubmit="return checkProject()">
-        {% csrf_token %}
-        <input type="hidden" name="project_name" value={{ project_name }}>
-        <button name="igv_ga_38" type="submit" display:inline-block; class = "page_button">View in web IGV (GRCh38)</button>
-    </form>
-
+    <div style="float: left; width: 17%;">
+        <form action="" method="post" name="igv_form" onsubmit="return checkProject()">
+            {% csrf_token %}
+            <input type="hidden" name="project_name" size="10" value={{ project_name }}>
+            <button name="igv_ga_37" type="submit" class =
+            "page_button"; style="height: fit-content;">View in web IGV <br>(GRCh37)</button>
+        </form>
+    </div>
+    <div style="float: left; width: 17%;">
+        <form action="" method="post" style="width: 10px;" name="igv_form" onsubmit="return checkProject()">
+            {% csrf_token %}
+            <input type="hidden" name="project_name" width="10px" value={{ project_name }}>
+            <button name="igv_ga_38" type="submit" class =
+            "page_button"; style="height: fit-content;">View in web IGV <br>(GRCh38)</button>
+        </form>
     </div>
 </div>
 {% endif %}
@@ -197,7 +201,7 @@
     }
 </script>
 
-    <!-- Function to copy text to clipboard -->
+<!-- Function to copy text to clipboard -->
 <script>
     function CopyToClipboard(id) {
         var r = document.createRange();
@@ -208,7 +212,9 @@
         window.getSelection().removeAllRanges();
     }
 </script>
+
 </html>
 </body>
 
 {% endblock %}
+

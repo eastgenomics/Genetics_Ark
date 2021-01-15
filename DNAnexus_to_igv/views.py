@@ -131,7 +131,6 @@ def nexus_search(request):
 
             sample_id = clean_data["sampleID"]
             sample_id = str(sample_id).strip()  # in case spaces
-            sample_id = sample_id.upper()  # in case C/G/X is lower case
 
             try:
                 # load in json with all bams and dx attributes needed to
@@ -164,7 +163,7 @@ def nexus_search(request):
             # select bams matching sample id, return original entry from
             # JSON by mtahcing against upper name and search term
             sample_bams = [
-                v for k, v in json_bams.items() if sample_id in v[0]['bam_name'].upper()
+                v for k, v in json_bams.items() if sample_id.upper() in v[0]['bam_name'].upper()
             ]
 
             if len(sample_bams) == 0:
@@ -271,9 +270,9 @@ def nexus_search(request):
             session_bams = request.session["bam_list"]
 
             # flush session cache to remove old search variables
-            for key in list(request.session.keys()):
-                if "auth" not in key:
-                    del request.session[key]
+            # for key in list(request.session.keys()):
+            #     if "auth" not in key:
+            #         del request.session[key]
 
             for bam in session_bams:
                 if selected_bam in bam.values():
@@ -350,14 +349,14 @@ def nexus_search(request):
             else:
                 reference = "hg38"
 
-            sampleID = request.session["sampleID"]
+            sample = request.session["bam_name"]
             bam_url = request.session["bam_url"]
             idx_url = request.session["idx_url"]
 
             bam_url = str(bam_url).strip()
             idx_url = str(idx_url).strip()
 
-            context_dict["sampleID"] = sampleID
+            context_dict["sampleID"] = sample.split('.')[0]
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
             context_dict["reference"] = reference
