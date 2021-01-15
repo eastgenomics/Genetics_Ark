@@ -41,13 +41,12 @@ def get_002_projects():
 
     try:
         dev_project = dx.search.find_projects(
-            name="003_ga_dev_data", name_mode="glob"
+            name="003_200115_ga_igv_dev_data", name_mode="glob"
         )
-        dev_project_id = dev_project[0]["id"]
-        project_002_list.append(dev_project_id)
+        project_002_list.append([x for x in dev_project][0]['id'])
 
     except Exception:
-        print("Failed getting id for  project 003_ga_dev_data, does it exist?")
+        print("Failed getting id for  project 003_200115_ga_igv_dev_data, does it exist?")
         pass
 
     print("Total 002 projects found:", len(project_002_list))
@@ -85,7 +84,6 @@ def find_dx_bams(project_002_list):
     missing_bam = defaultdict(list)
 
     for project in project_002_list:
-
         bam_dict = {}
         idx_dict = {}
 
@@ -119,7 +117,6 @@ def find_dx_bams(project_002_list):
             for idx in idxs:
                 idx_dict[(idx["folder"], idx["name"])] = idx["id"]
 
-
             # get project name to display
             p = dx.dxproject.DXProject(project)
             project_info = p.describe()
@@ -131,26 +128,19 @@ def find_dx_bams(project_002_list):
                     # check if bam is in CP tmp dir, pass if True
                     continue
 
-                if idx_dict.get((path, bam_file + ".bai")):
+                # index either can be .bam.bai or just .bai for old
+                # samples, get names for both to check
+                indexes = []
+                indexes.append(f"{bam_file}.bai")
+                indexes.append(f"{bam_file.strip('.bam')}.bai")
+
+                print(indexes)
+
+                if idx_dict.get((path, indexes[0])):
                     # if index with matching bam file and path is found
-
-                    if "_" in bam_file:
-                        # sample named as X001000_markdup.bam
-                        sample = bam_file.split("_", 1)[0].upper()
-                    else:
-                        # sample named without "_" i.e X00100.bam
-                        sample = bam_file.split(".", 1)[0].upper()
-
-                    # defaultdict with list for each sample
-                    dx_data[sample].append({
-                        "bam_file_id": bam_dict[path, bam_file],
-                        "idx_file_id": idx_dict[(path, bam_file + ".bai")],
-                        "project_id": project,
-                        "project_name": project_name,
-                        "bam_name": bam_file,
-                        "idx_name": bam_file + ".bai",
-                        "bam_path": path
-                    })
+                    idx = indexes[0]
+                elif idx_dict.get((path, indexes[1])):
+                    idx = indexes[0]
                 else:
                     # bam missing index
                     missing_bam[bam_file].append({
@@ -160,13 +150,32 @@ def find_dx_bams(project_002_list):
                         "project_name": project_name,
                         "path": path
                     })
+                    continue
+
+                if "_" in bam_file:
+                    # sample named as X001000_markdup.bam
+                    sample = bam_file.split("_", 1)[0].upper()
+                else:
+                    # sample named without "_" i.e X00100.bam
+                    sample = bam_file.split(".", 1)[0].upper()
+
+                # defaultdict with list for each sample
+                dx_data[sample].append({
+                    "bam_file_id": bam_dict[path, bam_file],
+                    "idx_file_id": idx_dict[(path, bam_file + ".bai")],
+                    "project_id": project,
+                    "project_name": project_name,
+                    "bam_name": bam_file,
+                    "idx_name": bam_file + ".bai",
+                    "bam_path": path
+                })
+
 
     # write all 002 bams into output json
     with open('dx_002_bams.json', 'w') as outfile:
         json.dump(dx_data, outfile, indent=2)
 
     if missing_bam:
-        print(missing_bam)
         with open('dx_missing_bam.json', 'w') as missing_file:
             json.dump(missing_bam, missing_file, indent=2)
 
