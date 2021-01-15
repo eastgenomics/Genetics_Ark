@@ -12,7 +12,12 @@
 
 <body class="card border-light" style="width:95%; margin:0 auto; padding-top: 75px; padding-bottom: 50px;">
     
-  <h2>IGV browser for {{ sampleID }} - {{ reference }}</h2>
+  <h2>IGV browser for {{ sampleID }}</h2>
+  <div>
+    <h3 style="display: inline;"> Using reference: </h3>
+    <h3 style="display: inline; text-transform: lowercase;"><b>{{ reference }}</b></h3>
+  </div>
+  <br></br>
 
   <div id="igv-div" style="padding:5px; border:1px solid lightgray; background-color: white;"></div>
 
@@ -31,7 +36,7 @@
           indexURL: '{{ idx_url }}',
           name: '{{ sampleID }}',
           alignmentShading: 'strand',
-          height: 625
+          height: 600
         }
       ]
     };

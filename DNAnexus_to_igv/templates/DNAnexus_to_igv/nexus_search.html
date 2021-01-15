@@ -60,8 +60,6 @@
 
     Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV if installed locally <br>
     on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
-    For older (pre-2020) samples, please continue to search in Genetics Ark in the normal way and view in IGV from there.<br>
-    These older samples will gradually be uploaded to DNAnexus over the coming weeks and be available via this page.<br></br>
 
     The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
 
@@ -116,10 +114,10 @@
         BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
         <br></br>
         <ul>
-           <li>BAM url: <b><span id='bam_url'></span>{{ bam_url }}</span></b>&nbsp;&nbsp;<input 
+            <li>BAM url: <b><span id='bam_url'></span>{{ bam_url }}</span></b>&nbsp;&nbsp;<input 
             type="image" src="/static/images/clipboard.png"
             onclick="CopyToClipboard('bam_url')" width="20" height="20"/></li>
-           
+
             <li>Index url: <b><span id='idx_url'></span>{{ idx_url }}</span></b>&nbsp;&nbsp;<input 
             type="image" src="/static/images/clipboard.png"
             onclick="CopyToClipboard('idx_url')" width="20" height="20"/></li>
@@ -159,7 +157,7 @@
             <form action="" method="post" name="select_bam">
                 {% csrf_token %}
 
-                <input type="hidden" name="selected_bam" value={{ bam.bam_url }} >
+                <input type="hidden" name="selected_bam" value={{ bam.bam_name }} >
 
                 <button name="select_bam" type="submit" class = "page_button">Select</button>&emsp;
 
