@@ -60,34 +60,21 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
         - bam_url (str): DNAnexus url for downloading BAM file
         - idx_url (str): DNAnexus url for downloading index file
     """
-    print(sample_id)
-    print(bam_file_id)
-    print(bam_file_name)
-    print("")
-    print(idx_file_id)
-    print(idx_file_name)
-    print(project_id)
-
     try:
-        print("1")
         bam_info = dx.bindings.dxfile.DXFile(
             dxid=bam_file_id, project=project_id
         )
-        print("2")
         bam = bam_info.get_download_url(
             duration=3600, preauthenticated=True,
             project=project_id, filename=bam_file_name
         )
-        print("3")
         idx_info = dx.bindings.dxfile.DXFile(
             dxid=idx_file_id, project=project_id
         )
-        print("4")
         idx = idx_info.get_download_url(
             duration=3600, preauthenticated=True,
             project=project_id, filename=idx_file_name
         )
-        print("5")
         # returns tuple with url as first
         bam_url = bam[0]
         idx_url = idx[0]
@@ -252,39 +239,6 @@ def nexus_search(request):
                 for bam in itertools.chain.from_iterable(sample_bams):
                     # can be mix of lists and nested lists
 
-                    # generate the urls
-                    bam_url, idx_url = get_dx_urls(
-                        request,
-                        sample_id,
-                        bam["bam_file_id"],
-                        bam["bam_name"],
-                        bam["idx_file_id"],
-                        bam["idx_name"],
-                        bam["project_id"]
-                    )
-
-                    if bam_url is None or idx_url is None:
-                        # error generating urls, display message
-                        messages.add_message(
-                            request, messages.ERROR,
-                            mark_safe(
-                                "An error has occurred generating the required\
-                                download URLs for {}. Please raise a ticket on\
-                                the bioinformatics help desk.".format(
-                                    sample_id
-                                )), extra_tags="alert-danger"
-                        )
-                        logging.error((re.sub(
-                            r'\s+', ' ', """Error generating dx urls for sample
-                            {}, bam and or index url are none. BAM url: {},
-                            index url: {}""".format(
-                                sample_id, bam_url, idx_url)
-                        )))
-                        return render(
-                            request, 'DNAnexus_to_igv/nexus_search.html',
-                            context_dict
-                        )
-
                     if "dev" in bam["project_name"]:
                         # if dev data project add development after path
                         path = "({}) - DEVELOPMENT".format(
@@ -294,11 +248,13 @@ def nexus_search(request):
                         path = "({})".format(bam["bam_path"])
 
                     bam_list.append({
-                        "bam_url": bam_url,
-                        "idx_url": idx_url,
                         "bam_name": bam["bam_name"],
+                        "idx_name": bam["idx_name"],
                         "project_name": bam["project_name"],
-                        "bam_folder": path
+                        "project_id": bam["project_id"],
+                        "bam_folder": path,
+                        "idx_id": bam["idx_file_id"],
+                        "bam_id": bam["bam_file_id"]
                     })
 
                 context_dict["bam_list"] = bam_list
@@ -309,10 +265,9 @@ def nexus_search(request):
                               context_dict)
 
         if "select_bam" in request.POST:
-            # BAM has been selected, pass links for it
-            # save bam data before flushing session
+            # BAM has been selected, save bam data before flushing
+            # session
             selected_bam = request.POST.get("selected_bam")
-            sampleID = request.session["sampleID"]
             session_bams = request.session["bam_list"]
 
             # flush session cache to remove old search variables
@@ -322,19 +277,30 @@ def nexus_search(request):
 
             for bam in session_bams:
                 if selected_bam in bam.values():
-                    # render page with links to selected bam
+                    sampleID = bam["bam_name"].split('.')[0]
+                    # generate urls for selected sample
+                    bam_url, idx_url = get_dx_urls(
+                        request,
+                        sampleID,
+                        bam["bam_id"],
+                        bam["bam_name"],
+                        bam["idx_id"],
+                        bam["idx_name"],
+                        bam["project_id"]
+                    )
 
+                    # render page with links to selected bam
                     request.session["sampleID"] = sampleID
                     request.session["bam_name"] = bam["bam_name"]
                     request.session["project_name"] = bam["project_name"]
-                    request.session["bam_url"] = bam["bam_url"]
-                    request.session["idx_url"] = bam["idx_url"]
+                    request.session["bam_url"] = bam_url
+                    request.session["idx_url"] = idx_url
 
                     context_dict["sampleID"] = sampleID
                     context_dict["bam_name"] = bam["bam_name"]
                     context_dict["project_name"] = bam["project_name"]
-                    context_dict["bam_url"] = bam["bam_url"]
-                    context_dict["idx_url"] = bam["idx_url"]
+                    context_dict["bam_url"] = bam_url
+                    context_dict["idx_url"] = idx_url
 
                     return render(request, 'DNAnexus_to_igv/nexus_search.html',
                                   context_dict)
