@@ -8,10 +8,14 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_text, force_bytes
 from django.utils.http import urlsafe_base64_decode
+import logging
+
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from ga_core.settings import ALLOWED_HOSTS, DEFAULT_FROM_EMAIL
+from ga_core.settings import ALLOWED_HOSTS, DEFAULT_FROM_EMAIL, LOGGING
+
+error_log = logging.getLogger("ga_error")
 
 
 @login_required
@@ -33,7 +37,7 @@ def log_out(request):
 def activate(request, uid, token):
     try:
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError):
+    except Exception as e:
         user = None
 
     if user is not None and account_activation_token.check_token(user, token):
@@ -50,6 +54,17 @@ def activate(request, uid, token):
         )
         return render(request, 'genetics_ark/genetics_ark.html')
     else:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "Error activating account, contact the bioinformatics team for "
+            "support."
+        )
+
+        error_log.error(
+            f"Error authenticating user: {e}"
+        )
+
         return render(request, 'registration/activation_invalid.html')
 
 
@@ -89,7 +104,8 @@ def sign_up(request):
             messages.add_message(
                 request,
                 messages.ERROR,
-                """Error in sign up form""",
+                "Error in sign up form, please check the form and try again",
                 extra_tags="alert-danger"
             )
+
     return render(request, 'registration/sign_up.html', {'form': form})

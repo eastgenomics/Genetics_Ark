@@ -88,7 +88,7 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
                 sample_id, project_id
             )
         )
-        logging.error(re.sub(
+        error_log.error(re.sub(
             r'\s+', ' ', """Error generating dx download URLS for sample
             {} in project {}""".format(sample_id, project_id)
         ))
@@ -153,7 +153,7 @@ def nexus_search(request):
                     the bioinformatics team""",
                     extra_tags="alert-danger"
                 )
-                logging.error(re.sub(
+                error_log.error(re.sub(
                     r'\s+', ' ', """Failed to load sample list from JSON, most
                     likely the JSON has not been generated with
                     find_dx_002_bams.py"""
