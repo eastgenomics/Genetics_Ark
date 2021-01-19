@@ -1,11 +1,20 @@
 ## Notes for setting up / running Genetics Ark
 
+requirements:
+- install python packages from requirements.txt
+- add email account credentials to config.py to send account authorisation
+  emails from
+- setup send grid account and store API key linked to above email account in
+  config.py
+
+
 - requires config.py in ga_core, includes:
     - SECRET_KEY = Django secret key
     - AUTH_TOEKN = DNAnexus auth token for making dx queries
     - EMAIL_USER = email address of account to send emails from for new account
       authentication
     - EMAIL_PASSWORD = password for above email account
+    - SEND_GRID_API_KEY = API key for sendgrid account linked to email
     - GOOGLE_ANALYTICS = token for Google analytics
     - PROD_HOST = host address for production
     - DEBUG_HOST = host address for debug/dev
