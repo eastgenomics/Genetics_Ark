@@ -24,12 +24,9 @@ def index(request):
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
 
-        # One or more valid regions where entered.
         if regions_form.is_valid():
-
-            print("Passing data along")
-            pp.pprint(regions_form.data['regions'])
-
+            # One or more valid regions where entered, call function to
+            # generate primers
             return create(request, regions_form.data['regions'])
 
         else:
@@ -54,7 +51,8 @@ def index(request):
 
 
 def random_string():
-    """ Creates a random string
+    """
+    Creates a random string
 
     Args:
       length (int): length of string to generate, default 10
@@ -82,14 +80,17 @@ def time_stamp():
 
 @login_required
 def create(request, regions, infile=None):
-
+    """
+    Called when valid form submitted, generates output file then runs
+    primer3 with given regions. Subprocess holds the page with a laoding
+    spinner until completed, then file is written and link to download
+    design zip given on returned page.
+    """
     path = "static/tmp/"
 
     random_tmp = random_string()
 
     infile = "{}.txt".format(time_stamp())
-
-    pp.pprint(regions)
 
     if infile is None:
         infile = random_tmp
