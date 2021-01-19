@@ -25,7 +25,8 @@ class SignUpForm(UserCreationForm):
         widget=(forms.TextInput(attrs={'class': 'form-control'}))
     )
     email = forms.EmailField(
-        max_length=50, help_text='Required. Inform a valid email address.',
+        max_length=50,
+        help_text='Required: Only NHS email addresses may be used.',
         widget=(forms.TextInput(attrs={'class': 'form-control'}))
     )
     password1 = forms.CharField(
