@@ -47,7 +47,7 @@ def get_002_projects():
 
     except Exception:
         print(
-            "Failed getting id for  project 003_200115_ga_igv_dev_data, "
+            "Failed getting id for project 003_200115_ga_igv_dev_data, "
             "does it exist?"
         )
         pass

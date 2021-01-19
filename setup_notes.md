@@ -6,6 +6,7 @@ requirements:
   emails from
 - setup send grid account and store API key linked to above email account in
   config.py
+- recomended: create Django admin user (https://docs.djangoproject.com/en/3.1/intro/tutorial02/)
 
 
 - requires config.py in ga_core, includes:
