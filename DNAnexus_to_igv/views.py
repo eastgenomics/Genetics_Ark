@@ -78,7 +78,7 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
         # returns tuple with url as first
         bam_url = bam[0]
         idx_url = idx[0]
-    except Exception:
+    except Exception as e:
         # error connecting to DNAnexus or in generating url
         messages.add_message(
             request,
@@ -92,6 +92,8 @@ def get_dx_urls(request, sample_id, bam_file_id, bam_file_name, idx_file_id,
             r'\s+', ' ', """Error generating dx download URLS for sample
             {} in project {}""".format(sample_id, project_id)
         ))
+        logging.error(e)
+
         bam_url = None
         idx_url = None
 
@@ -142,7 +144,7 @@ def nexus_search(request):
                 with open(json_file) as json_file:
                     json_bams = json.load(json_file)
 
-            except IOError:
+            except IOError as IOe:
                 messages.add_message(
                     request,
                     messages.ERROR,
@@ -156,9 +158,11 @@ def nexus_search(request):
                     likely the JSON has not been generated with
                     find_dx_002_bams.py"""
                 ))
+                logging.error(IOe)
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html',
-                              context_dict)
+                return render(
+                    request, 'DNAnexus_to_igv/nexus_search.html', context_dict
+                )
 
             # select bams matching sample id, return original entry from
             # JSON by mtahcing against upper name and search term
@@ -173,7 +177,7 @@ def nexus_search(request):
                     messages.ERROR,
                     mark_safe(
                         """Sample {} not found in DNAnexus, either it is not\
-                        available, the full sample name was not correctly\
+                        available, the sample name was not correctly\
                         given or another error has occured. Please contact\
                         the bioinformatics team if you believe the sample\
                         should be available.""".format(sample_id)),
@@ -182,7 +186,7 @@ def nexus_search(request):
                 error_log.error((re.sub(
                     r'\s+', ' ', """Sample {} not found in JSON. Either sample
                     name mistyped or an error in finding the BAMs for the
-                    sample.""".format(sample_id)
+                    sample, possibly missing index.""".format(sample_id)
                 )))
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
@@ -204,6 +208,21 @@ def nexus_search(request):
 
                 if bam_url is None or idx_url is None:
                     # error generating urls, display message
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        mark_safe(
+                            "Error generating download URLs for sample "
+                            f"{sample_id}, please contact the bioinformatics "
+                            "team for help."), extra_tags="alert-danger"
+                        )
+
+                    error_log.error(
+                        f"Error generating download urls for {sample_id}, "
+                        "most likely issue is dx token has expired or issue "
+                        "connecting to DNAnexus."
+                    )
+
                     return render(
                         request, 'DNAnexus_to_igv/nexus_search.html',
                         context_dict
@@ -269,11 +288,6 @@ def nexus_search(request):
             selected_bam = request.POST.get("selected_bam")
             session_bams = request.session["bam_list"]
 
-            # flush session cache to remove old search variables
-            # for key in list(request.session.keys()):
-            #     if "auth" not in key:
-            #         del request.session[key]
-
             for bam in session_bams:
                 if selected_bam in bam.values():
                     sampleID = bam["bam_name"].split('.')[0]
@@ -334,6 +348,12 @@ def nexus_search(request):
                         Index: {idx_url}""".format(
                         bam_url=bam_url, idx_url=idx_url
                     ), extra_tags="alert-danger"
+                )
+
+                error_log.error(
+                    "Error loading IGV from pasted urls, most likely pasted "
+                    f"in wrong fields. BAM URL: {bam_url}. Index URL: "
+                    f"{idx_url}"
                 )
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',

@@ -46,7 +46,10 @@ def get_002_projects():
         project_002_list.append([x for x in dev_project][0]['id'])
 
     except Exception:
-        print("Failed getting id for  project 003_200115_ga_igv_dev_data, does it exist?")
+        print(
+            "Failed getting id for  project 003_200115_ga_igv_dev_data, "
+            "does it exist?"
+        )
         pass
 
     print("Total 002 projects found:", len(project_002_list))
@@ -75,7 +78,6 @@ def find_dx_bams(project_002_list):
             - project_name (str): human name of project
             - bam_path (str): dir path of bam file
     """
-
     # empty dict to store bams for output in
     # use defaultdict to handle add or update of keys
     dx_data = defaultdict(list)

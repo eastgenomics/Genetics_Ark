@@ -147,20 +147,29 @@ log_dir = os.path.join(BASE_DIR, "logs")
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'timestamp': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{',
+        },
+    },
     # Handlers
     'handlers': {
         'debug-file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': f'{log_dir}/ga-debug.log',
+            'formatter': 'timestamp'
         },
         'error-file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
             'filename': f'{log_dir}/ga-error.log',
+            'formatter': 'timestamp'
         },
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'timestamp'
         },
     },
     # Loggers
