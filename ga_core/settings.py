@@ -11,7 +11,7 @@ from pathlib import Path
 # Passwords and database credentials stored in config.py
 # NOT IN VERSION CONTROL
 from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
-    EMAIL_USER, EMAIL_PASSWORD
+    EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -134,13 +134,13 @@ USE_TZ = True
 
 
 # Settings for account app email verification
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = EMAIL_USER
-EMAIL_HOST_PASSWORD = EMAIL_PASSWORD
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = SEND_GRID_API_KEY  # send grid required for SMTP relay
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'default from email'
+DEFAULT_FROM_EMAIL = 'emeeglh@gmail.com'
+
 
 # Settings for logging
 log_dir = os.path.join(BASE_DIR, "logs")

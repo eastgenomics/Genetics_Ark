@@ -11,7 +11,7 @@ from django.utils.http import urlsafe_base64_decode
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from ga_core.settings import ALLOWED_HOSTS
+from ga_core.settings import ALLOWED_HOSTS, DEFAULT_FROM_EMAIL
 
 
 @login_required
@@ -80,7 +80,7 @@ def sign_up(request):
                 }
             )
 
-            send_mail(subject, message, 'emeeglh@gmail.com',
+            send_mail(subject, message, DEFAULT_FROM_EMAIL,
                       [user.profile.email], fail_silently=False)
 
             return render(request, 'registration/activation_sent.html')
