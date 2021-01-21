@@ -21,6 +21,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    url('^', include('django.contrib.auth.urls')),
     path('', home, name='home'),
     path('genetics_ark/', include('genetics_ark.urls')),
     path('admin/', admin.site.urls),
