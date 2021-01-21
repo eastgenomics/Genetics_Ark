@@ -11,7 +11,7 @@ from pathlib import Path
 # Passwords and database credentials stored in config.py
 # NOT IN VERSION CONTROL
 from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
-    EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY
+    EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY, EMAIL_ADDRESS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -139,7 +139,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = SEND_GRID_API_KEY  # send grid required for SMTP relay
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'emeeglh@gmail.com'
+DEFAULT_FROM_EMAIL = EMAIL_ADDRESS  # email address for sending activation emails
 
 
 # Settings for logging

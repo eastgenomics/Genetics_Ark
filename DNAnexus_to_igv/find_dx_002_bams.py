@@ -1,11 +1,36 @@
 """
 Searches DNAnexus cloud platform for all available 002 projects, and
-creates a .json output file containing all samples with available BAMs,
-along with required attributes to generate dx download links.
+creates a .json output file containing all samples with available BAMs
+and another of those missing indexes, along with required attributes to
+generate dx download links.
 
 Must be reguarly run (i.e. via cron) to keep up to date with new
-sequencing runs.
-Also need to ensure the output json is in the DNAnexus_to_igv dir.
+sequencing runs. Also need to ensure the output json is in the
+DNAnexus_to_igv dir.
+
+Creates JSONs with following structure:
+{
+  "sample_id": [
+    {
+      "bam_file_id": "",
+      "idx_file_id": "",
+      "project_id": "",
+      "project_name": "",
+      "bam_name": "",
+      "idx_name": "",
+      "bam_path": ""
+    },
+    {
+      "bam_file_id": "",
+      "idx_file_id": "",
+      "project_id": "",
+      "project_name": "",
+      "bam_name": "",
+      "idx_name": "",
+      "bam_path": ""
+    }
+  ],
+}
 
 Jethro Rainford 080620
 """
@@ -29,12 +54,12 @@ from ga_core.config import AUTH_TOKEN
 
 def get_002_projects():
     """
-    Get list of all 002 sequencing projects on DNAnexus to pull bams from
+    Get list of all 002 sequencing projects on DNAnexus to pull bams
+    from
 
     Args: None
 
-    Returns:
-        - project_002_list (list): list of all 002 project names
+    Returns: - project_002_list (list): list of all 002 project names
     """
     projects = dx.search.find_projects(name="002*", name_mode="glob")
     project_002_list = [x["id"] for x in projects]
@@ -50,7 +75,6 @@ def get_002_projects():
             "Failed getting id for project 003_200115_ga_igv_dev_data, "
             "does it exist?"
         )
-        pass
 
     print("Total 002 projects found:", len(project_002_list))
 
@@ -62,13 +86,11 @@ def find_dx_bams(project_002_list):
     Function to find file and index id for a bam in DNAnexus given a
     sample id.
 
-    Args:
-        - project_002_list (list): list of all 002 dx projects
+    Args: - project_002_list (list): list of all 002 dx projects
 
     Returns: None
 
-    Outputs:
-        - dx_002_bams.json (file): contains all 002 bams, for each:
+    Outputs: - dx_002_bams.json (file): contains all 002 bams, for each:
 
             - bam_file_id (str): file id of BAM
             - idx_file_id (str): file id of BAM index
@@ -78,8 +100,8 @@ def find_dx_bams(project_002_list):
             - project_name (str): human name of project
             - bam_path (str): dir path of bam file
     """
-    # empty dict to store bams for output in
-    # use defaultdict to handle add or update of keys
+    # empty dict to store bams for output in use defaultdict to handle
+    # add or update of keys
     dx_data = defaultdict(list)
 
     # empty dict to add bams to if index is missing
@@ -135,8 +157,6 @@ def find_dx_bams(project_002_list):
                 indexes = []
                 indexes.append(f"{bam_file}.bai")
                 indexes.append(f"{bam_file.strip('.bam')}.bai")
-
-                print(indexes)
 
                 if idx_dict.get((path, indexes[0])):
                     # if index with matching bam file and path is found

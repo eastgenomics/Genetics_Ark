@@ -165,9 +165,11 @@ def nexus_search(request):
                 )
 
             # select bams matching sample id, return original entry from
-            # JSON by mtahcing against upper name and search term
+            # JSON by matching against upper name and search term
+            # (structure of json may be found in find_dx_bams.py)
             sample_bams = [
-                v for k, v in json_bams.items() if sample_id.upper() in v[0]['bam_name'].upper()
+                bam for sample, bam in json_bams.items()
+                if sample_id.upper() in bam[0]['bam_name'].upper()
             ]
 
             if len(sample_bams) == 0:
@@ -196,14 +198,16 @@ def nexus_search(request):
             if len(sample_bams[0]) == 1 and len(sample_bams) == 1:
                 # one sample found with one bam
                 # generate the urls
+                sample_dict = sample_bams[0][0]
+
                 bam_url, idx_url = get_dx_urls(
                     request,
                     sample_id,
-                    sample_bams[0][0]["bam_file_id"],
-                    sample_bams[0][0]["bam_name"],
-                    sample_bams[0][0]["idx_file_id"],
-                    sample_bams[0][0]["idx_name"],
-                    sample_bams[0][0]["project_id"]
+                    sample_dict["bam_file_id"],
+                    sample_dict["bam_name"],
+                    sample_dict["idx_file_id"],
+                    sample_dict["idx_name"],
+                    sample_dict["project_id"]
                 )
 
                 if bam_url is None or idx_url is None:
@@ -215,7 +219,7 @@ def nexus_search(request):
                             "Error generating download URLs for sample "
                             f"{sample_id}, please contact the bioinformatics "
                             "team for help."), extra_tags="alert-danger"
-                        )
+                    )
 
                     error_log.error(
                         f"Error generating download urls for {sample_id}, "
@@ -232,16 +236,14 @@ def nexus_search(request):
                 request.session["bam_url"] = bam_url
                 request.session["idx_url"] = idx_url
                 request.session["sampleID"] = sample_id
-                request.session["bam_name"] = sample_bams[0][0]["bam_name"]
-                request.session["project_name"] = sample_bams[0][0][
-                    "project_name"]
+                request.session["bam_name"] = sample_dict["bam_name"]
+                request.session["project_name"] = sample_dict["project_name"]
 
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url
                 context_dict["sampleID"] = sample_id
-                context_dict["bam_name"] = sample_bams[0][0]["bam_name"]
-                context_dict["project_name"] = sample_bams[0][0][
-                    "project_name"]
+                context_dict["bam_name"] = sample_dict["bam_name"]
+                context_dict["project_name"] = sample_dict["project_name"]
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)

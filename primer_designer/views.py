@@ -54,9 +54,6 @@ def random_string():
     """
     Creates a random string
 
-    Args:
-      length (int): length of string to generate, default 10
-
     Returns:
         - random_string (str): str of random characters
     """
