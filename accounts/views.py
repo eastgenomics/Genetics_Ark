@@ -39,11 +39,16 @@ def activate(request, uid, token):
         user = User.objects.get(pk=uid)
     except Exception as e:
         user = None
+        error_log.error(f"User is none: {e}")
+
+    if user is not None and user.profile.signup_confirmation is True:
+        # user already activated, included after activation if user goes
+        # back to stop an error
+        return redirect('/')
 
     if user is not None and account_activation_token.check_token(user, token):
-        # if valid set active true
+        # if valid activate user
         user.is_active = True
-        # set signup_confirmation true
         user.profile.signup_confirmation = True
         user.save()
         login(request, user)
@@ -52,7 +57,7 @@ def activate(request, uid, token):
             messages.SUCCESS,
             "Activation successful!"
         )
-        return render(request, 'genetics_ark/genetics_ark.html')
+        return redirect('/')
     else:
         messages.add_message(
             request,
@@ -62,7 +67,7 @@ def activate(request, uid, token):
         )
 
         error_log.error(
-            f"Error authenticating user: {e}"
+            f"Error authenticating user: {user}"
         )
 
         return render(request, 'registration/activation_invalid.html')
