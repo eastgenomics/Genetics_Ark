@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
+from ga_core.config import primer3_path
 import primer_designer.forms as Forms
 
 
@@ -79,11 +80,11 @@ def time_stamp():
 def create(request, regions, infile=None):
     """
     Called when valid form submitted, generates output file then runs
-    primer3 with given regions. Subprocess holds the page with a laoding
+    primer3 with given regions. Subprocess holds the page with a loading
     spinner until completed, then file is written and link to download
     design zip given on returned page.
     """
-    path = "static/tmp/"
+    tmp_path = "static/tmp/"
 
     random_tmp = random_string()
 
@@ -96,16 +97,18 @@ def create(request, regions, infile=None):
     outfh.write(regions)
     outfh.close()
 
-    cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py\
-        {infile} {working_dir} ".format(infile=infile, working_dir=path)
+    # cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py\
+    #     {infile} {working_dir} ".format(infile=infile, working_dir=path)
+
+    cmd = f"{primer3_path} {infile} {tmp_path}"
 
     context_dict = {'key': random_string}
     context_dict['infile'] = infile
 
-    stderr_file_name = "{}{}.stderr".format(path, random_tmp)
+    stderr_file_name = "{}{}.stderr".format(tmp_path, random_tmp)
     stderr_file = open(stderr_file_name, "w+")
 
-    stdout_file_name = "{}{}.stdout".format(path, random_tmp)
+    stdout_file_name = "{}{}.stdout".format(tmp_path, random_tmp)
     stdout_file = open(stdout_file_name, "w+")
 
     context_dict['tmp_key'] = random_tmp
@@ -117,7 +120,7 @@ def create(request, regions, infile=None):
 
 
     outfile_name = infile.replace(".txt", ".zip")
-    outfile = os.path.join(path, outfile_name)
+    outfile = os.path.join(tmp_path, outfile_name)
 
     context_dict["outfile_name"] = outfile_name
     context_dict["url"] = outfile
