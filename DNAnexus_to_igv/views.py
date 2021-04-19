@@ -323,7 +323,7 @@ def nexus_search(request):
                     return render(request, 'DNAnexus_to_igv/nexus_search.html',
                                   context_dict)
 
-        if "url_form" in request.POST:
+        if "url_form_37" in request.POST or "url_form_38" in request.POST:
             # if direct url button is pressed
             url_form = Forms.urlForm(request.POST)
 
@@ -338,6 +338,20 @@ def nexus_search(request):
                 context_dict["sampleID"] = "direct urls"
                 context_dict["bam_url"] = bam_url
                 context_dict["idx_url"] = idx_url
+
+                # check for reference by button name pressed
+                if "url_form_37" in request.POST:
+                    context_dict["reference"] = "hg19"
+                    context_dict["fasta"] = fasta_37
+                    context_dict["fasta_idx"] = fasta_idx_37
+                    context_dict["cytoband"] = cytoband_37
+                    context_dict["refseq"] = refseq_37
+                else:
+                    context_dict["reference"] = "hg38"
+                    context_dict["fasta"] = fasta_38
+                    context_dict["fasta_idx"] = fasta_idx_38
+                    context_dict["cytoband"] = cytoband_38
+                    context_dict["refseq"] = refseq_38
 
                 return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                               context_dict)

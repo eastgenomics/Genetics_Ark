@@ -81,7 +81,7 @@
 <!-- if normal search field used, remove direct link fields -->
 <div class="well" style="width:1100px; margin:0 auto; padding-bottom: 50px;">
 
-    <h3>Load direct from URL</h3></br>
+    <h3>Load direct from URL</h3>
 
     To load BAMs directly in to IGV hosted on Genetics Ark please paste the BAM and index url in the respective fields below.
     This may be used for viewing samples outside of standard seqencing runs (i.e. during development work) where 
@@ -92,8 +92,14 @@
         {% csrf_token %}
         {{ url_form.bam_url_form }}<br>
         {{ url_form.idx_url_form }}<br>
-        <button name="url_form" id="search" type="submit" class="page_button">Load in IGV</button>
-
+        <div style="float: left; width: 17%;">
+            <button name="url_form_37" type="submit" class =
+                "page_button"; style="height: fit-content;">View in web IGV <br>(GRCh37)</button>
+        </div>
+        <div style="float: left; width: 17%;">
+            <button name="url_form_38" type="submit" class =
+                "page_button"; style="height: fit-content;">View in web IGV <br>(GRCh38)</button>
+        </div>
     </form>
 
 </div>
