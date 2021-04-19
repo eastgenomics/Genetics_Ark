@@ -7,8 +7,8 @@
 <html>
 <head>
     <!-- IGV JS -->
-    <script type="text/javascript" src="/static/assets/js/igv-2.5.5.min.js"></script>
-    <!-- <script type="text/javascript" src="/static/assets/js/igv-2.7.9.js"></script> -->
+    <!-- <script type="text/javascript" src="/static/assets/js/igv-2.5.5.min.js"></script> -->
+    <script type="text/javascript" src="/static/assets/js/igv-2.7.9.min.js"></script>
   </head>
 
 <body class="card border-light" style="width:95%; margin:0 auto; padding-top: 75px; padding-bottom: 50px;">
@@ -30,7 +30,7 @@
   var options = {
       showNavigation: true,
       showRuler: true,
-      showKaryo: false,
+      showKaryo: true,
       reference: {
         // reference files, conditionally passed for 37/38
         id: '{{ reference }}',
