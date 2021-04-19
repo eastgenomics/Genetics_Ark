@@ -16,7 +16,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from ga_core.config import primer3_path
+from ga_core.config import primer_designer_path
 import primer_designer.forms as Forms
 
 
@@ -80,9 +80,9 @@ def time_stamp():
 def create(request, regions, infile=None):
     """
     Called when valid form submitted, generates output file then runs
-    primer3 with given regions. Subprocess holds the page with a loading
-    spinner until completed, then file is written and link to download
-    design zip given on returned page.
+    primer3 via primer_designer with given regions. Subprocess holds the
+    page with a loading spinner until completed, then file is written
+    and link to download design zip given on returned page.
     """
     tmp_path = "static/tmp/"
 
@@ -93,14 +93,14 @@ def create(request, regions, infile=None):
     if infile is None:
         infile = random_tmp
 
-    outfh = open("{path}{infile}".format(path=path, infile=infile), "w")
+    outfh = open("{path}{infile}".format(path=tmp_path, infile=infile), "w")
     outfh.write(regions)
     outfh.close()
 
     # cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py\
     #     {infile} {working_dir} ".format(infile=infile, working_dir=path)
 
-    cmd = f"{primer3_path} {infile} {tmp_path}"
+    cmd = f"{primer_designer_path} {infile} {tmp_path}"
 
     context_dict = {'key': random_string}
     context_dict['infile'] = infile

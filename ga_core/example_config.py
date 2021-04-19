@@ -18,4 +18,4 @@ PROD_DATABASE = ""
 DEBUG_DATABASE = ""
 
 # path to primer3 python script, used for primer designer
-primer3_path = ""
+primer_designer_path = ""
