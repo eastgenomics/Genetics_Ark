@@ -8,7 +8,8 @@
 <head>
     <!-- IGV JS -->
     <script type="text/javascript" src="/static/assets/js/igv-2.5.5.min.js"></script>
-</head>
+    <!-- <script type="text/javascript" src="/static/assets/js/igv-2.7.9.js"></script> -->
+  </head>
 
 <body class="card border-light" style="width:95%; margin:0 auto; padding-top: 75px; padding-bottom: 50px;">
     
@@ -30,7 +31,14 @@
       showNavigation: true,
       showRuler: true,
       showKaryo: false,
-      genome: '{{ reference }}',
+      reference: {
+        // reference files, conditionally passed for 37/38
+        id: '{{ reference }}',
+        name: "Human ('{{ reference }}')",
+        fastaURL: '{{ fasta }}',
+        indexURL: '{{ fasta_idx }}',
+        cytobandURL: '{{ cytoband }}'
+      },
       tracks: [
         {
           // pass in URL for bam in DNAnexus
@@ -39,7 +47,14 @@
           name: '{{ sampleID }}',
           alignmentShading: 'strand',
           height: 600
-        }
+      },
+        {
+        // refseq genes track
+        name: "Refseq Genes",
+        url: '{{ refseq }}',
+        order: 1000000,
+        indexed: false
+      }
       ]
     };
   igv.createBrowser(igv_div, options)

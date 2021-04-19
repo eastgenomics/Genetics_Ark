@@ -33,7 +33,10 @@ from django.shortcuts import render, redirect
 
 import DNAnexus_to_igv.forms as Forms
 
-from ga_core.config import AUTH_TOKEN  # auth token for DNAnexus
+from ga_core.config import (
+    AUTH_TOKEN, fasta_37, fasta_idx_37, cytoband_37, refseq_37, fasta_38,
+    fasta_idx_38, cytoband_38, refseq_38
+)
 from ga_core.settings import LOGGING
 
 error_log = logging.getLogger("ga_error")
@@ -367,9 +370,17 @@ def nexus_search(request):
 
             # check for reference by button name pressed
             if "igv_ga_37" in request.POST:
-                reference = "hg19"
+                context_dict["reference"] = "hg19"
+                context_dict["fasta"] = fasta_37
+                context_dict["fasta_idx"] = fasta_idx_37
+                context_dict["cytoband"] = cytoband_37
+                context_dict["refseq"] = refseq_37
             else:
-                reference = "hg38"
+                context_dict["reference"] = "hg38"
+                context_dict["fasta"] = fasta_38
+                context_dict["fasta_idx"] = fasta_idx_38
+                context_dict["cytoband"] = cytoband_38
+                context_dict["refseq"] = refseq_38
 
             sample = request.session["bam_name"]
             bam_url = request.session["bam_url"]
@@ -381,8 +392,7 @@ def nexus_search(request):
             context_dict["sampleID"] = sample.split('.')[0]
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
-            context_dict["reference"] = reference
-
+            print(context_dict)
             return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                           context_dict)
 
