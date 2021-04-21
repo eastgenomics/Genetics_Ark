@@ -1,0 +1,203 @@
+"""
+Django settings for ga_core project.
+"""
+import logging.config
+import os
+
+from django.contrib.messages import constants as messages
+from pathlib import Path
+
+
+# Passwords and database credentials stored in config.py
+# NOT IN VERSION CONTROL
+from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
+    EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY, EMAIL_ADDRESS
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = SECRET_KEY
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+# DEBUG= False
+
+if (DEBUG is False):
+    ALLOWED_HOSTS = PROD_HOST
+else:
+    ALLOWED_HOSTS = DEBUG_HOST
+
+
+INSTALLED_APPS = [
+    # own apps
+    'genetics_ark',
+    'accounts',
+    'DNAnexus_to_igv',
+    'primer_designer',
+    # default django
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django_tables2',
+    'crispy_forms'
+]
+
+# django crispy forms for nice form rendering
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'ga_core.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'alert-secondary',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}
+
+WSGI_APPLICATION = 'ga_core.wsgi.application'
+
+
+# Database
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+# Password validation
+# https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': ('django.contrib.auth.password_validation.'
+                 'UserAttributeSimilarityValidator'),
+    },
+    {
+        'NAME': ('django.contrib.auth.password_validation.'
+                'MinimumLengthValidator'),
+    },
+    {
+        'NAME': ('django.contrib.auth.password_validation.'
+                 'CommonPasswordValidator'),
+    },
+    {
+        'NAME': ('django.contrib.auth.password_validation.'
+                 'NumericPasswordValidator'),
+    },
+]
+
+
+# Internationalization
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = True
+
+
+# Settings for account app email verification
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = SEND_GRID_API_KEY  # send grid required for SMTP relay
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_ADDRESS  # email address for sending activation emails
+
+
+# Settings for logging
+log_dir = os.path.join(BASE_DIR, "logs")
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'timestamp': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{',
+        },
+    },
+    # Handlers
+    'handlers': {
+        'debug-file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': f'{log_dir}/ga-debug.log',
+            'formatter': 'timestamp'
+        },
+        'error-file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': f'{log_dir}/ga-error.log',
+            'formatter': 'timestamp'
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'timestamp'
+        },
+    },
+    # Loggers
+    'loggers': {
+        'ga_debug': {
+            'handlers': ['debug-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')
+        },
+        'ga_error': {
+            'handlers': ['error-file'],
+            'level': 'ERROR',
+            'propagate': True,
+            'level': "ERROR"
+        },
+    },
+}
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/3.1/howto/static-files/
+STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'root')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+LOGIN_REDIRECT_URL = 'home'
