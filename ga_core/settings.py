@@ -1,8 +1,11 @@
 """
 Django settings for ga_core project.
 """
+from dotenv import load_dotenv, find_dotenv
 import logging.config
 import os
+from pathlib import Path
+import sys
 
 from django.contrib.messages import constants as messages
 from pathlib import Path
@@ -10,25 +13,71 @@ from pathlib import Path
 
 # Passwords and database credentials stored in config.py
 # NOT IN VERSION CONTROL
-from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
-    EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY, EMAIL_ADDRESS
+# from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
+#     EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY, EMAIL_ADDRESS
+
+env_variables = [
+    'SECRET_KEY', 'PROD_HOST', 'DEBUG_HOST', 'PROD_DATABASE', 'DEBUG_DATABASE',
+    'GOOGLE_ANALYTICS', 'EMAIL_USER', 'SMTP_RELAY', 'PORT'
+
+]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = SECRET_KEY
+
+# either load config from local .env or try get from env variables
+try:
+    env_file = os.path.join(os.path.dirname(__file__), '../genetics_ark.env')
+
+    if Path(env_file).is_file():
+        # import from env file if present, else assume already set
+        load_dotenv(env_file)
+
+    SECRET_KEY = os.environ['SECRET_KEY']
+    PROD_HOST = os.environ['PROD_HOST']
+    DEBUG_HOST = os.environ['DEBUG_HOST']
+    PROD_DATABASE = os.environ['PROD_DATABASE']
+    DEBUG_DATABASE = os.environ['DEBUG_DATABASE']
+    AUTH_TOKEN = os.environ['AUTH_TOKEN']
+    GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
+    EMAIL_USER = os.environ['EMAIL_USER']
+    SMTP_RELAY = os.environ['SMTP_RELAY']
+    PORT = os.environ['PORT']
+
+    # URLs for IGV
+    FASTA_37 = os.environ['FASTA_37']
+    FASTA_IDX_37 = os.environ['FASTA_IDX_37']
+    CYTOBAND_37 = os.environ['CYTOBAND_37']
+    REFSEQ_37 = os.environ['REFSEQ_37']
+
+    FASTA_38 = os.environ['FASTA_38']
+    FASTA_IDX_38 = os.environ['FASTA_IDX_38']
+    CYTOBAND_38 = os.environ['CYTOBAND_38']
+    REFSEQ_38 = os.environ['REFSEQ_38']
+
+    # path to bulk design script in primer designer
+    PRIMER_DESIGNER_PATH = os.environ['PRIMER_DESIGNER_PATH']
+
+except KeyError:
+    raise KeyError(
+        'Unable to import required key from environment, is an .env file '
+        'present or env variables set?'
+    )
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 # DEBUG= False
 
-if (DEBUG is False):
-    ALLOWED_HOSTS = PROD_HOST
+if DEBUG:
+    ALLOWED_HOSTS = '*'
 else:
-    ALLOWED_HOSTS = DEBUG_HOST
+    ALLOWED_HOSTS = PROD_HOST
 
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     # own apps
     'genetics_ark',
     'accounts',
@@ -57,6 +106,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'ga_core.urls'
@@ -92,8 +142,11 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ark_accounts',
+        'USER': 'root',
+        'PASSWORD': '9fdnmhrT!!',
+        # 'HOST': 'jethro-T490'
     }
 }
 
@@ -134,12 +187,15 @@ USE_TZ = True
 
 
 # Settings for account app email verification
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = SEND_GRID_API_KEY  # send grid required for SMTP relay
+EMAIL_HOST = SMTP_RELAY
+EMAIL_PORT = PORT
+EMAIL_HOST_USER = EMAIL_USER
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_ADDRESS  # email address for sending activation emails
+DEFAULT_FROM_EMAIL = EMAIL_USER  # email address for sending activation emails
+
+# whitenoise static file serving compression & cacheing
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # Settings for logging
@@ -194,7 +250,9 @@ LOGGING = {
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'root')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'root')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
