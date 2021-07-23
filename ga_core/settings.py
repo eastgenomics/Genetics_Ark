@@ -1,15 +1,13 @@
 """
 Django settings for ga_core project.
 """
-from dotenv import load_dotenv, find_dotenv
 import logging.config
 import os
 from pathlib import Path
 import sys
 
 from django.contrib.messages import constants as messages
-from pathlib import Path
-
+from dotenv import load_dotenv
 
 # Passwords and database credentials stored in config.py
 # NOT IN VERSION CONTROL
