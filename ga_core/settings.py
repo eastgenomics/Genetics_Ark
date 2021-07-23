@@ -13,13 +13,12 @@ from pathlib import Path
 
 # Passwords and database credentials stored in config.py
 # NOT IN VERSION CONTROL
-# from .config import SECRET_KEY, PROD_HOST, DEBUG_HOST, GOOGLE_ANALYTICS,\
-#     EMAIL_USER, EMAIL_PASSWORD, SEND_GRID_API_KEY, EMAIL_ADDRESS
 
 env_variables = [
-    'SECRET_KEY', 'PROD_HOST', 'DEBUG_HOST', 'PROD_DATABASE', 'DEBUG_DATABASE',
-    'GOOGLE_ANALYTICS', 'EMAIL_USER', 'SMTP_RELAY', 'PORT'
-
+    'SECRET_KEY', 'AUTH_TOKEN', 'PROD_HOST', 'DEBUG_HOST', 'ACCOUNT_DB_NAME',
+    'ACCOUNT_DB_USER', 'ACCOUNT_DB_PASSWORD', 'GOOGLE_ANALYTICS',
+    'PRIMER_DESIGNER_PATH', 'REF_37', 'REF_38', 'DBSNP_37', 'DBSNP_38'
+    'EMAIL_USER', 'SMTP_RELAY', 'PORT'
 ]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -32,15 +31,26 @@ try:
 
     if Path(env_file).is_file():
         # import from env file if present, else assume already set
+        # (e.g. when running docker image and passing env file)
         load_dotenv(env_file)
 
     SECRET_KEY = os.environ['SECRET_KEY']
+    AUTH_TOKEN = os.environ['AUTH_TOKEN']
     PROD_HOST = os.environ['PROD_HOST']
     DEBUG_HOST = os.environ['DEBUG_HOST']
-    PROD_DATABASE = os.environ['PROD_DATABASE']
-    DEBUG_DATABASE = os.environ['DEBUG_DATABASE']
-    AUTH_TOKEN = os.environ['AUTH_TOKEN']
+
+    ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
+    ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
+    ACCOUNT_DB_PASSWORD = os.environ['ACCOUNT_DB_PASSWORD']
+
     GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
+
+    PRIMER_DESIGNER_PATH = os.environ['PRIMER_DESIGNER_PATH']
+    REF_37 = os.environ['REF_37']
+    REF_38 = os.environ['REF_38']
+    DBSNP_37 = os.environ['DBSNP_37']
+    DBSNP_38 = os.environ['DBSNP_38']
+
     EMAIL_USER = os.environ['EMAIL_USER']
     SMTP_RELAY = os.environ['SMTP_RELAY']
     PORT = os.environ['PORT']
@@ -71,13 +81,13 @@ DEBUG = True
 # DEBUG= False
 
 if DEBUG:
-    ALLOWED_HOSTS = '*'
+    ALLOWED_HOSTS = DEBUG_HOST
 else:
     ALLOWED_HOSTS = PROD_HOST
 
 
 INSTALLED_APPS = [
-    'whitenoise.runserver_nostatic',
+    'whitenoise.runserver_nostatic',  # required for serving static files
     # own apps
     'genetics_ark',
     'accounts',
@@ -143,10 +153,10 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ark_accounts',
-        'USER': 'root',
-        'PASSWORD': '9fdnmhrT!!',
-        # 'HOST': 'jethro-T490'
+        'NAME': ACCOUNT_DB_NAME,
+        'USER': ACCOUNT_DB_USER,
+        'PASSWORD': ACCOUNT_DB_PASSWORD,
+        # 'HOST': ACCOUNT_DB_HOST
     }
 }
 
