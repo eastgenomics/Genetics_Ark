@@ -33,11 +33,10 @@ from django.shortcuts import render, redirect
 
 import DNAnexus_to_igv.forms as Forms
 
-from ga_core.config import (
-    AUTH_TOKEN, fasta_37, fasta_idx_37, cytoband_37, refseq_37, fasta_38,
-    fasta_idx_38, cytoband_38, refseq_38
+from ga_core.settings import (
+    LOGGING, AUTH_TOKEN, FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
+    FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38 
 )
-from ga_core.settings import LOGGING
 
 error_log = logging.getLogger("ga_error")
 

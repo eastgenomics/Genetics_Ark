@@ -16,7 +16,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
-from ga_core.config import primer_designer_path
+# from ga_core.config import primer_designer_path
+
 import primer_designer.forms as Forms
 
 
