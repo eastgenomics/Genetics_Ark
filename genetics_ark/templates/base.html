@@ -10,7 +10,7 @@
 		<meta name="description" content="" />
 		<meta name="keywords" content="" />
 
-		<link rel="stylesheet" src="/static/assets/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="/static/assets/css/bootstrap.min.css"/>
 		<link rel="stylesheet" href="/static/assets/css/main.css"/>
 
 		<link rel="shortcut icon" type="image/png" href="/static/images/favicon.ico"/>
@@ -48,27 +48,29 @@
 		</nav>
 	
 	<!-- messages loader -->
-	{% if messages %} 
+	{% if messages %}
 		{% for message in messages %}
-			<div class="alert {{ message.tags }} alert-dismissible" role="alert" id="message" style="position: absolute; width: 100%">
-				<strong>{{ message|linebreaksbr }}</strong> 
+			<div class="alert {{ message.tags }} alert-dismissible" role="alert" id="message" style="position: absolute; width: 100%;">	
+				<div style="text-align: center;">
+					<strong>{{ message|linebreaksbr }}</strong>
+				</div> 
 			</div>
 		{% endfor %} 
 	{% endif %}
-	
+
 	{% block body_block %}
 	<!-- body block for inheriting page content -->
 	{% endblock %}
             
 		<!-- Scripts -->
-		<!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script> -->
-		<!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script> -->
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
 	    <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script> -->
-		
+
 		<script src="/static/assets/js/popper.min.js"></script>
-		<script src="/static/assets/js/bootstrap/bootstrap.min.js"></script>
 		<script src="/static/assets/js/jquery.min.js"></script>
-		<script src="/static/assets/js/browser.min.js"></script>
+		<!-- <script src="/static/assets/js/bootstrap/bootstrap.min.js"></script> -->
+		<!-- <script src="/static/assets/js/browser.min.js"></script> -->
 		<script src="/static/assets/js/breakpoints.min.js"></script>
 		<script src="/static/assets/js/util.js"></script>
 		<script src="/static/assets/js/main.js"></script>
@@ -76,9 +78,8 @@
 			// function to fade messages out
 			var s = document.getElementById('message').style;
 			s.opacity = 1;
-			setTimeout(() => {  (function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,10)})(); }, 5000);
+			setTimeout(() => {  (function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,10)})(); }, 10000);
 		</script>
-
 
 	</body>
 </html>
