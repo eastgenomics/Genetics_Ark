@@ -341,16 +341,16 @@ def nexus_search(request):
                 # check for reference by button name pressed
                 if "url_form_37" in request.POST:
                     context_dict["reference"] = "hg19"
-                    context_dict["fasta"] = fasta_37
-                    context_dict["fasta_idx"] = fasta_idx_37
-                    context_dict["cytoband"] = cytoband_37
-                    context_dict["refseq"] = refseq_37
+                    context_dict["fasta"] = FASTA_37
+                    context_dict["fasta_idx"] = FASTA_IDX_37
+                    context_dict["cytoband"] = CYTOBAND_37
+                    context_dict["refseq"] = REFSEQ_37
                 else:
                     context_dict["reference"] = "hg38"
-                    context_dict["fasta"] = fasta_38
-                    context_dict["fasta_idx"] = fasta_idx_38
-                    context_dict["cytoband"] = cytoband_38
-                    context_dict["refseq"] = refseq_38
+                    context_dict["fasta"] = FASTA_38
+                    context_dict["fasta_idx"] = FASTA_IDX_38
+                    context_dict["cytoband"] = CYTOBAND_38
+                    context_dict["refseq"] = REFSEQ_38
 
                 return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                               context_dict)
@@ -384,16 +384,16 @@ def nexus_search(request):
             # check for reference by button name pressed
             if "igv_ga_37" in request.POST:
                 context_dict["reference"] = "hg19"
-                context_dict["fasta"] = fasta_37
-                context_dict["fasta_idx"] = fasta_idx_37
-                context_dict["cytoband"] = cytoband_37
-                context_dict["refseq"] = refseq_37
+                context_dict["fasta"] = FASTA_37
+                context_dict["fasta_idx"] = FASTA_IDX_37
+                context_dict["cytoband"] = CYTOBAND_37
+                context_dict["refseq"] = REFSEQ_37
             else:
                 context_dict["reference"] = "hg38"
-                context_dict["fasta"] = fasta_38
-                context_dict["fasta_idx"] = fasta_idx_38
-                context_dict["cytoband"] = cytoband_38
-                context_dict["refseq"] = refseq_38
+                context_dict["fasta"] = FASTA_38
+                context_dict["fasta_idx"] = FASTA_IDX_38
+                context_dict["cytoband"] = CYTOBAND_38
+                context_dict["refseq"] = REFSEQ_38
 
             sample = request.session["bam_name"]
             bam_url = request.session["bam_url"]
