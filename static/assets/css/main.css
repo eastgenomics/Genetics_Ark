@@ -1753,6 +1753,11 @@ body {
     padding: 0 1.25rem;
     text-decoration: none; }
   
+  #header > .user > .staff {
+    color: inherit;
+    text-decoration: none;
+  }
+
   #header > .user > .logout {
     color: inherit;
     text-decoration: none;
