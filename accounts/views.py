@@ -99,11 +99,22 @@ def sign_up(request):
                     'token': account_activation_token.make_token(user),
                 }
             )
+            try:
+                send_mail(
+                    subject, message, DEFAULT_FROM_EMAIL,
+                    [user.profile.email], fail_silently=False
+                )
+                return render(request, 'registration/activation_sent.html')
+            except Exception as e:
+                print(e)
+                err_msg = "Error generating confirmation email, please raise a ticket with the bioinformatics helpdesk"
 
-            send_mail(subject, message, DEFAULT_FROM_EMAIL,
-                      [user.profile.email], fail_silently=False)
-
-            return render(request, 'registration/activation_sent.html')
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    err_msg,
+                    extra_tags="alert-danger"
+                )
         else:
             # error in form
             messages.add_message(
