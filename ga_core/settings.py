@@ -4,6 +4,7 @@ Django settings for ga_core project.
 import logging.config
 import os
 from pathlib import Path
+import subprocess
 import sys
 
 from django.contrib.messages import constants as messages
@@ -15,9 +16,14 @@ from dotenv import load_dotenv
 env_variables = [
     'SECRET_KEY', 'AUTH_TOKEN', 'PROD_HOST', 'DEBUG_HOST', 'ACCOUNT_DB_NAME',
     'ACCOUNT_DB_USER', 'ACCOUNT_DB_PASSWORD', 'GOOGLE_ANALYTICS',
-    'PRIMER_DESIGNER_PATH', 'REF_37', 'REF_38', 'DBSNP_37', 'DBSNP_38'
+    'PRIMER_DESIGNER_PATH', 'REF_37', 'REF_38', 'DBSNP_37', 'DBSNP_38',
     'EMAIL_USER', 'SMTP_RELAY', 'PORT'
 ]
+
+for var in env_variables:
+    # clear config environment variables if set
+    if var in os.environ:
+        del os.environ[var]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,13 +39,20 @@ try:
         load_dotenv(env_file)
 
     SECRET_KEY = os.environ['SECRET_KEY']
+    DEBUG = os.environ['DEBUG']  # should be false in production
     AUTH_TOKEN = os.environ['AUTH_TOKEN']
+
     PROD_HOST = os.environ['PROD_HOST']
     DEBUG_HOST = os.environ['DEBUG_HOST']
+
+    # hosts in config read as str, convert to list
+    PROD_HOST = PROD_HOST.replace(' ', '').split(',')
+    DEBUG_HOST = DEBUG_HOST.replace(' ', '').split(',')
 
     ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
     ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
     ACCOUNT_DB_PASSWORD = os.environ['ACCOUNT_DB_PASSWORD']
+    ACCOUNT_DB_HOST = os.environ['ACCOUNT_DB_HOST']
 
     GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
@@ -74,13 +87,11 @@ except KeyError:
     )
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-# DEBUG= False
-
 if DEBUG:
+    print(f"Accessible hosts: {DEBUG_HOST}")
     ALLOWED_HOSTS = DEBUG_HOST
 else:
+    print(f"Accessible hosts: {PROD_HOST}")
     ALLOWED_HOSTS = PROD_HOST
 
 
@@ -154,7 +165,7 @@ DATABASES = {
         'NAME': ACCOUNT_DB_NAME,
         'USER': ACCOUNT_DB_USER,
         'PASSWORD': ACCOUNT_DB_PASSWORD,
-        # 'HOST': ACCOUNT_DB_HOST
+        'HOST': ACCOUNT_DB_HOST
     }
 }
 
