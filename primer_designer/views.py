@@ -1,24 +1,22 @@
 import ast
-import datetime
-import json
+from glob import glob
 import os
+from pathlib import Path
 import pprint as pp
 import random
-import re
-import shlex
-import shutil
 import string
 import subprocess
 import time
 
-from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 
-# from ga_core.config import primer_designer_path
 
 import primer_designer.forms as Forms
+
+from ga_core.settings import PRIMER_DESIGNER_DIR_PATH
 
 
 @login_required
@@ -29,16 +27,15 @@ def index(request):
         if regions_form.is_valid():
             # One or more valid regions where entered, call function to
             # generate primers
-            return create(request, regions_form.data['regions'])
-
+            return create(request, regions_form)
         else:
             error = ast.literal_eval(pp.pformat(regions_form.errors))
 
             messages.add_message(
                 request,
                 messages.ERROR,
-                """Error in given primer design input: ({})""".format(
-                    error["regions"][0]
+                mark_safe(
+                    f"Error in given primer design input: {error['regions'][0]}"
                 ),
                 extra_tags="alert-danger"
             )
@@ -60,7 +57,7 @@ def random_string():
         - random_string (str): str of random characters
     """
     random_string = ''.join(random.choices(
-        string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10
+        string.ascii_uppercase + string.ascii_lowercase + string.digits, k=5
     ))
 
     return random_string
@@ -72,58 +69,104 @@ def time_stamp():
     Returns:
         - time_string (str): time stamp string
     """
-    time_string = time.strftime("%Y%m%d_%H%M%S", time.gmtime())
+    time_string = time.strftime("%Y%m%d_%H:%M", time.gmtime())
 
     return time_string
 
 
 @login_required
-def create(request, regions, infile=None):
+def create(request, regions_form):
     """
     Called when valid form submitted, generates output file then runs
     primer3 via primer_designer with given regions. Subprocess holds the
     page with a loading spinner until completed, then file is written
     and link to download design zip given on returned page.
     """
-    tmp_path = "static/tmp/"
+    regions = regions_form.data['regions'].split('\n')
+    regions = [x.rstrip('\r').strip() for x in regions]
+    region_cmds = []
 
-    random_tmp = random_string()
+    for region in regions:
+        # format each given region as input args for primer designer
+        if 'fusion' in region:
+            # format for fusion design, will be in format
+            # chr:pos:side:strand chr:pos:side:strand build 'fusion'
+            args = region.split()
+            cmd = f'--fusion --b1 {args[0]} --b2 {args[1]} --{args[2]}'
+        else:
+            # either position or range design
+            if '-' in region:
+                # range design, will be in format chr:pos1-pos2 build
+                region, build = region.split()
+                chr, pos = region.split(':')
+                pos1, pos2 = pos.split('-')
 
-    infile = "{}.txt".format(time_stamp())
+                cmd = f'-c {chr} -r {pos1} {pos2} --{build}'
+            else:
+                # normal position design
+                region, build = region.split()
+                chr, pos = region.split(':')
 
-    if infile is None:
-        infile = random_tmp
+                cmd = f'-c {chr} -p {pos} --{build}'
 
-    outfh = open("{path}{infile}".format(path=tmp_path, infile=infile), "w")
-    outfh.write(regions)
-    outfh.close()
+        region_cmds.append(cmd)
 
-    # cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py\
-    #     {infile} {working_dir} ".format(infile=infile, working_dir=path)
+    # unique name of date and random 5 char str
+    outname = f'{time_stamp()}-{random_string()}'
+    out_dir = f'{Path(__file__).parent.parent.absolute()}/static/tmp/{outname}/'
+    out_zip = f'static/tmp/{outname}.zip'
 
-    cmd = f"{primer_designer_path} {infile} {tmp_path}"
+    os.mkdir(Path(out_dir))  # empty dir to add reports to
 
-    context_dict = {'key': random_string}
-    context_dict['infile'] = infile
+    for cmd in region_cmds:
+        # run primer designer for each given region
+        primer_path = PRIMER_DESIGNER_DIR_PATH.rstrip('/')
+        primer_cmd = f'python3 {primer_path}/bin/primer_designer_region.py {cmd}'
 
-    stderr_file_name = "{}{}.stderr".format(tmp_path, random_tmp)
-    stderr_file = open(stderr_file_name, "w+")
+        try:
+            # calling primer designer script, probably should import and run
+            # but ¯\_(ツ)_/¯
+            call = subprocess.run(
+                primer_cmd, shell=True, check=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            call.check_returncode()
+        except subprocess.CalledProcessError as e:
+            err_msg = e.stderr.decode('utf-8').rstrip('\n')
+            if 'Error' in err_msg:
+                # attempt to not show full ugly traceback
+                err_msg = e.stderr.decode('utf-8').split('Error')[-1]
 
-    stdout_file_name = "{}{}.stdout".format(tmp_path, random_tmp)
-    stdout_file = open(stdout_file_name, "w+")
+            messages.add_message(
+                request,
+                messages.ERROR,
+                mark_safe((
+                   f"Error in designing primers. Error code: {e.returncode}</br>"
+                   f"Error message: {err_msg}</br>{cmd}"
+                )),
+                extra_tags="alert-danger"
+            )
 
-    context_dict['tmp_key'] = random_tmp
+            return render(request, "primer_designer/index.html", {
+                'regions_form': regions_form
+            })
 
-    cmd = shlex.split(cmd)
+        # get file just created from primer designer output/ and move to zip
+        output_pdf = max(
+            glob(f'{primer_path}/output/*pdf'), key=os.path.getctime
+        )
+        output_pdf = Path(output_pdf).absolute()
 
-    p = subprocess.run(
-        cmd, shell=False, stderr=stderr_file, stdout=stdout_file)
+        subprocess.run(f'mv {output_pdf} {out_dir}', shell=True, check=True)
 
+    # zip the output dir of PDFs
+    subprocess.run(f'zip -j {out_zip} {out_dir}*.pdf', shell=True, check=True)
 
-    outfile_name = infile.replace(".txt", ".zip")
-    outfile = os.path.join(tmp_path, outfile_name)
+    # delete output dir from tmp/
+    subprocess.run(f'rm -r {out_dir}', shell=True, check=True)
 
-    context_dict["outfile_name"] = outfile_name
-    context_dict["url"] = outfile
+    context_dict = {'key': outname}
+    context_dict["outfile_name"] = outname
+    context_dict["url"] = out_zip
 
     return render(request, "primer_designer/create.html", context_dict)

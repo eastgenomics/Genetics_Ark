@@ -8,6 +8,13 @@
     align-items: center;
     padding-left: 1%;
   }
+
+  pre.inline {
+    display: inline;
+    background-color: #d3d3d3;
+    border-radius: 4px;
+    padding: 3px
+}
 </style>
 
 <!-- function to display loading spinner on form submit -->
@@ -24,24 +31,35 @@
 
 <div class="card border-light" style="width:1500px; margin: auto; padding: 50px; margin-top: 100px;">
   <h2> Primer Designer</h2><br>
-  <h3>  &nbsp&nbsp Enter regions:  </h3>
-  &nbsp&nbsp Example: name x:123213 grch37<br></br>
-  <!-- Input form -->
-  <form role="form"  id="panel_form" method="post" onsubmit="return spinner_function()">
-    {% csrf_token %}
-    <div class="col-lg-4">
-      <div class="input-group">
-        {{regions_form.regions}}
-      </div>
-      <br>
-      <div class="input-group">
-        <span class="input-group-btn">
-          <button class="btn alert-success" type="submit">Design primers</button>
-        </span>
-      </div> 
-    </div>
+  <div style="padding-left: 10px;">
+      <h3>Enter regions:  </h3>
+      Example input formats:<br></br>
+      Single position: <pre class="inline">x:123213 grch37</pre><br>
+      Range position: <pre class="inline">x:123213-547363 grch37</pre><br>
+      Fusion design: <pre class="inline">1:125432:b:1 2:2635462:a:-1 grch37 fusion</pre>
+      
+      <br></br>
+      For fusion designs, each should be in the format of <pre class="inline">chr:pos:side:strand</pre> for both regions,<br>
+      followed by the <pre class="inline">grch37 / grch38</pre> and the word <pre class="inline">fusion</pre>.<br></br>
+      <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>
+      should be either <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
 
-  </form>
+      <br></br>
+
+      <!-- Input form -->
+      <form role="form"  id="panel_form" method="post" onsubmit="return spinner_function()">
+        {% csrf_token %}
+        <div class="input-group">
+          {{regions_form.regions}}
+        </div>
+        <br>
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn alert-success" type="submit">Design primers</button>
+          </span>
+        </div>
+      </form>
+  </div>
 
   <!-- loading spinner -->
   <div id="spinner" class="spinner" style="display:none">

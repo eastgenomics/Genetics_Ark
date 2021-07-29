@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 env_variables = [
     'SECRET_KEY', 'AUTH_TOKEN', 'PROD_HOST', 'DEBUG_HOST', 'ACCOUNT_DB_NAME',
     'ACCOUNT_DB_USER', 'ACCOUNT_DB_PASSWORD', 'GOOGLE_ANALYTICS',
-    'PRIMER_DESIGNER_PATH', 'REF_37', 'REF_38', 'DBSNP_37', 'DBSNP_38',
+    'PRIMER_DESIGNER_DIR_PATH', 'REF_37', 'REF_38', 'DBSNP_37', 'DBSNP_38',
     'EMAIL_USER', 'SMTP_RELAY', 'PORT'
 ]
 
@@ -56,7 +56,6 @@ try:
 
     GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
-    PRIMER_DESIGNER_PATH = os.environ['PRIMER_DESIGNER_PATH']
     REF_37 = os.environ['REF_37']
     REF_38 = os.environ['REF_38']
     DBSNP_37 = os.environ['DBSNP_37']
@@ -78,20 +77,21 @@ try:
     REFSEQ_38 = os.environ['REFSEQ_38']
 
     # path to bulk design script in primer designer
-    PRIMER_DESIGNER_PATH = os.environ['PRIMER_DESIGNER_PATH']
+    PRIMER_DESIGNER_DIR_PATH = os.environ['PRIMER_DESIGNER_DIR_PATH']
 
-except KeyError:
+except KeyError as e:
+    key = e.args[0]
     raise KeyError(
-        'Unable to import required key from environment, is an .env file '
+        f'Unable to import {key} from environment, is an .env file '
         'present or env variables set?'
     )
 
 
 if DEBUG:
-    print(f"Accessible hosts: {DEBUG_HOST}")
+    print(f"Running in debug mode, accessible hosts: {DEBUG_HOST}")
     ALLOWED_HOSTS = DEBUG_HOST
 else:
-    print(f"Accessible hosts: {PROD_HOST}")
+    print(f"Running in production mode, accessible hosts: {PROD_HOST}")
     ALLOWED_HOSTS = PROD_HOST
 
 
