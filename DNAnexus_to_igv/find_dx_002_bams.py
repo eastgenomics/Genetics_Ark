@@ -45,13 +45,6 @@ import sys
 import dxpy as dx
 
 
-# token for DNAnexus authentication
-# sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
-# from ga_core.config import AUTH_TOKEN
-
-
-
-
 def get_002_projects():
     """
     Get list of all 002 sequencing projects on DNAnexus to pull bams
@@ -70,7 +63,7 @@ def get_002_projects():
         )
         project_002_list.append([x for x in dev_project][0]['id'])
 
-    except Exceptin:
+    except Exception:
         print(
             "Failed getting id for project 003_200115_ga_igv_dev_data, "
             "does it exist?"
