@@ -4,8 +4,6 @@ Django settings for ga_core project.
 import logging.config
 import os
 from pathlib import Path
-import subprocess
-import sys
 
 from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
