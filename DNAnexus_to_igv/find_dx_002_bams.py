@@ -37,6 +37,7 @@ Jethro Rainford 080620
 import itertools
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
@@ -70,7 +71,7 @@ def get_002_projects():
         )
         project_002_list.append([x for x in dev_project][0]['id'])
 
-    except Exception:
+    except Exceptin:
         print(
             "Failed getting id for project 003_200115_ga_igv_dev_data, "
             "does it exist?"
@@ -107,39 +108,28 @@ def find_dx_bams(project_002_list):
     # empty dict to add bams to if index is missing
     missing_bam = defaultdict(list)
 
-    for project in project_002_list:
+    for i, project in enumerate(project_002_list):
+        print(f'Searching project {project} ({i}/{len(project_002_list)})')
+
         bam_dict = {}
         idx_dict = {}
 
-        bams = []
-        idxs = []
+        bams = list(dx.search.find_data_objects(
+            name="*bam", name_mode="glob", project=project, describe=True))
 
-        bam_files = list(dx.search.find_data_objects(
-            name="*bam", name_mode="glob", project=project))
 
-        # get full info for every bam and index in all projects
-        for bam in bam_files:
-            obj = dx.dxfile.DXFile(dxid=bam["id"], project=project)
-            info = obj.describe()
-            bams.append(info)
-
-        idx_files = list(dx.search.find_data_objects(
-            name="*bam.bai", name_mode="glob", project=project))
-
-        for idx in idx_files:
-            obj = dx.dxfile.DXFile(dxid=idx["id"], project=project)
-            info = obj.describe()
-            idxs.append(info)
+        idxs = list(dx.search.find_data_objects(
+            name="*bam.bai", name_mode="glob", project=project, describe=True))
 
         if bams and idxs:
             # if BAM(s) and index found, should always be found
 
-            # get just path, name and id of each bam and index
+            # add path, name and id of each bam and index to dicts
             for bam in bams:
-                bam_dict[(bam["folder"], bam["name"])] = bam["id"]
+                bam_dict[(bam["describe"]["folder"], bam["describe"]["name"])] = bam["id"]
 
             for idx in idxs:
-                idx_dict[(idx["folder"], idx["name"])] = idx["id"]
+                idx_dict[(idx["describe"]["folder"], idx["describe"]["name"])] = idx["id"]
 
             # get project name to display
             p = dx.dxproject.DXProject(project)
@@ -147,7 +137,7 @@ def find_dx_bams(project_002_list):
             project_name = project_info["name"]
 
             # match bams to indexes on filename and dir path
-            for path, bam_file in bam_dict:
+            for path, bam_file in bam_dict.items():
                 if "tmp" in path:
                     # check if bam is in CP tmp dir, pass if True
                     continue
@@ -192,13 +182,16 @@ def find_dx_bams(project_002_list):
                     "bam_path": path
                 })
 
+    # ensure output jsons go to /DNAnexus_to_igv/ dir
+    outfile_bam = f'{Path(__file__).parent.absolute()}/dx_002_bams.json'
+    outfile_missing = f'{Path(__file__).parent.absolute()}/dx_missing_bam.json'
 
     # write all 002 bams into output json
-    with open('dx_002_bams.json', 'w') as outfile:
+    with open(outfile_bam, 'w') as outfile:
         json.dump(dx_data, outfile, indent=2)
 
     if missing_bam:
-        with open('dx_missing_bam.json', 'w') as missing_file:
+        with open(outfile_missing, 'w') as missing_file:
             json.dump(missing_bam, missing_file, indent=2)
 
 
