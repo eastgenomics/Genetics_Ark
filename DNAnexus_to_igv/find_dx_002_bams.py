@@ -34,23 +34,22 @@ Creates JSONs with following structure:
 
 Jethro Rainford 080620
 """
-import itertools
+from collections import defaultdict
+import datetime as date
+from dotenv import dotenv_values
 import json
 import os
 from pathlib import Path
-import re
-import subprocess
 import sys
 
-import datetime as date
 import dxpy as dx
 
-from collections import defaultdict
-from operator import itemgetter
 
 # token for DNAnexus authentication
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
-from ga_core.config import AUTH_TOKEN
+# sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../"))
+# from ga_core.config import AUTH_TOKEN
+
+
 
 
 def get_002_projects():
@@ -196,6 +195,20 @@ def find_dx_bams(project_002_list):
 
 
 if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+        # config / env file passed as arg
+        # read in to dict and don't touch env variables
+        config = dotenv_values(sys.argv[1])
+        AUTH_TOKEN = config["AUTH_TOKEN"]
+    else:
+        # try to get auth token from env (i.e. run in docker)
+        try:
+            AUTH_TOKEN = os.environ["AUTH_TOKEN"]
+        except NameError as e:
+            raise NameError(
+                'auth token could not be retrieved from environment and no .env file passed'
+            )
 
     # env variable for dx authentication
     DX_SECURITY_CONTEXT = {
