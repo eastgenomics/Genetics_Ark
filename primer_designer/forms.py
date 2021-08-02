@@ -14,7 +14,7 @@ class RegionsForm(forms.Form):
     regions = forms.CharField(widget=forms.Textarea(
         attrs={
             'placeholder': 'Enter target region(s)',
-            'style':'padding-left: 10px; padding-top:10px'
+            'style': 'padding-left: 10px; padding-top:10px'
         }
     ))
 
@@ -23,12 +23,12 @@ class RegionsForm(forms.Form):
         cleaned_data = self.cleaned_data
 
         for line in cleaned_data['regions'].split("\n"):
-            if 'fusion' in line.lower():
+            if line.count(':') > 1:
                 # fusion design given, expected to be in the format
                 # chr:pos:side:strand chr:pos:side:strand build fusion
                 line = line.rstrip('fusion').strip().lower()
 
-                fusion_pattern = r'^[a-b0-9]+:[0-9]+:[ab]:[-]?1\s+[a-b0-9]+:[0-9]+:[ab]:[-]?1\s+grch3[78]'
+                fusion_pattern = r'^[a-b0-9]+:[0-9]+:[ab]:[-]?1\s+[a-b0-9]+:[0-9]+:[ab]:[-]?1\s+grch3[78]$'
                 match = re.search(fusion_pattern, line)
 
                 if not match:

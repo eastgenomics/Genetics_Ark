@@ -1,4 +1,5 @@
 import ast
+from datetime import datetime
 from glob import glob
 import os
 from pathlib import Path
@@ -6,7 +7,6 @@ import pprint as pp
 import random
 import string
 import subprocess
-import time
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -64,14 +64,12 @@ def random_string():
 
 
 def time_stamp():
-    """ Return a time stamp to ensure primer designs dont clash
-
-    Returns:
-        - time_string (str): time stamp string
     """
-    time_string = time.strftime("%Y%m%d_%H:%M", time.gmtime())
+    Return a time stamp to ensure primer designs dont clash
 
-    return time_string
+    Returns: (str) time stamp string
+    """
+    return datetime.now().strftime("%Y%m%d_%H:%M")
 
 
 @login_required
@@ -88,7 +86,7 @@ def create(request, regions_form):
 
     for region in regions:
         # format each given region as input args for primer designer
-        if 'fusion' in region:
+        if region.count(':') > 1:
             # format for fusion design, will be in format
             # chr:pos:side:strand chr:pos:side:strand build 'fusion'
             args = region.split()
@@ -125,16 +123,16 @@ def create(request, regions_form):
 
         try:
             # calling primer designer script, probably should import and run
-            # but ¯\_(ツ)_/¯
+            # but its messy ¯\_(ツ)_/¯
             call = subprocess.run(
                 primer_cmd, shell=True, check=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-            call.check_returncode()
+            call.check_returncode()  # raises Error on non-zero exit code
         except subprocess.CalledProcessError as e:
             err_msg = e.stderr.decode('utf-8').rstrip('\n')
             if 'Error' in err_msg:
-                # attempt to not show full ugly traceback
+                # attempt to not show full ugly traceback, just the error
                 err_msg = e.stderr.decode('utf-8').split('Error')[-1]
 
             messages.add_message(
