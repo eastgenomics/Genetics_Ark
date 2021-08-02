@@ -35,7 +35,7 @@ import DNAnexus_to_igv.forms as Forms
 
 from ga_core.settings import (
     LOGGING, AUTH_TOKEN, FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
-    FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38 
+    FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38
 )
 
 error_log = logging.getLogger("ga_error")
