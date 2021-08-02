@@ -4,38 +4,20 @@ Django settings for ga_core project.
 import logging.config
 import os
 from pathlib import Path
+import sys
 
 from django.contrib.messages import constants as messages
-from dotenv import load_dotenv
 
-# Passwords and database credentials stored in config.py
+# Passwords and database credentials stored in .env file
 # NOT IN VERSION CONTROL
-
-env_variables = [
-    'SECRET_KEY', 'AUTH_TOKEN', 'PROD_HOST', 'DEBUG_HOST', 'ACCOUNT_DB_NAME',
-    'ACCOUNT_DB_USER', 'ACCOUNT_DB_PASSWORD', 'GOOGLE_ANALYTICS',
-    'PRIMER_DESIGNER_DIR_PATH', 'REF_37', 'REF_38', 'DBSNP_37', 'DBSNP_38',
-    'EMAIL_USER', 'SMTP_RELAY', 'PORT'
-]
-
-for var in env_variables:
-    # clear config environment variables if set
-    if var in os.environ:
-        del os.environ[var]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# either load config from local .env or try get from env variables
 try:
-    env_file = os.path.join(os.path.dirname(__file__), '../genetics_ark.env')
-
-    if Path(env_file).is_file():
-        # import from env file if present, else assume already set
-        # (e.g. when running docker image and passing env file)
-        load_dotenv(env_file)
-
+    # env variables will either be set to environment when run (loaded in
+    # manage.py), or when run via docker and passed with --env-file
     SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = os.environ['DEBUG']  # should be false in production
     AUTH_TOKEN = os.environ['AUTH_TOKEN']
