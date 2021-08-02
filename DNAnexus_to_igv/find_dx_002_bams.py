@@ -57,17 +57,16 @@ def get_002_projects():
     projects = dx.search.find_projects(name="002*", name_mode="glob")
     project_002_list = [x["id"] for x in projects]
 
-    try:
-        dev_project = dx.search.find_projects(
-            name="003_200115_ga_igv_dev_data", name_mode="glob"
-        )
-        project_002_list.append([x for x in dev_project][0]['id'])
+    # try getting project id for dev project
+    dev_project = dx.search.find_projects(
+        name="003_200115_ga_igv_dev_data", name_mode="glob"
+    )
+    dev_project = [x for x in dev_project][0]['id']
 
-    except Exception:
-        print(
-            "Failed getting id for project 003_200115_ga_igv_dev_data, "
-            "does it exist?"
-        )
+    if dev_project:
+        project_002_list.append(dev_project)
+    else:
+        print('dev project does not appear to exist')
 
     print("Total 002 projects found:", len(project_002_list))
 
@@ -101,7 +100,7 @@ def find_dx_bams(project_002_list):
     missing_bam = defaultdict(list)
 
     for i, project in enumerate(project_002_list):
-        print(f'Searching project {project} ({i}/{len(project_002_list)})')
+        print(f'Searching project {project} ({i + 1}/{len(project_002_list)})')
 
         bam_dict = {}
         idx_dict = {}
@@ -129,7 +128,7 @@ def find_dx_bams(project_002_list):
             project_name = project_info["name"]
 
             # match bams to indexes on filename and dir path
-            for path, bam_file in bam_dict.items():
+            for path, bam_file in bam_dict.keys():
                 if "tmp" in path:
                     # check if bam is in CP tmp dir, pass if True
                     continue
