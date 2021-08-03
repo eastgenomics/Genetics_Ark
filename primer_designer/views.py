@@ -14,6 +14,8 @@ import pprint as pp
 import random
 import string
 import subprocess
+from zipfile import ZipFile
+import zipfile
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -170,7 +172,10 @@ def create(request, regions_form):
         subprocess.run(f'mv {output_pdf} {out_dir}', shell=True, check=True)
 
     # zip the output dir of PDFs
-    subprocess.run(f'zip -j {out_zip} {out_dir}*.pdf', shell=True, check=True)
+    with ZipFile(out_zip, 'w') as zip_file:
+        out_pdfs = glob(f'{out_dir}*.pdf')
+        for pdf in out_pdfs:
+            zip_file.write(pdf, Path(pdf).name)
 
     # delete output dir from tmp/
     subprocess.run(f'rm -r {out_dir}', shell=True, check=True)
