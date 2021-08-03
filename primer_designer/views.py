@@ -15,7 +15,6 @@ import random
 import string
 import subprocess
 from zipfile import ZipFile
-import zipfile
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
