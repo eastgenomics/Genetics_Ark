@@ -54,7 +54,7 @@
 	<!-- messages loader -->
 	{% if messages %}
 		{% for message in messages %}
-			<div class="alert {{ message.tags }} alert-dismissible" role="alert" id="message" style="position: absolute; width: 100%;">	
+			<div class="alert {{ message.tags }} alert-dismissible" role="alert" id="message" style="position: absolute; width: 100%; z-index: 9; min-height: 75px;">	
 				<div style="text-align: center;">
 					<strong>{{ message|linebreaksbr }}</strong>
 				</div> 

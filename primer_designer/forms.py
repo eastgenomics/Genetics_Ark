@@ -48,7 +48,7 @@ class RegionsForm(forms.Form):
                 if fields[-1].lower() not in ['grch37', 'grch38']:
                     # Check on valid reference names
                     raise forms.ValidationError("{} invalid reference\
-                        name".format(fields[2]))
+                        name".format(fields[-1]))
 
                 # split chr and postion, will either be chr:pos or chr:pos-pos
                 pos_fields = re.split("[:]", fields[0])
