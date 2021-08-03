@@ -174,8 +174,8 @@ def find_dx_bams(project_002_list):
                 })
 
     # ensure output jsons go to /DNAnexus_to_igv/ dir
-    outfile_bam = f'{Path(__file__).parent.absolute()}/dx_002_bams.json'
-    outfile_missing = f'{Path(__file__).parent.absolute()}/dx_missing_bam.json'
+    outfile_bam = f'{Path(__file__).parent.absolute()}/jsons/dx_002_bams.json'
+    outfile_missing = f'{Path(__file__).parent.absolute()}/jsons/dx_missing_bam.json'
 
     # write all 002 bams into output json
     with open(outfile_bam, 'w') as outfile:

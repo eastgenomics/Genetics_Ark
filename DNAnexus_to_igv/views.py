@@ -18,6 +18,7 @@ import itertools
 import json
 import logging
 import os
+from pathlib import Path
 import re
 
 from django.contrib import messages
@@ -135,8 +136,7 @@ def nexus_search(request):
                 # load in json with all bams and dx attributes needed to
                 # search and generate dx download links
                 # if json is not present it will raise IOError
-                json_file = os.path.join(
-                    os.path.dirname(__file__), "dx_002_bams.json")
+                json_file = f'{Path(__file__).parent.absolute()}/jsons/dx_002_bams.json'
 
                 with open(json_file) as json_file:
                     json_bams = json.load(json_file)
