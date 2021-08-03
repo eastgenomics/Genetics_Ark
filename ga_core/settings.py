@@ -1,10 +1,8 @@
 """
 Django settings for ga_core project.
 """
-import logging.config
 import os
 from pathlib import Path
-import sys
 
 from django.contrib.messages import constants as messages
 
@@ -246,9 +244,7 @@ LOGGING = {
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 STATIC_URL = '/static/'
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'root')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),

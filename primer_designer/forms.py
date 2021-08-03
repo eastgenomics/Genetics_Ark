@@ -1,11 +1,6 @@
-import pprint as pp
 import re
-import time
 
 from django import forms
-from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.forms import ModelForm
 
 
 class RegionsForm(forms.Form):
@@ -19,7 +14,7 @@ class RegionsForm(forms.Form):
     ))
 
     def clean_regions(self):
-
+        """Function to validate input regions"""
         cleaned_data = self.cleaned_data
 
         for line in cleaned_data['regions'].split("\n"):
@@ -43,11 +38,12 @@ class RegionsForm(forms.Form):
                 # strip empty spaces in cases where multiple spaces used
                 fields = [x for x in fields if x]
 
-                if (len(fields) != 2):
+                if len(fields) != 2:
                     # each line should have 2 pieces of information
-                    raise forms.ValidationError(
-                        f"{line} not in correct format, please see the examples for correct formatting"
-                    )
+                    raise forms.ValidationError((
+                        f"{line} not in correct format. "
+                        "Please see the examples for correct formatting"
+                    ))
 
                 if fields[-1].lower() not in ['grch37', 'grch38']:
                     # Check on valid reference names
