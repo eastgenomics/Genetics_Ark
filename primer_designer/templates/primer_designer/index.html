@@ -31,14 +31,19 @@
 
 <div class="card border-light" style="width:75%; margin: auto; padding: 50px; margin-top: 100px;">
   <h2> Primer Designer</h2><br>
-  <div style="padding-left: 10px;">
-      <h3>Enter regions:  </h3>
-      Example input formats:<br></br>
-      Single position: <pre class="inline" style="margin-left: 1px;">x:123213 grch37</pre><br>
-      Range position: <pre class="inline">x:123213-547363 grch37</pre><br>
-      Fusion design: <pre class="inline" style="margin-left: 7px;">1:125432:b:1 2:2635462:a:1 grch37</pre>
-      
+  <div>
+      Enter regions to design primers for (one region per line)
+
       <br></br>
+
+      Example input formats:<br>
+
+      <ul>
+        <li>Single position: <pre class="inline" style="margin-left: 1px;">x:123213 grch37</pre></li>
+        <li>Range position: <pre class="inline">x:123213-547363 grch37</pre></li>
+        <li>Fusion design: <pre class="inline" style="margin-left: 7px;">1:125432:b:1 2:2635462:a:1 grch37</pre></li>
+      </ul>
+
       For fusion designs, each should be in the format of <pre class="inline">chr:pos:side:strand</pre> for both regions,<br>
       followed by the <pre class="inline">grch37</pre> or <pre class="inline">grch38</pre>.<br></br>
       <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>

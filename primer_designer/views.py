@@ -1,6 +1,13 @@
+"""
+Django app to call primer designer for genetating PDF reports of primer
+designs. Primer designer (https://github.com/eastgenomics/primer_designer)
+should be set up locally (or the docker image built from its image) and the
+path to the dir set in the .env file
+"""
 import ast
 from datetime import datetime
 from glob import glob
+import logging
 import os
 from pathlib import Path
 import pprint as pp
@@ -17,6 +24,9 @@ from django.utils.safestring import mark_safe
 import primer_designer.forms as Forms
 
 from ga_core.settings import PRIMER_DESIGNER_DIR_PATH
+
+
+error_log = logging.getLogger("ga_error")
 
 
 @login_required
@@ -130,10 +140,12 @@ def create(request, regions_form):
             )
             call.check_returncode()  # raises Error on non-zero exit code
         except subprocess.CalledProcessError as e:
-            err_msg = e.stderr.decode('utf-8').rstrip('\n')
-            if 'Error' in err_msg:
+            traceback = e.stderr.decode('utf-8').rstrip('\n')
+            if 'Error' in traceback:
                 # attempt to not show full ugly traceback, just the error
                 err_msg = e.stderr.decode('utf-8').split('Error')[-1]
+
+            error_log.error(f':Primer designer: {traceback}')
 
             messages.add_message(
                 request,
