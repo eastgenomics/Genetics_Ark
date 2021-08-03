@@ -41,13 +41,40 @@ Steps for deploying to production:
   - with docker: `docker run <image-name> sh -c "python manage.py collectstatic --noinput"`
   - without docker: `python manage.py collectstatic`
 - start server:
-  - with docker: 
-    `docker run --env-file ark.env`
-    `-v /home/\$USER/reference_files:/reference_files ` 
-    `-v /var/log/genetics-ark/:/home/ga/logs `
-    `-p80:8000 --network=host <image-name>`
+  - with docker:
+    <div style="text-align: left">
+
+    ```
+    docker run --env-file ark.env \
+    -v /local_path_to_data_dir/reference_files:/reference_files \
+    -v /local_path_to_data_dir/logs/:/home/ga/logs \
+    -v /local_path_to_data_dir/bam_jsons/:/home/ga/DNAnexus_to_igv/jsons/ \
+    -v /local_path_to_data_dir/primer_designs/:/home/ga/static/tmp/ \
+    -p80:8000 --network=host <image-name>
+    ```
+    </div>
   - without docker: `python manage.py runserver <host>:<port> ark.env`
 
+n.b. when running via Docker mounting volumes for DNAnexus_to_igv and primer designer is required for both running `find_dx_001_bams.py` to generate JSON of BAM file IDs, and clearing the tmp file directory of old primer designs. These should both be set to run as cron jobs using:
+
+<div style="text-align: left">
+
+```
+docker run --network=host \
+-v /local_path_to_data_dir/bam_jsons/:/home/ga/DNAnexus_to_igv/jsons/ \
+-v /local_path_to_data_dir/primer_designs/:/home/ga/static/tmp/  \
+--env-file ~/configs/genetics_ark_docker.env genetics_ark:v2  \
+sh -c "python DNAnexus_to_igv/find_dx_002_bams.py"
+
+docker run --network=host \
+-v /local_path_to_data_dir/bam_jsons/:/home/ga/DNAnexus_to_igv/jsons/ \
+-v /local_path_to_data_dir/primer_designs/:/home/ga/static/tmp/  \
+--env-file ~/configs/genetics_ark_docker.env genetics_ark:v2  \
+sh -c "rm -rf /home/ga/static/tmp/*"
+```
+This requires creating empty dirs to mount for the JSONs, primer designs and log files.
+
+</div>
 
 
 <br></br>
