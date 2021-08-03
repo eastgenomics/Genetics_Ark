@@ -91,7 +91,7 @@ def create(request, regions_form):
     and link to download design zip given on returned page.
     """
     regions = regions_form.data['regions'].split('\n')
-    regions = [x.rstrip('\r').strip() for x in regions]
+    regions = [x.rstrip('\r').strip() for x in regions if x]
     region_cmds = []
 
     for region in regions:
