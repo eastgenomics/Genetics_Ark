@@ -14,27 +14,22 @@ The dx-toolkit environment must first be sourced and user logged in.
 dx_002_bams.json must also be present in DNAnexus_to_igv/, this is
 generated from find_dx_002_bams.py
 """
-
-import dxpy as dx
 import itertools
 import json
 import logging
 import os
 import re
-import subprocess
-import sys
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.template import loader
 from django.utils.safestring import mark_safe
-from django.shortcuts import render, redirect
+from django.shortcuts import render
+import dxpy as dx
 
 import DNAnexus_to_igv.forms as Forms
 
 from ga_core.settings import (
-    LOGGING, AUTH_TOKEN, FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
+    AUTH_TOKEN, FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38
 )
 
