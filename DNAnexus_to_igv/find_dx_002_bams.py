@@ -192,7 +192,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         # config / env file passed as arg
         # read in to dict and don't touch env variables
-        config = dotenv_values(sys.argv[1])
+        config = dotenv_values(sys.argv[-1])
         AUTH_TOKEN = config["AUTH_TOKEN"]
     else:
         # try to get auth token from env (i.e. run in docker)
