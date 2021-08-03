@@ -632,6 +632,7 @@ table.alt tbody tr td {
     .highlights > :nth-child(1n) {
       width: calc(100% + 1rem); } }
 
+/* Controls pop up on hover for home screen tiles and buttons */
 .highlights .content {
   background: #ffffff;
   box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.025); 
@@ -639,6 +640,14 @@ table.alt tbody tr td {
   }
 
   .highlights .content:hover {
+    transform: scale(1.1);
+  }
+
+  .btn {
+    transition: transform 0.25s;
+  }
+
+  .btn:hover {
     transform: scale(1.1);
   }
 
