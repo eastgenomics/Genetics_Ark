@@ -1,174 +1,205 @@
-from django.shortcuts import render
-
+"""
+Django app to call primer designer for genetating PDF reports of primer
+designs. Primer designer (https://github.com/eastgenomics/primer_designer)
+should be set up locally (or the docker image built from its image) and the
+path to the dir set in the .env file
+"""
+import ast
+from datetime import datetime
+from glob import glob
+import logging
 import os
-import string 
-import random 
-import subprocess
-import shlex
-import shutil
-import time 
-import datetime
-import json
+from pathlib import Path
 import pprint as pp
-import re
+import random
+import string
+import subprocess
+from zipfile import ZipFile
 
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render, redirect
-from django.core.urlresolvers import reverse
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 
 
-import primer_designer.forms  as Forms
+import primer_designer.forms as Forms
 
-#@login_required(login_url='/login/')
+from ga_core.settings import PRIMER_DESIGNER_DIR_PATH
+
+
+error_log = logging.getLogger("ga_error")
+
+
+@login_required
 def index(request):
-    return render( request, "base.html")
-
-
-
-# company related urls
-def index( request ):
-
     if request.method == 'POST':
-        regions_form = Forms.RegionsForm( request.POST )
+        regions_form = Forms.RegionsForm(request.POST)
 
-#        pp.pprint( request.POST )
-#        pp.pprint( company_form['name'] )
-
-
-        # One or more valid regions where entered.
-        if  regions_form.is_valid():
-
-            print"Passing data along"
-            pp.pprint( regions_form.data['regions'] )
-
-
-            return create( request, regions_form.data['regions'] )
-
+        if regions_form.is_valid():
+            # One or more valid regions where entered, call function to
+            # generate primers
+            return create(request, regions_form)
         else:
+            error = ast.literal_eval(pp.pformat(regions_form.errors))
 
-            pp.pprint( regions_form.errors)
+            messages.add_message(
+                request,
+                messages.ERROR,
+                mark_safe(
+                    f"Error in given primer design input: {error['regions'][0]}"
+                ),
+                extra_tags="alert-danger"
+            )
 
-            return render( request, "primer_designer/index.html", {'regions_form': regions_form})
-        
+            return render(request, "primer_designer/index.html", {
+                'regions_form': regions_form
+            })
     else:
-        
-        return render( request, "primer_designer/index.html", {'regions_form': Forms.RegionsForm()})
+        return render(request, "primer_designer/index.html", {
+            'regions_form': Forms.RegionsForm()
+        })
 
 
-def random_string(length=10):
-    """ Creates a random string 
-
-    Args:
-      length (int): length of string to generate, default 10
-
-    returns:
-      string
-
-    raises:
-      None
+def random_string():
     """
+    Creates a random string
 
-    random_string = ""
-    # Choose from lowercase, uppercase,  and digits
-    alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits
-    for n in range(0, length):
-        random_string += random.choice( alphabet )
+    Returns:
+        - random_string (str): str of random characters
+    """
+    random_string = ''.join(random.choices(
+        string.ascii_uppercase + string.ascii_lowercase + string.digits, k=5
+    ))
 
     return random_string
 
+
 def time_stamp():
-    """ return a time stamp to ensure primer designs dont clash
-
-    Returns
-     string 
-
     """
+    Return a time stamp to ensure primer designs dont clash
 
-    now = time.gmtime()
-    time_string = time.strftime("%Y%m%d_%H%M%S", now)
-
-    return time_string
-    
-
-
-def create( request, regions, infile=None ):
-
-    path = "static/tmp/"
-
-    random_tmp = random_string()
-
-    infile = "{}.txt".format( time_stamp() )
+    Returns: (str) time stamp string
+    """
+    return datetime.now().strftime("%Y%m%d_%H:%M")
 
 
-    pp.pprint( regions )
+def format_region(region):
+    """
+    Format region from input form as command str for primer designer
+
+    Args: region (str): region passed from input form
+    Returns: cmd (str): formatted str of cmd for primer designer
+    """
+    if region.count(':') > 1:
+        # format for fusion design, will be in format
+        # chr:pos:side:strand chr:pos:side:strand build 'fusion'
+        args = region.split()
+        cmd = f'--fusion --b1 {args[0]} --b2 {args[1]} --{args[2]}'
+    else:
+        # either position or range design
+        if '-' in region:
+            # range design, will be in format chr:pos1-pos2 build
+            region, build = region.split()
+            chr, pos = region.split(':')
+            pos1, pos2 = pos.split('-')
+
+            cmd = f'-c {chr} -r {pos1} {pos2} --{build}'
+        else:
+            # normal position design, in format chr:pos build
+            region, build = region.split()
+            chr, pos = region.split(':')
+
+            cmd = f'-c {chr} -p {pos} --{build}'
+
+    return cmd
 
 
-    if infile is None:
-        infile = random_tmp
+def call_primer_designer(request, regions_form, primer_path, cmd):
+    """
+    Calls primer designer with given formatted cmd string
+
+    Args:
+        - regions_form (django form): submitted form data
+        - primer_path (str): path to primer designer dir
+        - cmd (str): region formatted str to pass to primer designer
+    Returns: None
+    """
+    primer_cmd = f'python3 {primer_path}/bin/primer_designer_region.py {cmd}'
+
+    try:
+        # calling primer designer script, probably should import and run
+        # but its messy so ¯\_(ツ)_/¯
+        call = subprocess.run(
+            primer_cmd, shell=True, check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        call.check_returncode()  # raises Error on non-zero exit code
+    except subprocess.CalledProcessError as e:
+        traceback = e.stderr.decode('utf-8').rstrip('\n')
+        if 'Error' in traceback:
+            # attempt to not show full ugly traceback, just the error
+            err_msg = e.stderr.decode('utf-8').split('Error')[-1]
+
+        error_log.error(f':Primer designer: {traceback}')
+
+        messages.add_message(
+            request,
+            messages.ERROR,
+            mark_safe((
+                f"Error in designing primers. Error code: {e.returncode}</br>"
+                f"Error message: {err_msg}</br>{primer_cmd}"
+            )),
+            extra_tags="alert-danger"
+        )
+
+        return render(request, "primer_designer/index.html", {
+            'regions_form': regions_form
+        })
 
 
+@login_required
+def create(request, regions_form):
+    """
+    Called when valid form submitted, generates output file then runs
+    primer3 via primer_designer with given regions.
+    Pageis held with a loading spinner until completed, then file is written
+    and link to download design zip given on returned page.
+    """
+    regions = regions_form.data['regions'].split('\n')
+    regions = [x.rstrip('\r').strip() for x in regions if x]
 
-    outfh = open( "{path}{infile}".format( path=path, infile=infile), "w")
-    outfh.write( regions )
-    outfh.close()
+    # unique name of date and random 5 char str
+    outname = f'{time_stamp()}-{random_string()}'
+    out_dir = f'{Path(__file__).parent.parent.absolute()}/static/tmp/{outname}/'
+    out_zip = f'static/tmp/{outname}.zip'
+    os.mkdir(Path(out_dir))  # empty dir to add reports to
 
-    cmd = "/software/packages/primer_designer/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
-    cmd = "/mnt/storage/apps/software/primer_designer/1.1/bulk_design.py {infile} {working_dir} ".format(infile=infile, working_dir=path)
+    primer_path = PRIMER_DESIGNER_DIR_PATH.rstrip('/')
 
-    context_dict =  { 'key': random_string }
-    context_dict[ 'infile' ] = infile
+    for region in regions:
+        # format each given region as input args for primer designer & call
+        cmd = format_region(region)
+        call_primer_designer(request, regions_form, primer_path, cmd)
 
-    stderr_file_name = "{}{}.stderr".format(path, random_tmp)
-    stdout_file_name = "{}{}.stdout".format(path, random_tmp)
+        # get file just created from primer designer output/ and move to zip
+        output_pdf = max(
+            glob(f'{primer_path}/output/*pdf'), key=os.path.getctime
+        )
+        output_pdf = Path(output_pdf).absolute()
 
-    stderr_file = open( stderr_file_name, "w+" )
-    stdout_file = open( stdout_file_name, "w+" )
+        subprocess.run(f'mv {output_pdf} {out_dir}', shell=True, check=True)
 
-    context_dict['tmp_key'] = random_tmp
+    # zip the output dir of PDFs
+    with ZipFile(out_zip, 'w') as zip_file:
+        out_pdfs = glob(f'{out_dir}*.pdf')
+        for pdf in out_pdfs:
+            zip_file.write(pdf, Path(pdf).name)
 
-    cmd = shlex.split( cmd )
+    # delete output dir from tmp/
+    subprocess.run(f'rm -r {out_dir}', shell=True, check=True)
 
-    p = subprocess.Popen( cmd , shell=False, stderr = stderr_file , stdout = stdout_file)
+    context_dict = {'key': outname}
+    context_dict["outfile_name"] = outname
+    context_dict["url"] = out_zip
 
-    
-    return render( request, "primer_designer/create.html", context_dict )
-
-
-def primers_done_ajax( request, tmp_key ):
-    
-    path = 'static/tmp/'
-
-    stdout_name = "{}{}.stdout".format( path, tmp_key)
-    print stdout_name
-
-
-    result_dict = {'status': 'running' }
-
-    if ( os.path.isfile( stdout_name )):
-        fh = open( stdout_name, 'rU')
-        lines = ""
-        for line in fh.readlines():
-            line = line.rstrip( "\n" )
-            print line
-            lines += line +"<br>"
-
-            if line == 'SUCCESS':
-                result_dict['status'] = 'done'
-            elif re.match('Output file: ', line):
-                result_dict['file'] = re.sub(r'Output file: ', '', line)
-            elif re.match('Died at', line):
-                result_dict['status'] = 'failed'
-                
-
-    pp.pprint( lines )
-        
-    result_dict['progress'] = lines
-    
-    response_text = json.dumps(result_dict, separators=(',',':'))
-#    pp.pprint( response_text )
-    return HttpResponse(response_text, content_type="application/json")
-
-
-
-
+    return render(request, "primer_designer/create.html", context_dict)

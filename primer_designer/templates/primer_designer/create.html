@@ -1,149 +1,15 @@
 {% extends 'base.html' %}
 
-
 {% block body_block %}
-{% load render_table from django_tables2 %}
 
+<div style="width:75%; margin:0 auto; padding-top: 50px; padding-bottom: 50px;">
 
-<h1>Running primer designer</h1><br>
+  <h2> Primer Designer </h2>
 
+  <br></br>
 
- <div id="report_create" class='data_area' data-analysis_id="{{ analysis.id }}" data-tmp_key="{{ tmp_key }}">
-
-  <img id='spinner' src='/static/images/spinner.gif' alt="Please wait .."  style="width:100px;height:100;">
-
-{% comment %}
-{% endcomment %}
-
-
-
-
-
-
-<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-
-  <div class="panel panel-warning" id="{{ analysis.runfolder.name }}_panel" data-rpid="{{ rpid }}" data-gid="{{ entry.gid }}">
-    <div class="panel-heading" role="tab">
-      <class="panel-title">
-       <H4>
-	<a  role="button" data-toggle="collapse" data-parent="#accordion" href="#{{ analysis.runfolder.name }}_body" aria-expanded="false" aria-controls="{{ analysis.runfolder.name }}_body" > <span class="glyphicon glyphicon-search" aria-hidden="true"></span></a>
-	progress 
-      </H4>
-    </div>
-    <div id="{{ analysis.runfolder.name }}_body" class="panel-collapse collapse" role="tabpanel" aria-labelledby="{{ analysis.runfolder.name }}">
-      <div class="panel-body">
-       <div id='progress'>
-       </div>
-
-  </div>
-</div>
-  </div>
-</div>
+  Download designed primers: <a href="{{ url }}" download>{{ outfile_name}}</a>
 
 </div>
 
- <div id='report_link' class='data_area'>
-
-
- </div>
-
-<br>
-
-	  
-{% endblock %}
-
-
-{% block script %}
-
-$(function () {
-
-  // We want to keep controld of users not doing cross posting, so we
-  // need this function to fetch cookies from the user.
-
-  function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie != '') {
-       var cookies = document.cookie.split(';');
-       for (var i = 0; i < cookies.length; i++) {
-           var cookie = jQuery.trim(cookies[i]);
-           // Does this cookie string begin with the name we want?
-           if (cookie.substring(0, name.length + 1) == (name + '=')) {
-               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-               break;
-           }
-       }
-    }
-    return cookieValue;
-  };
-
-
-   function get_report() {
-
-    tmp_key     = $('#report_create').data("tmp_key")
-
-    console.log("tmp_key:", tmp_key);
-
-    var url = "{% url 'primers_done_ajax' tmp_key %}";
-    var csrftoken = getCookie('csrftoken');
-
-
-     $.ajaxSetup({
-       beforeSend: function(xhr, settings) {
-       xhr.setRequestHeader("X-CSRFToken", csrftoken);
-      }})
-
-    function poll() {
-
-      $.ajax({type: 'POST',
-          url: url,
-          timeout: 5000,
-          dataType: "json" }).done( function( data ) {
-          // data was fetched correctly, replace the html in the
-          // panel with this
-          //console.log('fetching conf data from the backend...' + conf_id);
-              }).success( function( json ) {
-                console.log( json  )
-                if (json['status'] == 'running') {
-
-		       $('#progress').html(json['progress'])
-                       setTimeout(function() {poll()}, 5000);
-                       return;
-                }
-                else if (json['status'] == 'done') {
-                       $('#report_create').hide()
-
-		       $('#report_link').html("<h2>Download designs</h2>")
-			 
-                       link = "<a href='/static/tmp/"+json['file']+"'>"+json['file']+"</a><br>"
-		       console.log( link )
-
-		       $('#report_link').append( link );
-		       return;
-                }
-
-                else if (json['status'] == 'failed') {
-                       $('#spinner').hide()
-
-		       $('#report_create').html("<h2>Failed creating report</h2>logfile for the bioinformatican {{tmp_key}}.stdout/stderr<br>");
-		       return;
-                }
-
-
-             }).fail( function(xhr, textStatus, errorThrown) {
-                       $('#spinner').hide()
-	          $('#report_create').html("<h2>Failed creating report</h2>logfile for the bioinformatican {{tmp_key}}.stdout/stderr<br>");
-		  return;
-                 console.log( "Fetch status:: "+ textStatus);
-
-             });
-        };
-       poll()
-
-
-    };
-    
-  get_report();
-
-
-});
 {% endblock %}
