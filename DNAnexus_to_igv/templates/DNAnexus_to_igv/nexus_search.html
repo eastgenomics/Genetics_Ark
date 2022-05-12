@@ -69,7 +69,7 @@
 
 {% if not bam_name and not bam_list %}
 <!-- if normal search field used, remove direct link fields -->
-<div class="well" style="width:75%; margin:0 auto; padding-bottom: 50px;">
+<div class="well" style="width:75%; margin:0 auto; padding-bottom: 150px;">
 
     <h3>Load direct from URL</h3>
 
@@ -98,7 +98,7 @@
 
 {% if bam_name %}
 <!-- Single BAM found for sample -->
-<div class="well" style="width:75%; margin:0 auto; padding-bottom: 50px;">
+<div class="well" style="width:75%; margin:0 auto; padding-bottom: 150px;">
 
     <div>
         Search term: <b>{{ sampleID }}</b><br>
@@ -145,7 +145,7 @@
 {% if bam_list %}
 <!-- multple bams for sample returned, give option to select which to use -->
 
-<div class="well" style="width:75%; margin:0 auto; padding-bottom: 50px;">
+<div class="well" style="width:75%; margin:0 auto; padding-bottom: 150px;">
     <div>
         <b>{{ bam_no}}</b> BAMs found for sample <b>{{ sampleID }}</b><br>
         Please select which project to load the BAM from:</b><br></b><br>

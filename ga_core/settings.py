@@ -42,6 +42,7 @@ try:
     EMAIL_USER = os.environ['EMAIL_USER']
     SMTP_RELAY = os.environ['SMTP_RELAY']
     PORT = os.environ['PORT']
+    EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
     # URLs for IGV
     FASTA_37 = os.environ['FASTA_37']
@@ -54,8 +55,9 @@ try:
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
 
-    # path to bulk design script in primer designer
+    # path to primer designer & its reference files
     PRIMER_DESIGNER_DIR_PATH = os.environ['PRIMER_DESIGNER_DIR_PATH']
+    PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
 
 except KeyError as e:
     key = e.args[0]

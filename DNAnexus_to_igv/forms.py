@@ -6,7 +6,7 @@ class SearchForm(forms.Form):
     sampleID = forms.CharField(required=True, widget=forms.TextInput(attrs={
         'placeholder': 'Enter Sample ID',
         'class': 'form-control',
-        'style': 'width:175px'
+        'style': 'width:475px'
     }))
 
 

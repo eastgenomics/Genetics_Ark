@@ -16,3 +16,5 @@ coverage_reports/dx_002_coverage_reports.json
 db.sqlite3
 logs/ga-debug.log
 logs/ga-error.log
+.env
+staticfiles

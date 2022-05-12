@@ -11,10 +11,10 @@ def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ga_core.settings')
 
-    if '.env' in sys.argv[-1]:
-        # passed .env file, load variables to env to access in settings.py
-        load_dotenv(Path(sys.argv[-1]), override=True)
-        sys.argv = sys.argv[:-1]  # remove env file to not cause run error
+    try:
+        load_dotenv()
+    except:
+        pass
 
     try:
         from django.core.management import execute_from_command_line

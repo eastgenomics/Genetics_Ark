@@ -41,8 +41,10 @@ import os
 from pathlib import Path
 import sys
 
-from dotenv import dotenv_values
+from dotenv import dotenv_values, load_dotenv
 import dxpy as dx
+
+load_dotenv()
 
 
 def get_002_projects():
@@ -52,21 +54,21 @@ def get_002_projects():
 
     Args: None
 
-    Returns: - project_002_list (list): list of all 002 project names
+    Returns: - project_002_list (list): list of all 002 project id
     """
-    projects = dx.search.find_projects(name="002*", name_mode="glob")
+    projects = list(dx.search.find_projects(name="002*", name_mode="glob"))
     project_002_list = [x["id"] for x in projects]
 
     # try getting project id for dev project
-    dev_project = dx.search.find_projects(
-        name="003_200115_ga_igv_dev_data", name_mode="glob"
-    )
-    dev_project = [x for x in dev_project][0]['id']
+    # dev_project = dx.search.find_projects(
+    #     name="003_200115_ga_igv_dev_data", name_mode="glob"
+    # )
+    # dev_project = [x for x in dev_project][0]['id']
 
-    if dev_project:
-        project_002_list.append(dev_project)
-    else:
-        print('dev project does not appear to exist')
+    # if dev_project:
+    #     project_002_list.append(dev_project)
+    # else:
+    #     print('dev project does not appear to exist')
 
     print("Total 002 projects found:", len(project_002_list))
 
@@ -99,8 +101,8 @@ def find_dx_bams(project_002_list):
     # empty dict to add bams to if index is missing
     missing_bam = defaultdict(list)
 
-    for i, project in enumerate(project_002_list):
-        print(f'Searching project {project} ({i + 1}/{len(project_002_list)})')
+    for index, project in enumerate(project_002_list):
+        print(f'Searching project {project} ({index + 1}/{len(project_002_list)})')
 
         bam_dict = {}
         idx_dict = {}
@@ -139,10 +141,8 @@ def find_dx_bams(project_002_list):
                 indexes.append(f"{bam_file}.bai")
                 indexes.append(f"{bam_file.strip('.bam')}.bai")
 
-                if idx_dict.get((path, indexes[0])):
+                if idx_dict.get((path, indexes[0])) or idx_dict.get((path, indexes[1])):
                     # if index with matching bam file and path is found
-                    idx = indexes[0]
-                elif idx_dict.get((path, indexes[1])):
                     idx = indexes[0]
                 else:
                     # bam missing index

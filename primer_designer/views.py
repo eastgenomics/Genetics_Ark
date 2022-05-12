@@ -24,7 +24,7 @@ from django.utils.safestring import mark_safe
 
 import primer_designer.forms as Forms
 
-from ga_core.settings import PRIMER_DESIGNER_DIR_PATH
+from ga_core.settings import *
 
 
 error_log = logging.getLogger("ga_error")
@@ -114,17 +114,27 @@ def format_region(region):
     return cmd
 
 
-def call_primer_designer(request, regions_form, primer_path, cmd):
+def call_primer_designer(request, regions_form, cmd, output_path):
     """
     Calls primer designer with given formatted cmd string
 
     Args:
+        - request: the particular POST request from frontend
         - regions_form (django form): submitted form data
-        - primer_path (str): path to primer designer dir
         - cmd (str): region formatted str to pass to primer designer
-    Returns: None
+        - output_path: path to output directory /primer_designer/output
+    
+    Returns: render HTML for output PDF download link
     """
-    primer_cmd = f'python3 {primer_path}/bin/primer_designer_region.py {cmd}'
+    primer_cmd = (
+            "docker run "
+            f"-v {PRIMER_DESIGNER_REF_PATH}:/reference_files "
+            f"-v {output_path}:/home/primer_designer/output "
+            f"--env REF_37=/reference_files/grch37/{REF_37} "
+            f"--env DBSNP_37=/reference_files/grch37/{DBSNP_37} "
+            "primer_designer "
+            f"python3 bin/primer_designer_region.py {cmd}"
+        )
 
     try:
         # calling primer designer script, probably should import and run
@@ -170,6 +180,12 @@ def create(request, regions_form):
 
     # unique name of date and random 5 char str
     outname = f'{time_stamp()}-{random_string()}'
+
+    # making an output directory in /primer_designer for output PDF
+    Path(f'{Path(__file__).parent.parent.absolute()}/primer_designer/output/').mkdir(parents=True, exist_ok=True)
+    primer_output_path = f'{Path(__file__).parent.parent.absolute()}/primer_designer/output/'
+
+
     out_dir = f'{Path(__file__).parent.parent.absolute()}/static/tmp/{outname}/'
     out_zip = f'static/tmp/{outname}.zip'
     os.mkdir(Path(out_dir))  # empty dir to add reports to
@@ -179,7 +195,7 @@ def create(request, regions_form):
     for region in regions:
         # format each given region as input args for primer designer & call
         cmd = format_region(region)
-        call_primer_designer(request, regions_form, primer_path, cmd)
+        call_primer_designer(request, regions_form, cmd, primer_output_path)
 
         # get file just created from primer designer output/ and move to zip
         output_pdf = max(
@@ -187,6 +203,7 @@ def create(request, regions_form):
         )
         output_pdf = Path(output_pdf).absolute()
 
+        # move from /primer_designer/output to /static/tmp
         subprocess.run(f'mv {output_pdf} {out_dir}', shell=True, check=True)
 
     # zip the output dir of PDFs
@@ -195,8 +212,8 @@ def create(request, regions_form):
         for pdf in out_pdfs:
             zip_file.write(pdf, Path(pdf).name)
 
-    # delete output dir from tmp/
-    subprocess.run(f'rm -r {out_dir}', shell=True, check=True)
+    # delete output dir from /static/tmp
+    subprocess.run(f'rm -rf {out_dir}', shell=True, check=True)
 
     context_dict = {'key': outname}
     context_dict["outfile_name"] = outname
