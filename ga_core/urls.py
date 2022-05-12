@@ -14,14 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
-from django.conf.urls import url
+from django.urls import include, path, re_path
 from genetics_ark.views import home
-from django.conf import settings
-from django.conf.urls.static import static
 
 urlpatterns = [
-    url('^', include('django.contrib.auth.urls')),
+    re_path('^', include('django.contrib.auth.urls')),
     path('', home, name='home'),
     path('genetics_ark/', include('genetics_ark.urls')),
     path('admin/', admin.site.urls),

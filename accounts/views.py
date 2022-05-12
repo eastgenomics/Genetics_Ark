@@ -1,13 +1,11 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout, get_user_model, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage, send_mail
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from django.utils.encoding import force_text, force_bytes
-from django.utils.http import urlsafe_base64_decode
 import logging
 
 
