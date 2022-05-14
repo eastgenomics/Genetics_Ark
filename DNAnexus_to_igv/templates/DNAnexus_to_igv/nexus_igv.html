@@ -7,7 +7,8 @@
 <html>
 <head>
   <!-- IGV JS -->
-  <script type="text/javascript" src="/static/assets/js/igv-2.7.9.min.js"></script>
+  <script type="text/javascript" src="/static/assets/js/igv.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/igv@2.12.6/dist/igv.min.js"></script> -->
 </head>
 
 <body class="card border-light" style="width:95%; margin:0 auto; padding-top: 75px; padding-bottom: 50px;">
@@ -25,41 +26,37 @@
 
   <!-- loading igv with passed urls -->
   <script type="text/javascript">
-  var igv_div = document.getElementById("igv-div");
-  var options = {
-      showNavigation: true,
-      showRuler: true,
-      showKaryo: true,
-      reference: {
-        // reference files, conditionally passed for 37/38
-        id: '{{ reference }}',
-        name: "Human ('{{ reference }}')",
-        fastaURL: '{{ fasta }}',
-        indexURL: '{{ fasta_idx }}',
-        cytobandURL: '{{ cytoband }}'
-      },
-      tracks: [
-        {
-          // pass in URL for bam in DNAnexus
-          url: '{{ bam_url }}',
-          indexURL: '{{ idx_url }}',
-          name: '{{ sampleID }}',
-          alignmentShading: 'strand',
-          height: 600
-      },
-        {
-        // refseq genes track
-        name: "Refseq Genes",
-        url: '{{ refseq }}',
-        order: 1000000,
-        indexed: false
-      }
-      ]
-    };
-  igv.createBrowser(igv_div, options)
-    .then(function (browser) {
-      igv.browser = browser
-    });
+
+    var igvDiv = document.getElementById("igv-div");
+    var options =
+      {
+        reference: {
+          "id": "{{ reference }}",
+          "name": "Human ({{ reference }})",
+          "fastaURL": "{{ fasta }}",
+          "indexURL": "{{ fasta_idx }}",
+          "cytobandURL": "{{ cytoband }}",
+          "tracks": [
+            {
+              "type": "alignment",
+              "name": "{{ sampleID }}",
+              "format": "bam",
+              "url": "{{ bam_url }}",
+              "indexURL": "{{ idx_url }}",
+              "displayMode": "EXPANDED"
+            },
+            {
+              "name": "Refseq Genes",
+              "format": "refgene",
+              "url": "{{ refseq }}",
+              "order": 1000000,
+              "indexed": false
+            }
+          ],
+        }
+      };
+    igv.createBrowser(igvDiv, options)
+      .then(function (browser) {});
 
   </script>
 

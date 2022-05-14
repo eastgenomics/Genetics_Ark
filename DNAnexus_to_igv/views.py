@@ -25,6 +25,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.safestring import mark_safe
 from django.shortcuts import render
+from django.conf import settings
 import dxpy as dx
 
 import DNAnexus_to_igv.forms as Forms
@@ -400,7 +401,7 @@ def nexus_search(request):
             context_dict["sampleID"] = sample.split('.')[0]
             context_dict["bam_url"] = bam_url
             context_dict["idx_url"] = idx_url
-            print(context_dict)
+
             return render(request, 'DNAnexus_to_igv/nexus_igv.html',
                           context_dict)
 
