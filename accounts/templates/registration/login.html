@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block body_block %}
+{% block body %}
 
-<div style="width:1000px; margin:0 auto; padding-top: 100px; padding-bottom: 50px;">
+<div class="container p-5 mb-5">
     <form method="POST">
         {% csrf_token %}
         {{form|crispy}}
-        <input type="submit" value="Login">
+        <input type="submit" class="btn btn-primary btn-sm" value="Login">
         <br></br>
         New user? <a href="/accounts/sign_up"> Click here to create an account</a>
         <br></br>

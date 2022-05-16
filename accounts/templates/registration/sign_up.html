@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+<!-- {% load crispy_forms_tags %} -->
 
-{% block body_block %}
+{% block body %}
 
-<div style="width:1000px; margin:0 auto; padding-top: 100px; padding-bottom: 50px;">
+<div class="container p-5 mb-5">
 
     <form method="POST" class="uniForm" autocomplete="off">
         {% csrf_token %}
         {{form|crispy}}
-        <input type="submit" value="Sign Up">
+        <input type="submit" class="btn btn-primary btn-sm" value="Sign Up">
+        <a class="btn btn-danger btn-sm" href="/" role="button">Back</a>
     </form>
 
 </div>

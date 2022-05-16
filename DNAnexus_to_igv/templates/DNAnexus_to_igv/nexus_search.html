@@ -2,8 +2,7 @@
 
 {% load static %}
 
-{% block body_block %}
-<html>
+{% block css %}
 <style>
     .spinner{
         position: relative;
@@ -27,7 +26,9 @@
         transform: scale(1.1);
     }
 </style>
+{% endblock %}
 
+{% block body %}
 <!-- messages loader -->
 {% if messages %} 
     {% for message in messages %}
@@ -168,7 +169,9 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
 
+{% block script %}
 <!-- function to check if selected sample is in the dev data project and req. confirmation to load-->
 <script>
     function checkProject() {
@@ -206,9 +209,4 @@
         window.getSelection().removeAllRanges();
     }
 </script>
-
-</html>
-</body>
-
 {% endblock %}
-

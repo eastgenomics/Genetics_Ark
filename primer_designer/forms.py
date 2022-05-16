@@ -8,8 +8,7 @@ class RegionsForm(forms.Form):
 
     regions = forms.CharField(widget=forms.Textarea(
         attrs={
-            'placeholder': 'Enter target region(s)',
-            'style': 'padding-left: 10px; padding-top:10px'
+            'placeholder': 'Enter Target Region(s)'
         }
     ))
 

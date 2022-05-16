@@ -278,7 +278,7 @@ hr {
 }
 
 
-/* Button */
+/* Button
 input[type="submit"],
 input[type="reset"],
 input[type="button"],
@@ -392,7 +392,7 @@ button,
       input[type="button"].primary:hover:active,
       button.primary:hover:active,
       .button.primary:hover:active {
-        background-color: #b71824; }
+        background-color: #b71824; } */
 
 
 /* List */
@@ -643,13 +643,13 @@ table.alt tbody tr td {
     transform: scale(1.1);
   }
 
-  .btn {
+  /* .btn {
     transition: transform 0.25s;
   }
 
   .btn:hover {
     transform: scale(1.1);
-  }
+  } */
 
 
 /* Actions */

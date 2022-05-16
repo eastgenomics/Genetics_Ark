@@ -6,6 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage, send_mail
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
+
 import logging
 
 
@@ -26,7 +27,7 @@ def log_out(request):
     messages.add_message(
         request,
         messages.SUCCESS,
-        """Successfully logged out"""
+        "Successfully logged out"
     )
     # redirect to home page which goes back to login
     return redirect('/')
@@ -110,16 +111,14 @@ def sign_up(request):
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    err_msg,
-                    extra_tags="alert-danger"
+                    err_msg
                 )
         else:
             # error in form
             messages.add_message(
                 request,
                 messages.ERROR,
-                "Error in sign up form, please check the form and try again",
-                extra_tags="alert-danger"
+                "Error in sign up form, please check the form and try again"
             )
 
     return render(request, 'registration/sign_up.html', {'form': form})

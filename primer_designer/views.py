@@ -4,18 +4,17 @@ designs. Primer designer (https://github.com/eastgenomics/primer_designer)
 should be set up locally (or the docker image built from its image) and the
 path to the dir set in the .env file
 """
-import ast
-from datetime import datetime
-from glob import glob
+
 import logging
 import os
-from pathlib import Path
-import pprint as pp
 import random
 import string
 import subprocess
-from zipfile import ZipFile
 
+from datetime import datetime
+from glob import glob
+from zipfile import ZipFile
+from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -23,9 +22,7 @@ from django.utils.safestring import mark_safe
 
 
 import primer_designer.forms as Forms
-
-from ga_core.settings import *
-
+from ga_core.settings import PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_DESIGNER_DIR_PATH
 
 error_log = logging.getLogger("ga_error")
 
@@ -40,24 +37,17 @@ def index(request):
             # generate primers
             return create(request, regions_form)
         else:
-            error = ast.literal_eval(pp.pformat(regions_form.errors))
-
             messages.add_message(
                 request,
                 messages.ERROR,
-                mark_safe(
-                    f"Error in given primer design input: {error['regions'][0]}"
-                ),
-                extra_tags="alert-danger"
+                "Error in given primer design input"
             )
 
-            return render(request, "primer_designer/index.html", {
-                'regions_form': regions_form
-            })
+            # return render(request, "primer_designer/index.html", {'regions_form': regions_form})
     else:
-        return render(request, "primer_designer/index.html", {
-            'regions_form': Forms.RegionsForm()
-        })
+        regions_form = Forms.RegionsForm()
+    
+    return render(request, "primer_designer/index.html", {'regions_form': regions_form})
 
 
 def random_string():
@@ -137,8 +127,6 @@ def call_primer_designer(request, regions_form, cmd, output_path):
         )
 
     try:
-        # calling primer designer script, probably should import and run
-        # but its messy so ¯\_(ツ)_/¯
         call = subprocess.run(
             primer_cmd, shell=True, check=True,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -148,23 +136,18 @@ def call_primer_designer(request, regions_form, cmd, output_path):
         traceback = e.stderr.decode('utf-8').rstrip('\n')
         if 'Error' in traceback:
             # attempt to not show full ugly traceback, just the error
-            err_msg = e.stderr.decode('utf-8').split('Error')[-1]
+            err_msg = e.stderr.decode('utf-8').split('Error:')[-1].strip()
 
         error_log.error(f':Primer designer: {traceback}')
+        error_log.error(primer_cmd)
 
         messages.add_message(
             request,
             messages.ERROR,
-            mark_safe((
-                f"Error in designing primers. Error code: {e.returncode}</br>"
-                f"Error message: {err_msg}</br>{primer_cmd}"
-            )),
-            extra_tags="alert-danger"
+            f"ERROR MSG: {err_msg}. ERROR CODE: {e.returncode}"
         )
-
-        return render(request, "primer_designer/index.html", {
-            'regions_form': regions_form
-        })
+        return False
+    return True
 
 
 @login_required
@@ -195,7 +178,10 @@ def create(request, regions_form):
     for region in regions:
         # format each given region as input args for primer designer & call
         cmd = format_region(region)
-        call_primer_designer(request, regions_form, cmd, primer_output_path)
+        output = call_primer_designer(request, regions_form, cmd, primer_output_path)
+
+        if not output:
+            return render(request, "primer_designer/index.html", {'regions_form': regions_form})
 
         # get file just created from primer designer output/ and move to zip
         output_pdf = max(
