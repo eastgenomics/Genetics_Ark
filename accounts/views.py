@@ -3,7 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import send_mail
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 
@@ -12,7 +12,7 @@ import logging
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from ga_core.settings import ALLOWED_HOSTS, DEFAULT_FROM_EMAIL, LOGGING
+from ga_core.settings import DEFAULT_FROM_EMAIL
 
 error_log = logging.getLogger("ga_error")
 

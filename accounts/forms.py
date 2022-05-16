@@ -13,16 +13,22 @@ username_validator = UnicodeUsernameValidator()
 
 class SignUpForm(UserCreationForm):
     first_name = forms.CharField(
-        max_length=15, min_length=2, required=True,
+        max_length=15,
+        min_length=2,
+        required=True,
         help_text='Required: First Name',
         widget=forms.TextInput(attrs={
-            'class': 'form-control', 'placeholder': 'First Name'
+            'class': 'form-control'
         })
     )
     last_name = forms.CharField(
-        max_length=15, min_length=2, required=True,
+        max_length=15,
+        min_length=2,
+        required=True,
         help_text='Required: Last Name',
-        widget=(forms.TextInput(attrs={'class': 'form-control'}))
+        widget=(forms.TextInput(attrs={
+            'class': 'form-control'
+            }))
     )
     email = forms.EmailField(
         max_length=50,
@@ -55,8 +61,8 @@ class SignUpForm(UserCreationForm):
         # validates only NHS email addresses
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
-        if not re.search(r'@[a-z.]*nhs*', email):
-            raise ValidationError("Only NHS email addresses allowed")
+        # if not re.search(r'@[a-z.]*nhs*', email):
+        #     raise ValidationError("Only NHS email addresses allowed")
         return email
 
     class Meta:

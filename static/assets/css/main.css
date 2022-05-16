@@ -1,5 +1,8 @@
-@import url(font-awesome.min.css);
-@import url("https://fonts.googleapis.com/css?family=Raleway:200,300,400,500,600");
+@font-face {
+  font-family: 'Raleway';
+  src: local('Raleway'),
+       url('../fonts/Raleway-VariableFont_wght.ttf') format("truetype");
+}
 
 /* Basic */
 @-ms-viewport {
