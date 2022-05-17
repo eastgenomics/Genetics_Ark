@@ -148,8 +148,7 @@ def nexus_search(request):
                     messages.ERROR,
                     """An error has occured connecting with\
                     DNAnexus to find samples, please contact\
-                    the bioinformatics team""",
-                    extra_tags="alert-danger"
+                    the bioinformatics team"""
                 )
                 error_log.error(re.sub(
                     r'\s+', ' ', """Failed to load sample list from JSON, most
@@ -166,7 +165,7 @@ def nexus_search(request):
             # JSON by matching against upper name and search term
             # (structure of json may be found in find_dx_bams.py)
             sample_bams = [
-                bam for sample, bam in json_bams.items()
+                bam for _, bam in json_bams.items()
                 if sample_id.upper() in bam[0]['bam_name'].upper()
             ]
 
@@ -270,7 +269,7 @@ def nexus_search(request):
                         "idx_name": bam["idx_name"],
                         "project_name": bam["project_name"],
                         "project_id": bam["project_id"],
-                        "bam_folder": path,
+                        "bam_folder": path.lstrip('(').rstrip(')'),
                         "idx_id": bam["idx_file_id"],
                         "bam_id": bam["bam_file_id"]
                     })
@@ -315,8 +314,7 @@ def nexus_search(request):
                     context_dict["bam_url"] = bam_url
                     context_dict["idx_url"] = idx_url
 
-                    return render(request, 'DNAnexus_to_igv/nexus_search.html',
-                                  context_dict)
+                    return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
         if "url_form_37" in request.POST or "url_form_38" in request.POST:
             # if direct url button is pressed

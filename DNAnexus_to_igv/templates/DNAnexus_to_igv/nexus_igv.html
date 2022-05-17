@@ -1,17 +1,7 @@
 {% extends 'base.html' %}
 
-{% load static %}
-
 {% block body %}
-
-<html>
-<head>
-  <!-- IGV JS -->
-  <script type="text/javascript" src="/static/assets/js/igv.min.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/igv@2.12.6/dist/igv.min.js"></script> -->
-</head>
-
-<body class="card border-light" style="width:95%; margin:0 auto; padding-top: 75px; padding-bottom: 50px;">
+<div class="container-fluid mt-2 mb-5 p-5">
     
   <h2>IGV browser for {{ sampleID }}</h2>
   <div>
@@ -22,45 +12,43 @@
   Note: samples with high depth of sequencing may take a few moments to load.
   <br></br>
 
-  <div id="igv-div" style="padding:5px; border:1px solid lightgray; background-color: white;"></div>
+  <div id="igv-div" class="p-2" style="border:1px solid lightgray; background-color: white;"></div>
+</div>
+{% endblock %}
 
-  <!-- loading igv with passed urls -->
-  <script type="text/javascript">
+{% block script %}
+<!-- loading igv with passed urls -->
+<script type="text/javascript">
 
-    var igvDiv = document.getElementById("igv-div");
-    var options =
-      {
-        reference: {
-          "id": "{{ reference }}",
-          "name": "Human ({{ reference }})",
-          "fastaURL": "{{ fasta }}",
-          "indexURL": "{{ fasta_idx }}",
-          "cytobandURL": "{{ cytoband }}",
-          "tracks": [
-            {
-              "type": "alignment",
-              "name": "{{ sampleID }}",
-              "format": "bam",
-              "url": "{{ bam_url }}",
-              "indexURL": "{{ idx_url }}",
-              "displayMode": "EXPANDED"
-            },
-            {
-              "name": "Refseq Genes",
-              "format": "refgene",
-              "url": "{{ refseq }}",
-              "order": 1000000,
-              "indexed": false
-            }
-          ],
-        }
-      };
-    igv.createBrowser(igvDiv, options)
-      .then(function (browser) {});
-
-  </script>
-
-</body>
-</html>
-
+  var igvDiv = document.getElementById("igv-div");
+  var options =
+    {
+      reference: {
+        "id": "{{ reference }}",
+        "name": "Human ({{ reference }})",
+        "fastaURL": "{{ fasta }}",
+        "indexURL": "{{ fasta_idx }}",
+        "cytobandURL": "{{ cytoband }}",
+        "tracks": [
+          {
+            "type": "alignment",
+            "name": "{{ sampleID }}",
+            "format": "bam",
+            "url": "{{ bam_url }}",
+            "indexURL": "{{ idx_url }}",
+            "displayMode": "EXPANDED"
+          },
+          {
+            "name": "Refseq Genes",
+            "format": "refgene",
+            "url": "{{ refseq }}",
+            "order": 1000000,
+            "indexed": false
+          }
+        ],
+      }
+    };
+  igv.createBrowser(igvDiv, options)
+    .then(function (browser) {});
+</script>
 {% endblock %}

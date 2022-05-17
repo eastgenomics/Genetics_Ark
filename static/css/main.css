@@ -1512,7 +1512,7 @@ ul.icons {
   -webkit-justify-content: center;
   -ms-justify-content: center;
   justify-content: center;
-  background-image: url("../../images/dna_bg.svg");
+  background-image: url("../images/dna_bg.svg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -1720,7 +1720,7 @@ body {
  }
   body:before {
     content: ' ';
-    background-image: url(../../images/bg.jpg);
+    background-image: url(../images/bg.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
