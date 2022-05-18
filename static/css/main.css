@@ -1674,7 +1674,7 @@ ul.icons {
     opacity: 0.6;
     position: absolute;
     top: 0;
-    webkit-linear-gradientidth: 100%;
+    /* webkit-linear-gradientidth: 100%; */
     width: 100%;
     z-index: 1; }
   #banner.small {
@@ -1787,8 +1787,9 @@ body {
     text-decoration: none;
     position: relative; 
     display:inline;
-    padding-right: 10px;
-    margin-left:auto; margin-right:0
+    /* padding-right: 10px; */
+    margin-left: auto;
+    margin-right: 0
   }
 
   #header > .user > a:hover {
@@ -1798,7 +1799,7 @@ body {
     #header > nav > a {
     color: inherit;
     display: inline-block;
-    padding: 0 0.75rem;
+    /* padding: 0 0.75rem; */
     text-decoration: none; }
     #header > nav > a:hover {
       color: #ffffff; }
@@ -1812,9 +1813,9 @@ body {
         font-style: normal;
         font-weight: normal;
         text-transform: none !important; }
-      #header > nav > a[href="#menu"]:before {
+      /* #header > nav > a[href="#menu"]:before {
         content: '\f0c9';
-        margin: 0 0.5rem 0 0; }
+        margin: 0 0.5rem 0 0; } */
     #header > nav > a + a[href="#menu"]:last-child {
       border-left: solid 1px rgba(255, 255, 255, 0.25);
       margin-left: 0.5rem;
@@ -2145,7 +2146,7 @@ body {
     right: 0;
     text-align: right;
     top: 0;
-    vertical-align: middle;
+    /* vertical-align: middle; */
     width: 7rem; }
     #menu .close:before {
       -moz-osx-font-smoothing: grayscale;

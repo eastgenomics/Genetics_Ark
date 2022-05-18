@@ -169,8 +169,8 @@ def nexus_search(request):
                 if sample_id.upper() in bam[0]['bam_name'].upper()
             ]
 
+            # no bams found
             if len(sample_bams) == 0:
-                # no bams found
                 messages.add_message(
                     request,
                     messages.ERROR,
@@ -191,10 +191,8 @@ def nexus_search(request):
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
 
-
+            # one sample found with one bam, generate the urls
             if len(sample_bams[0]) == 1 and len(sample_bams) == 1:
-                # one sample found with one bam
-                # generate the urls
                 sample_dict = sample_bams[0][0]
 
                 bam_url, idx_url = get_dx_urls(
@@ -241,6 +239,9 @@ def nexus_search(request):
                 context_dict["sampleID"] = sample_id
                 context_dict["bam_name"] = sample_dict["bam_name"]
                 context_dict["project_name"] = sample_dict["project_name"]
+                context_dict['bam_folder'] = sample_dict['bam_folder']
+                context_dict['bam_archival_state'] = sample_dict['bam_archival_state']
+                context_dict['idx_archival_state'] = sample_dict['idx_archival_state']
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html',
                               context_dict)
@@ -271,7 +272,9 @@ def nexus_search(request):
                         "project_id": bam["project_id"],
                         "bam_folder": path.lstrip('(').rstrip(')'),
                         "idx_id": bam["idx_file_id"],
-                        "bam_id": bam["bam_file_id"]
+                        "bam_id": bam["bam_file_id"],
+                        "bam_archival_state": bam["bam_file_archival_status"],
+                        "idx_archival_state": bam["idx_file_archival_status"]
                     })
 
                 context_dict["bam_list"] = bam_list
@@ -284,12 +287,13 @@ def nexus_search(request):
         if "select_bam" in request.POST:
             # BAM has been selected, save bam data before flushing
             # session
-            selected_bam = request.POST.get("selected_bam")
+            selected_bam = request.POST.get("selected_bam_input")
             session_bams = request.session["bam_list"]
 
             for bam in session_bams:
                 if selected_bam in bam.values():
                     sampleID = bam["bam_name"].split('.')[0]
+                    print(sampleID)
                     # generate urls for selected sample
                     bam_url, idx_url = get_dx_urls(
                         request,
@@ -313,6 +317,11 @@ def nexus_search(request):
                     context_dict["project_name"] = bam["project_name"]
                     context_dict["bam_url"] = bam_url
                     context_dict["idx_url"] = idx_url
+                    context_dict['bam_folder'] = bam['bam_folder']
+                    context_dict['bam_id'] = bam['bam_id']
+                    context_dict['idx_id'] = bam['idx_id']
+                    context_dict['bam_archival_state'] = bam['bam_archival_state']
+                    context_dict['idx_archival_state'] = bam['idx_archival_state']
 
                     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 

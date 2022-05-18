@@ -26,6 +26,12 @@
         border-radius: 4px;
         color: #FFF;
     }
+    .list-group-scrollable {
+        max-height: 800px;
+        margin-bottom: 10px;
+        overflow:scroll;
+        -webkit-overflow-scrolling: touch;
+    }
 </style>
 {% endblock %}
 
@@ -50,6 +56,7 @@
                 {% csrf_token %}
                 {{ search_form|crispy }}<br>
                 <button name="search_form" id="search" type="submit" class="btn btn-primary btn-sm">Search</button>
+                <a class="btn btn-info btn-sm ml-3" href="/" role="button">Home</a>
             </form>
         
             <!-- loading spinner -->
@@ -71,18 +78,22 @@
                     {% csrf_token %}
                     {{ url_form|crispy }}
                     <div class="row">
-                        <button name="url_form_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV <br>(GRCh37)</button>
-                        <button name="url_form_38" type="submit" class ="btn btn-info btn-sm m-2 px-3">View in web IGV <br>(GRCh38)</button>
+                        <button name="url_form_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV (GRCh37)</button>
+                        <button name="url_form_38" type="submit" class ="btn btn-info btn-sm m-2 px-3">View in web IGV (GRCh38)</button>
                     </div>
                 </form>
             {% endif %}
             
             <!-- SINGLE SAMPLE VIEW -->
             {% if bam_name %}
-                <h2 class="mt-5">{{ bam_name}}</h2>
+                <h2 class="mt-5">{{ bam_id}}</h2>
+                <div class="alert alert-primary" role="alert">
+                    Make sure to double-check the unique BAM ID
+                </div>
                 Search Term: <b>{{ sampleID }}</b><br>
-                Sample Name: <b>{{ bam_name }}</b><br>
-                Sequencing Project: <b>{{ project_name }}</b>
+                BAM Name: <b>{{ bam_name }}</b><br>
+                Sequencing Project: <b>{{ project_name }}</b><br>
+                Directory: <b>{{ bam_folder }}</b>
                 
                 <br></br>
                 BAMs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
@@ -99,7 +110,7 @@
                         <input type="image" class="ml-1 m-y-0 p-0" src="/static/images/clipboard.png" onclick="copyToClipboard('idx-url', 2)" width="20" height="20"/>
                         <span id="custom-tooltip-2">copied</span>
                     </li>
-                  </ul>
+                </ul>
         
                 <br>
                 Load BAMs for sample in web IGV with appropriate reference build: 
@@ -108,8 +119,8 @@
                 <form action="" method="POST" name="igv_form" onsubmit="return checkProject()" target="_blank">
                     {% csrf_token %}
                     <input type="hidden" name="project_name" value={{ project_name }}>
-                    <button name="igv_ga_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV <br>(GRCh37)</button>
-                    <button name="igv_ga_38" type="submit" class ="btn btn-info btn-sm m-2 px-3">View in web IGV <br>(GRCh38)</button>
+                    <button name="igv_ga_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV (GRCh37)</button>
+                    <button name="igv_ga_38" type="submit" class ="btn btn-warning btn-sm m-2 px-3">View in web IGV (GRCh38)</button>
                 </form>
             {% endif %}
         
@@ -118,21 +129,34 @@
             <h2 class="mt-5">Results</h2>
             <b>{{ bam_no}}</b> BAMs found for sample <b>{{ sampleID }}</b><br>
             Please select which project to load the BAM from:</b><br></b><br>
-            
+            <ul class="list-group-scrollable">
                 {% for bam in bam_list %}
-                    <div class="card p-2 my-2">
+                    <div class="card m-3">
                         <div class="card-body">
-                            <h5 class="card-title">{{ bam.bam_name }}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ bam.project_name }}</h6>
-                            <p class="card-text"><span class="font-weight-bold">Directory:</span> {{ bam.bam_folder }}</p>
-                            <form action="" method="post" name="select_bam" target="_blank">
-                                {% csrf_token %}
-                                <input type="hidden" name="selected_bam" value={{ bam.bam_name }} >
-                                <button name="select_bam" type="submit" class = "btn btn-success btn-sm">Select</button>&emsp;
-                            </form>
+                            <h5 class="card-title">{{ bam.project_name }}</h5>
+                            {% if bam.bam_archival_state == 'live' %}
+                                <h6 class="card-subtitle py-1 text-muted">
+                                    <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>{{ bam.bam_name }}
+                                </h6>
+                                <p class="card-text">Directory: {{ bam.bam_folder }}<br>BAM ID: {{ bam.bam_id }}<br>Index Name: {{ bam.idx_name }}</p>
+                                <form action="" method="post" name="select_bam" target="_blank">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="selected_bam_input" value="{{ bam.bam_id }}">
+                                    <button name="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
+                                </form>
+                            {% else %}
+                                <h6 class="card-subtitle py-1 text-muted">
+                                    <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>{{ bam.bam_name }}
+                                </h6>
+                                <p class="card-text">Directory: {{ bam.bam_folder }}<br>BAM ID: {{ bam.bam_id }}<br>Index Name: {{ bam.idx_name }}<br>BAM Archival State: {{ bam.bam_archival_state }}<br>Index Archival State: {{ bam.idx_archival_state }}</p>
+                                <div class="alert alert-warning" role="alert">
+                                    To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 {% endfor %}
+            </ul>
             {% endif %}
         </div>
     </div>

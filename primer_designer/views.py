@@ -168,7 +168,7 @@ def create(request, regions_form):
     Path(f'{Path(__file__).parent.parent.absolute()}/primer_designer/output/').mkdir(parents=True, exist_ok=True)
     primer_output_path = f'{Path(__file__).parent.parent.absolute()}/primer_designer/output/'
 
-
+    Path(f'{Path(__file__).parent.parent.absolute()}/static/tmp').mkdir(parents=True, exist_ok=True)
     out_dir = f'{Path(__file__).parent.parent.absolute()}/static/tmp/{outname}/'
     out_zip = f'static/tmp/{outname}.zip'
     os.mkdir(Path(out_dir))  # empty dir to add reports to

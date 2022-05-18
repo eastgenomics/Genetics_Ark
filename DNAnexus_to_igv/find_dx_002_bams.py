@@ -119,10 +119,16 @@ def find_dx_bams(project_002_list):
 
             # add path, name and id of each bam and index to dicts
             for bam in bams:
-                bam_dict[(bam["describe"]["folder"], bam["describe"]["name"])] = bam["id"]
+                bam_dict[(bam["describe"]["folder"], bam["describe"]["name"])] = {
+                    'id': bam["id"],
+                    'archivalState': bam['describe']['archivalState']
+                    }
 
             for idx in idxs:
-                idx_dict[(idx["describe"]["folder"], idx["describe"]["name"])] = idx["id"]
+                idx_dict[(idx["describe"]["folder"], idx["describe"]["name"])] = {
+                    'id': idx["id"],
+                    'archivalState': bam['describe']['archivalState']
+                    }
 
             # get project name to display
             p = dx.dxproject.DXProject(project)
@@ -162,19 +168,27 @@ def find_dx_bams(project_002_list):
                     # sample named without "_" i.e X00100.bam
                     sample = bam_file.split(".", 1)[0].upper()
 
+                bam_id = bam_dict[path, bam_file]['id']
+                bam_archival_state = bam_dict[path, bam_file]['archivalState']
+                idx_id = idx_dict[(path, bam_file + ".bai")]['id']
+                idx_archival_state = bam_dict[path, bam_file]['archivalState']
+
                 # defaultdict with list for each sample
                 dx_data[sample].append({
-                    "bam_file_id": bam_dict[path, bam_file],
-                    "idx_file_id": idx_dict[(path, bam_file + ".bai")],
+                    "bam_file_id": bam_id,
+                    "idx_file_id": idx_id,
                     "project_id": project,
                     "project_name": project_name,
                     "bam_name": bam_file,
                     "idx_name": bam_file + ".bai",
-                    "bam_path": path
+                    "bam_path": path,
+                    "bam_file_archival_status": bam_archival_state,
+                    "idx_file_archival_status": idx_archival_state
                 })
 
     # ensure output jsons go to /DNAnexus_to_igv/jsons dir
     jsons_dir = f'{Path(__file__).parent.absolute()}/jsons'
+    print(f'JSON directory: {jsons_dir}')
     outfile_bam = f'{jsons_dir}/dx_002_bams.json'
     outfile_missing = f'{jsons_dir}/dx_missing_bam.json'
 
