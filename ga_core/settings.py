@@ -144,10 +144,11 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 # Database
 # default engine (django.db.backends.mysql) doesn't work with dockerized django app
+# mysql engine: mysql.connector.django
 # https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql.connector.django',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': ACCOUNT_DB_NAME,
         'USER': ACCOUNT_DB_USER,
         'PASSWORD': ACCOUNT_DB_PASSWORD,
