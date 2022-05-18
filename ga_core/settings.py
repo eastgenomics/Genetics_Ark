@@ -143,13 +143,24 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
 # Database
+# default engine (django.db.backends.mysql) doesn't work with dockerized django app
+# https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': ACCOUNT_DB_NAME,
         'USER': ACCOUNT_DB_USER,
         'PASSWORD': ACCOUNT_DB_PASSWORD,
-        'HOST': ACCOUNT_DB_HOST
+        'HOST': ACCOUNT_DB_HOST,
+        'OPTIONS': {
+        # tell MySQLdb to connect with 'utf8mb4' character set
+            'charset': 'utf8mb4',
+        },
+        # tell Django to build the test database with the 'utf8mb4' character set
+        # 'TEST': {
+        #     'CHARSET': 'utf8mb4',
+        #     'COLLATION': 'utf8mb4_unicode_ci',
+        # }
     }
 }
 
@@ -247,7 +258,8 @@ LOGGING = {
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-STATIC_URL = '/static/'
+# Explanation on why: https://www.mattlayman.com/understand-django/serving-static-files/
+STATIC_URL = 'static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
