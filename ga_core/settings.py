@@ -93,7 +93,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
-    'crispy_forms'
+    'crispy_forms',
+    'django_q'
 ]
 
 # django crispy forms for nice form rendering
@@ -153,15 +154,7 @@ DATABASES = {
         'USER': ACCOUNT_DB_USER,
         'PASSWORD': ACCOUNT_DB_PASSWORD,
         'HOST': ACCOUNT_DB_HOST,
-        'OPTIONS': {
-        # tell MySQLdb to connect with 'utf8mb4' character set
-            'charset': 'utf8mb4',
-        },
-        # tell Django to build the test database with the 'utf8mb4' character set
-        # 'TEST': {
-        #     'CHARSET': 'utf8mb4',
-        #     'COLLATION': 'utf8mb4_unicode_ci',
-        # }
+        'PORT': 3306
     }
 }
 
@@ -269,3 +262,10 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_REDIRECT_URL = 'home'
+
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'timeout': 300,
+    'retry': 350,
+    'orm': 'default'
+}

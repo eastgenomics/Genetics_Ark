@@ -34,17 +34,13 @@ Creates JSONs with following structure:
 
 Jethro Rainford 080620
 """
-from collections import defaultdict
+
 import datetime as date
-import json
-import os
-from pathlib import Path
-import sys
-
-from dotenv import dotenv_values, load_dotenv
 import dxpy as dx
+import json
 
-load_dotenv()
+from collections import defaultdict
+from pathlib import Path
 
 
 def get_002_projects():
@@ -58,17 +54,6 @@ def get_002_projects():
     """
     projects = list(dx.search.find_projects(name="002*", name_mode="glob"))
     project_002_list = [x["id"] for x in projects]
-
-    # try getting project id for dev project
-    # dev_project = dx.search.find_projects(
-    #     name="003_200115_ga_igv_dev_data", name_mode="glob"
-    # )
-    # dev_project = [x for x in dev_project][0]['id']
-
-    # if dev_project:
-    #     project_002_list.append(dev_project)
-    # else:
-    #     print('dev project does not appear to exist')
 
     print("Total 002 projects found:", len(project_002_list))
 
@@ -188,7 +173,7 @@ def find_dx_bams(project_002_list):
 
     # ensure output jsons go to /DNAnexus_to_igv/jsons dir
     jsons_dir = f'{Path(__file__).parent.absolute()}/jsons'
-    print(f'JSON directory: {jsons_dir}')
+    print(f'JSON saved to: {jsons_dir}')
     outfile_bam = f'{jsons_dir}/dx_002_bams.json'
     outfile_missing = f'{jsons_dir}/dx_missing_bam.json'
 
@@ -199,32 +184,3 @@ def find_dx_bams(project_002_list):
     if missing_bam:
         with open(outfile_missing, 'w') as missing_file:
             json.dump(missing_bam, missing_file, indent=2)
-
-
-if __name__ == "__main__":
-
-    if len(sys.argv) > 1:
-        # config / env file passed as arg
-        # read in to dict and don't touch env variables
-        config = dotenv_values(sys.argv[-1])
-        AUTH_TOKEN = config["AUTH_TOKEN"]
-    else:
-        # try to get auth token from env (i.e. run in docker)
-        try:
-            AUTH_TOKEN = os.environ["AUTH_TOKEN"]
-        except NameError as e:
-            raise NameError(
-                'auth token could not be retrieved from environment and no .env file passed'
-            )
-
-    # env variable for dx authentication
-    DX_SECURITY_CONTEXT = {
-        "auth_token_type": "Bearer",
-        "auth_token": AUTH_TOKEN
-    }
-    # set token to env
-    dx.set_security_context(DX_SECURITY_CONTEXT)
-
-    project_002_list = get_002_projects()
-
-    find_dx_bams(project_002_list)
