@@ -3,13 +3,13 @@
 {% block body %}
 <div class="container-fluid mt-2 mb-5 p-5">
     
-  <h2>IGV browser for {{ sampleID }}</h2>
+  <h2>IGV browser for {{ sample_id }}</h2>
   <div>
     <h3 style="display: inline;"> Using reference: </h3>
     <h3 style="display: inline; text-transform: lowercase;"><b>{{ reference }}</b></h3>
   </div>
   <br>
-  Note: samples with high depth of sequencing may take a few moments to load.
+  Note: Samples with high depth of sequencing may take a while to load.
   <br></br>
 
   <div id="igv-div" class="p-2" style="border:1px solid lightgray; background-color: white;"></div>
@@ -31,10 +31,8 @@
         "cytobandURL": "{{ cytoband }}",
         "tracks": [
           {
-            "type": "alignment",
-            "name": "{{ sampleID }}",
-            "format": "bam",
-            "url": "{{ bam_url }}",
+            "name": "{{ sample_id }}",
+            "url": "{{ file_url }}",
             "indexURL": "{{ idx_url }}",
             "displayMode": "EXPANDED"
           },
@@ -48,7 +46,6 @@
         ],
       }
     };
-  igv.createBrowser(igvDiv, options)
-    .then(function (browser) {});
+  igv.createBrowser(igvDiv, options);
 </script>
 {% endblock %}

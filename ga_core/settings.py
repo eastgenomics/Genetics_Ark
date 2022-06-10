@@ -5,12 +5,9 @@ import os
 
 from pathlib import Path
 from django.contrib.messages import constants
-from dotenv import load_dotenv
 
 # Passwords and database credentials stored in .env file
 # NOT IN VERSION CONTROL
-
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

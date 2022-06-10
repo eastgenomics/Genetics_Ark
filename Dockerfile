@@ -27,4 +27,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8000
 COPY . /home/ga/
 
-CMD ["gunicorn", "--workers", "3", "ga_core.wsgi:application"]
+# CMD ["gunicorn", "ga_core.wsgi:application"]

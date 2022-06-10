@@ -1,7 +1,32 @@
-version: '3.3'
+# version: '3.3'
+# services:
+#    web:
+#        build: .
+#        command: python manage.py runserver
+#        ports:
+#            - 8000:8000
+
+version: "3.9"
+
 services:
-   web:
-       build: .
-       command: python manage.py runserver
-       ports:
-           - 8000:8000
+    db:
+        image: mysql
+        restart: always
+        environment:
+            MYSQL_DATABASE: 'testdb'
+            MYSQL_ROOT_USER: 'root'
+            MYSQL_ROOT_PASSWORD: 'root'
+            MYSQL_ROOT_HOST: localhost
+        ports:
+            - '3306:3306'
+        # expose:
+        #     - '3306'
+    web:
+        build: .
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/home/ga
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db

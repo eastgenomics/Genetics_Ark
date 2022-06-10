@@ -10,26 +10,29 @@ DNAnexus_to_igv dir.
 
 Creates JSONs with following structure:
 {
-  "sample_id": [
-    {
-      "bam_file_id": "",
-      "idx_file_id": "",
-      "project_id": "",
-      "project_name": "",
-      "bam_name": "",
-      "idx_name": "",
-      "bam_path": ""
-    },
-    {
-      "bam_file_id": "",
-      "idx_file_id": "",
-      "project_id": "",
-      "project_name": "",
-      "bam_name": "",
-      "idx_name": "",
-      "bam_path": ""
-    }
-  ],
+    "BAM":
+        "sample_id": [
+            {
+            "bam_file_id": "",
+            "idx_file_id": "",
+            "project_id": "",
+            "project_name": "",
+            "bam_name": "",
+            "idx_name": "",
+            "bam_path": ""
+            },
+            {
+            "bam_file_id": "",
+            "idx_file_id": "",
+            "project_id": "",
+            "project_name": "",
+            "bam_name": "",
+            "idx_name": "",
+            "bam_path": ""
+            }
+        ],
+    "CNV":
+        "
 }
 
 Jethro Rainford 080620
@@ -38,10 +41,13 @@ Jethro Rainford 080620
 import datetime as date
 import dxpy as dx
 import json
+import os
 
 from collections import defaultdict
 from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 
+PROJECT_CNVS = 'project-FzyfP204Z5qXBp6696jG5g10'
 
 def get_002_projects():
     """
@@ -52,15 +58,28 @@ def get_002_projects():
 
     Returns: - project_002_list (list): list of all 002 project id
     """
-    projects = list(dx.search.find_projects(name="002*", name_mode="glob"))
+    load_dotenv(find_dotenv())
+
+    projects = list(dx.search.find_projects(name="002*", name_mode="glob", describe=True))
     project_002_list = [x["id"] for x in projects]
+    projects_name = {x['id']: x['describe']['name'] for x in projects}
+
+    DEV_PROJECT_NAME = os.environ["DEV_PROJECT_NAME"]
+
+    dev_project = list(dx.search.find_projects(name=DEV_PROJECT_NAME, name_mode="glob"))
+
+    if dev_project:
+        dev_project = [x['id'] for x in dev_project]
+        project_002_list.append(dev_project)
+    else:
+        print('DEV PROJECT DOES NOT APPEAR TO EXIST')
 
     print("Total 002 projects found:", len(project_002_list))
 
-    return project_002_list
+    return project_002_list, projects_name
 
 
-def find_dx_bams(project_002_list):
+def find_dx_bams(project_002_list, project_names):
     """
     Function to find file and index id for a bam in DNAnexus given a
     sample id.
@@ -81,13 +100,14 @@ def find_dx_bams(project_002_list):
     """
     # empty dict to store bams for output in use defaultdict to handle
     # add or update of keys
-    dx_data = defaultdict(list)
+    dx_data = defaultdict(lambda: defaultdict(list))
 
     # empty dict to add bams to if index is missing
     missing_bam = defaultdict(list)
 
+    # loop through proj to get bam file in each of them
     for index, project in enumerate(project_002_list):
-        print(f'Searching project {project} ({index + 1}/{len(project_002_list)})')
+        print(f'Searching {project} ({index + 1}/{len(project_002_list)})')
 
         bam_dict = {}
         idx_dict = {}
@@ -116,9 +136,7 @@ def find_dx_bams(project_002_list):
                     }
 
             # get project name to display
-            p = dx.dxproject.DXProject(project)
-            project_info = p.describe()
-            project_name = project_info["name"]
+            project_name = project_names[project]
 
             # match bams to indexes on filename and dir path
             for path, bam_file in bam_dict.keys():
@@ -132,9 +150,10 @@ def find_dx_bams(project_002_list):
                 indexes.append(f"{bam_file}.bai")
                 indexes.append(f"{bam_file.strip('.bam')}.bai")
 
-                if idx_dict.get((path, indexes[0])) or idx_dict.get((path, indexes[1])):
-                    # if index with matching bam file and path is found
+                if idx_dict.get((path, indexes[0])):
                     idx = indexes[0]
+                elif idx_dict.get((path, indexes[1])):
+                    idx = indexes[1]
                 else:
                     # bam missing index
                     missing_bam[bam_file].append({
@@ -155,27 +174,31 @@ def find_dx_bams(project_002_list):
 
                 bam_id = bam_dict[path, bam_file]['id']
                 bam_archival_state = bam_dict[path, bam_file]['archivalState']
-                idx_id = idx_dict[(path, bam_file + ".bai")]['id']
+                
+                idx_id = idx_dict[(path, idx)]['id']
                 idx_archival_state = bam_dict[path, bam_file]['archivalState']
 
                 # defaultdict with list for each sample
-                dx_data[sample].append({
-                    "bam_file_id": bam_id,
-                    "idx_file_id": idx_id,
+                dx_data['BAM'][sample].append({
+                    "file_id": bam_id,
+                    "idx_id": idx_id,
                     "project_id": project,
                     "project_name": project_name,
-                    "bam_name": bam_file,
-                    "idx_name": bam_file + ".bai",
-                    "bam_path": path,
-                    "bam_file_archival_status": bam_archival_state,
-                    "idx_file_archival_status": idx_archival_state
+                    "file_name": bam_file,
+                    "idx_name": idx,
+                    "file_path": path,
+                    "file_archival_state": bam_archival_state,
+                    "idx_archival_state": idx_archival_state
                 })
+    
+    find_cnvs(dx_data)
 
     # ensure output jsons go to /DNAnexus_to_igv/jsons dir
-    jsons_dir = f'{Path(__file__).parent.absolute()}/jsons'
-    print(f'JSON saved to: {jsons_dir}')
-    outfile_bam = f'{jsons_dir}/dx_002_bams.json'
-    outfile_missing = f'{jsons_dir}/dx_missing_bam.json'
+    output_dir = f'{Path(__file__).parent.absolute()}/jsons'
+    print(f'JSON saved to: {output_dir}')
+    
+    outfile_bam = f'{output_dir}/dx_002_bams.json'
+    outfile_missing = f'{output_dir}/dx_missing_bam.json'
 
     # write all 002 bams into output json
     with open(outfile_bam, 'w') as outfile:
@@ -184,3 +207,60 @@ def find_dx_bams(project_002_list):
     if missing_bam:
         with open(outfile_missing, 'w') as missing_file:
             json.dump(missing_bam, missing_file, indent=2)
+
+def find_cnvs(data_dict):
+
+    print('Searching for CNVs')
+
+    project_name = dx.DXProject().describe()['name']
+
+    for file in list(
+        dx.find_data_objects(
+            project=PROJECT_CNVS, 
+            name='.*_copy_ratios.gcnv.bed.gz\Z', 
+            name_mode='regexp', 
+            describe=True)):
+        
+        cnv_name = file['describe']['name']
+        cnv_path = file['describe']['folder']
+        cnv_id = file['id']
+        cnv_archival_status = file['describe']['archivalState']
+
+
+        cnv_index = list(dx.find_data_objects(
+            project=PROJECT_CNVS,
+            name=f'{cnv_name}.tbi',
+            name_mode='regexp',
+            folder=cnv_path,
+            describe=True,
+            limit=1
+        ))
+
+        cnv_dict = {
+            'file_name':cnv_name,
+            'file_id':cnv_id,
+            'file_path':cnv_path,
+            'file_archival_state':cnv_archival_status,
+            'project_id':PROJECT_CNVS,
+            'project_name':project_name,
+            'CNV':True
+        }
+
+        if cnv_index:
+            cnv_dict['idx_name'] = cnv_index[0]['describe']['name']
+            cnv_dict['idx_id'] = cnv_index[0]['id']
+            cnv_dict['idx_path'] = cnv_index[0]['describe']['folder']
+            cnv_dict['idx_archival_state'] = cnv_index[0]['describe']['archivalState']
+        else:
+            cnv_dict['idx_name'] = None
+            cnv_dict['idx_id'] = None
+            cnv_dict['idx_path'] = None
+            cnv_dict['idx_archival_state'] = None
+
+        data_dict['CNV'][cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
+    
+    print('Searching for CNVs End')
+
+
+proj_list, proj_names = get_002_projects()
+find_dx_bams(proj_list, proj_names)
