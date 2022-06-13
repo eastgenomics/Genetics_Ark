@@ -13,26 +13,46 @@ Creates JSONs with following structure:
     "BAM":
         "sample_id": [
             {
-            "bam_file_id": "",
-            "idx_file_id": "",
-            "project_id": "",
-            "project_name": "",
-            "bam_name": "",
-            "idx_name": "",
-            "bam_path": ""
+                "file_id": "",
+                "idx_id": "",
+                "project_id": "",
+                "project_name": "",
+                "file_name": "",
+                "idx_name": "",
+                "file_path": "",
+                "idx_path": "",
+                "file_archival_state": "",
+                "idx_archival_state": ""
             },
             {
-            "bam_file_id": "",
-            "idx_file_id": "",
-            "project_id": "",
-            "project_name": "",
-            "bam_name": "",
-            "idx_name": "",
-            "bam_path": ""
+                "file_id": "",
+                "idx_id": "",
+                "project_id": "",
+                "project_name": "",
+                "file_name": "",
+                "idx_name": "",
+                "file_path": "",
+                "idx_path": "",
+                "file_archival_state": "",
+                "idx_archival_state": ""
             }
         ],
     "CNV":
-        "
+        "sample_id": [
+            {
+                "file_id": "",
+                "idx_id": "",
+                "project_id": "",
+                "project_name": "",
+                "file_name": "",
+                "idx_name": "",
+                "file_path": "",
+                "idx_path": "",
+                "file_archival_state": "",
+                "idx_archival_state": "",
+                "cnv": true
+            }
+        ]
 }
 
 Jethro Rainford 080620
@@ -212,7 +232,7 @@ def find_cnvs(data_dict):
 
     print('Searching for CNVs')
 
-    project_name = dx.DXProject().describe()['name']
+    project_name = dx.DXProject(PROJECT_CNVS).describe()['name']
 
     for file in list(
         dx.find_data_objects(
@@ -260,7 +280,3 @@ def find_cnvs(data_dict):
         data_dict['CNV'][cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
     
     print('Searching for CNVs End')
-
-
-proj_list, proj_names = get_002_projects()
-find_dx_bams(proj_list, proj_names)

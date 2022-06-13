@@ -25,7 +25,7 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import render
 import dxpy as dx
 
-import DNAnexus_to_igv.forms as Forms
+from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 from ga_core.settings import (
     AUTH_TOKEN, FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
@@ -101,8 +101,8 @@ def nexus_search(request):
     """
 
     context_dict = {}
-    context_dict["search_form"] = Forms.SearchForm()
-    context_dict["url_form"] = Forms.UrlForm()
+    context_dict["search_form"] = SearchForm()
+    context_dict["url_form"] = UrlForm()
 
     if request.method == 'POST':
         # WHEN SEARCH BUTTON IS PRESSED
@@ -112,13 +112,7 @@ def nexus_search(request):
                 if "auth" not in key:
                     del request.session[key]
 
-            search_form = Forms.SearchForm(request.POST)
-
-            if search_form.is_valid():
-                clean_data = search_form.cleaned_data
-                print(clean_data)
-
-            sample_id = clean_data["sample_id"]
+            sample_id = request.POST["sample_id"]
             sample_id = str(sample_id).strip()  # in case spaces
 
             try:
@@ -180,7 +174,7 @@ def nexus_search(request):
             sample_data = sample_data[0]
 
             if len(sample_data) == 1:
-                # one sample found with one bam, generate the urls
+                # ONLY ONE SAMPLE FOUND
                 sample_dict = sample_data[0]
 
                 file_url, idx_url = get_dx_urls(
@@ -232,7 +226,7 @@ def nexus_search(request):
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
             else:
-                # multiple BAMs and / or samples found
+                # MULTIPLE BAMS FOUND
 
                 request.session["sample_id"] = sample_id
                 context_dict["sample_id"] = sample_id
@@ -265,11 +259,10 @@ def nexus_search(request):
 
                 return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
         
-        # IN MULTIPLE BAM LIST, WHEN ONE BAM IS SELECTED
         elif request.POST['action'] == 'select_bam':
-            # BAM has been selected, save bam data before flushing
-            # session
-            selected_bam = request.POST.get("selected_bam_input")
+            # IN MULTIPLE BAM LIST, WHEN ONE BAM IS SELECTED
+            # BAM has been selected, save bam data before flushing session
+            selected_bam = request.POST['selected_bam_input']
             session_bams = request.session["bam_list"]
 
             for bam in session_bams:
@@ -308,16 +301,35 @@ def nexus_search(request):
 
         # WHEN DIRECT URL LINK SELECTED
         elif request.POST['action'] == 'form_37' or request.POST['action'] == 'form_38':
-            # url_form = Forms.UrlForm(request.POST)
-            # print(request.POST)
-
-            # if url_form.is_valid():
-            #     clean_data = url_form.cleaned_data
-            #     print(clean_data)
-            print(request.POST)
-
+            
+            print('direct link selected!')
+            form = UrlForm(request.POST)
             file_url = request.POST['file_url']
             idx_url = request.POST['index_url']
+
+            if form.is_valid():
+                pass
+            else:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    """An error has occured loading IGV from the\
+                        provided URLs. Please check URLs are correct\
+                        and have been pasted in the correct fields.
+                        URLs used:
+                        File: {file_url}
+                        Index: {idx_url}""".format(
+                        file_url=file_url, idx_url=idx_url
+                    ), extra_tags="alert-danger"
+                )
+
+                error_log.error(
+                    "Error loading IGV from pasted urls, most likely pasted "
+                    f"in wrong fields. BAM URL: {file_url}. Index URL: "
+                    f"{idx_url}"
+                )
+
+                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
             # if "bai" not ifile and "bai" in idx_url:
             # check urls in correct fields
@@ -340,30 +352,8 @@ def nexus_search(request):
                 context_dict["refseq"] = REFSEQ_38
 
             return render(request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
-            # else:
-            #     messages.add_message(
-            #         request,
-            #         messages.ERROR,
-            #         """An error has occured loading IGV from the\
-            #             provided URLs. Please check URLs are correct\
-            #             and have been pasted in the correct fields.
-            #             URLs used:
-            #             BAM: {bam_url}
-            #             Index: {idx_url}""".format(
-            #             bam_url=bam_url, idx_url=idx_url
-            #         ), extra_tags="alert-danger"
-            #     )
-
-            #     error_log.error(
-            #         "Error loading IGV from pasted urls, most likely pasted "
-            #         f"in wrong fields. BAM URL: {bam_url}. Index URL: "
-            #         f"{idx_url}"
-            #     )
-
-            #     return render(request, 'DNAnexus_to_igv/nexus_search.html',
-            #                   context_dict)
-        # WHEN VIEW IN IGV IS SELECTED (SINGLE SAMPLE VIEW)
         else:
+            # WHEN VIEW IN IGV IS SELECTED (SINGLE SAMPLE VIEW)
             # check for reference by button name pressed
             if request.POST['action'] == 'igv_37':
                 context_dict["reference"] = "hg19"
@@ -391,5 +381,4 @@ def nexus_search(request):
 
             return render(request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
-    # just display the form with search box on navigating to page
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)

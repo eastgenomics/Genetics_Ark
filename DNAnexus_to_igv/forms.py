@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 
 class SearchForm(forms.Form):
@@ -58,3 +59,10 @@ class UrlForm(forms.Form):
             }
         )
     )
+
+    def clean(self):
+        file_url = self.cleaned_data['file_url']
+        index_url = self.cleaned_data['index_url']
+
+        if "https://" not in file_url or 'https://' not in index_url:
+            raise ValidationError("Please check your link!")
