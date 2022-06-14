@@ -27,7 +27,7 @@ from ga_core.settings import PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_
 error_log = logging.getLogger("ga_error")
 
 
-@login_required
+# @login_required
 def index(request):
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
@@ -150,7 +150,7 @@ def call_primer_designer(request, regions_form, cmd, output_path):
     return True
 
 
-@login_required
+# @login_required
 def create(request, regions_form):
     """
     Called when valid form submitted, generates output file then runs

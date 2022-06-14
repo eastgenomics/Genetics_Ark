@@ -87,7 +87,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
-@login_required
+# @login_required
 def nexus_search(request):
     """
     Main search page function.

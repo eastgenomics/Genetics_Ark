@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',  # required for serving static files
     # own apps
     'genetics_ark',
-    'accounts',
+    # 'accounts',
     'DNAnexus_to_igv',
     'primer_designer',
     # default django
