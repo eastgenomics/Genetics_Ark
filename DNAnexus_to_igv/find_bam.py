@@ -67,7 +67,9 @@ from collections import defaultdict
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 
-PROJECT_CNVS = 'project-FzyfP204Z5qXBp6696jG5g10'
+load_dotenv(find_dotenv())
+
+PROJECT_CNVS = os.environ["PROJECT_CNVS"]
 
 def get_002_projects():
     """
@@ -78,7 +80,6 @@ def get_002_projects():
 
     Returns: - project_002_list (list): list of all 002 project id
     """
-    load_dotenv(find_dotenv())
 
     projects = list(dx.search.find_projects(name="002*", name_mode="glob", describe=True))
     project_002_list = [x["id"] for x in projects]
@@ -280,3 +281,6 @@ def find_cnvs(data_dict):
         data_dict['CNV'][cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
     
     print('Searching for CNVs End')
+
+proj_list, proj_name = get_002_projects()
+find_dx_bams(proj_list, proj_name)
