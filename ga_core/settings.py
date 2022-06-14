@@ -91,7 +91,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_tables2',
     'crispy_forms',
-    'django_q'
+    # 'django_q'
 ]
 
 # django crispy forms for nice form rendering
