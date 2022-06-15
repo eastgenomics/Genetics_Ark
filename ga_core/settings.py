@@ -259,10 +259,3 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_REDIRECT_URL = 'home'
-
-Q_CLUSTER = {
-    'name': 'DjangORM',
-    'timeout': 300,
-    'retry': 350,
-    'orm': 'default'
-}
