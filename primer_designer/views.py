@@ -22,7 +22,9 @@ from django.utils.safestring import mark_safe
 
 
 import primer_designer.forms as Forms
-from ga_core.settings import PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_DESIGNER_DIR_PATH
+
+from ga_core.settings import PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37
+from ga_core.settings import PRIMER_DESIGNER_DIR_PATH
 
 error_log = logging.getLogger("ga_error")
 
@@ -42,12 +44,11 @@ def index(request):
                 messages.ERROR,
                 "Error in given primer design input"
             )
-
-            # return render(request, "primer_designer/index.html", {'regions_form': regions_form})
     else:
         regions_form = Forms.RegionsForm()
-    
-    return render(request, "primer_designer/index.html", {'regions_form': regions_form})
+
+    return render(
+        request, "primer_designer/index.html", {'regions_form': regions_form})
 
 
 def random_string():
@@ -113,7 +114,7 @@ def call_primer_designer(request, regions_form, cmd, output_path):
         - regions_form (django form): submitted form data
         - cmd (str): region formatted str to pass to primer designer
         - output_path: path to output directory /primer_designer/output
-    
+
     Returns: render HTML for output PDF download link
     """
     primer_cmd = (
@@ -165,11 +166,13 @@ def create(request, regions_form):
     outname = f'{time_stamp()}-{random_string()}'
 
     # making an output directory in /primer_designer for output PDF
-    Path(f'{Path(__file__).parent.parent.absolute()}/primer_designer/output/').mkdir(parents=True, exist_ok=True)
-    primer_output_path = f'{Path(__file__).parent.parent.absolute()}/primer_designer/output/'
+    parent_path = Path(__file__).parent.parent.absolute()
+    Path(f'{parent_path}/primer_designer/output/').mkdir(
+        parents=True, exist_ok=True)
+    primer_output_path = f'{parent_path}/primer_designer/output/'
 
-    Path(f'{Path(__file__).parent.parent.absolute()}/static/tmp').mkdir(parents=True, exist_ok=True)
-    out_dir = f'{Path(__file__).parent.parent.absolute()}/static/tmp/{outname}/'
+    Path(f'{parent_path}/static/tmp').mkdir(parents=True, exist_ok=True)
+    out_dir = f'{parent_path}/static/tmp/{outname}/'
     out_zip = f'static/tmp/{outname}.zip'
     os.mkdir(Path(out_dir))  # empty dir to add reports to
 
@@ -178,10 +181,14 @@ def create(request, regions_form):
     for region in regions:
         # format each given region as input args for primer designer & call
         cmd = format_region(region)
-        output = call_primer_designer(request, regions_form, cmd, primer_output_path)
+        output = call_primer_designer(
+            request, regions_form, cmd, primer_output_path)
 
         if not output:
-            return render(request, "primer_designer/index.html", {'regions_form': regions_form})
+            return render(
+                request,
+                "primer_designer/index.html",
+                {'regions_form': regions_form})
 
         # get file just created from primer designer output/ and move to zip
         output_pdf = max(

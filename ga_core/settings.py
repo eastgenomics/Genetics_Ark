@@ -127,8 +127,6 @@ TEMPLATES = [
     },
 ]
 
-
-
 MESSAGE_TAGS = {
     constants.DEBUG: 'alert-secondary',
     constants.INFO: 'alert-info',
@@ -141,7 +139,8 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
 # Database
-# default engine (django.db.backends.mysql) doesn't work with dockerized django app
+# default engine (django.db.backends.mysql) doesn't work
+# with dockerized django app
 # mysql engine: mysql.connector.django
 # https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
 DATABASES = {
@@ -166,7 +165,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': ('django.contrib.auth.password_validation.'
-                'MinimumLengthValidator'),
+                 'MinimumLengthValidator'),
     },
     {
         'NAME': ('django.contrib.auth.password_validation.'
@@ -249,7 +248,8 @@ LOGGING = {
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-# Explanation on why: https://www.mattlayman.com/understand-django/serving-static-files/
+# Explanation on why:
+# https://www.mattlayman.com/understand-django/serving-static-files/
 STATIC_URL = 'static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

@@ -119,7 +119,8 @@ def nexus_search(request):
                 # load in json with all bams and dx attributes needed to
                 # search and generate dx download links
                 # if json is not present it will raise IOError
-                json_file = f'{Path(__file__).parent.absolute()}/jsons/dx_002_bams.json'
+                json_path = Path(__file__).parent.absolute()
+                json_file = f'{json_path}/jsons/dx_002_bams.json'
 
                 with open(json_file) as json_file:
                     json_bams = json.load(json_file)
@@ -139,16 +140,21 @@ def nexus_search(request):
                 ))
                 logging.error(IOe)
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                return render(
+                    request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
             if request.POST['sample_type'] == 'BAM':
                 # select bams matching sample id, return original entry from
                 # JSON by matching against upper name and search term
                 # (structure of json may be found in find_dx_bams.py)
-                sample_data = [value for key, value in json_bams['BAM'].items() if key.upper() == sample_id.upper()]
+                sample_data = [
+                    value for key, value in json_bams['BAM'].items() if
+                    key.upper() == sample_id.upper()]
             else:
                 # CNV handling
-                sample_data = [value for key, value in json_bams['CNV'].items() if sample_id.upper() in key.upper()]
+                sample_data = [
+                    value for key, value in json_bams['CNV'].items() if
+                    sample_id.upper() in key.upper()]
 
             # NO BAM FOUND
             if len(sample_data) == 0:
@@ -156,8 +162,8 @@ def nexus_search(request):
                     request,
                     messages.ERROR,
                     mark_safe(
-                        """Sample {} is not found in DNAnexus, either it is not\
-                        available, the sample name is incorrect\
+                        """Sample {} is not found in DNAnexus, either it is\
+                        not available, the sample name is incorrect\
                         or some other error. Please contact\
                         the Bioinformatics team if you believe the sample\
                         should be available.""".format(sample_id)),
@@ -169,8 +175,9 @@ def nexus_search(request):
                     sample, possibly missing index.""".format(sample_id)
                 )))
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
-            
+                return render(
+                    request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+
             sample_data = sample_data[0]
 
             if len(sample_data) == 1:
@@ -221,10 +228,13 @@ def nexus_search(request):
                 context_dict["file_name"] = sample_dict["file_name"]
                 context_dict["project_name"] = sample_dict["project_name"]
                 context_dict['file_path'] = sample_dict['file_path']
-                context_dict['file_archival_state'] = sample_dict['file_archival_state']
-                context_dict['idx_archival_state'] = sample_dict['idx_archival_state']
+                context_dict['file_archival_state'] = sample_dict[
+                    'file_archival_state']
+                context_dict['idx_archival_state'] = sample_dict[
+                    'idx_archival_state']
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                return render(
+                    request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
             else:
                 # MULTIPLE BAMS FOUND
 
@@ -257,8 +267,9 @@ def nexus_search(request):
                 context_dict["bam_no"] = len(bam_list)
                 request.session["bam_list"] = bam_list
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
-        
+                return render(
+                    request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+
         elif request.POST['action'] == 'select_bam':
             # IN MULTIPLE BAM LIST, WHEN ONE BAM IS SELECTED
             # BAM has been selected, save bam data before flushing session
@@ -294,15 +305,20 @@ def nexus_search(request):
                     context_dict['file_path'] = bam['file_path']
                     context_dict['file_id'] = bam['file_id']
                     context_dict['idx_id'] = bam['idx_id']
-                    context_dict['file_archival_state'] = bam['file_archival_state']
-                    context_dict['idx_archival_state'] = bam['idx_archival_state']
+                    context_dict['file_archival_state'] = bam[
+                        'file_archival_state']
+                    context_dict['idx_archival_state'] = bam[
+                        'idx_archival_state']
 
-                    return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                    return render(
+                        request,
+                        'DNAnexus_to_igv/nexus_search.html',
+                        context_dict)
 
         # WHEN DIRECT URL LINK SELECTED
-        elif request.POST['action'] == 'form_37' or request.POST['action'] == 'form_38':
-            
-            print('direct link selected!')
+        elif (request.POST['action'] == 'form_37'
+                or request.POST['action'] == 'form_38'):
+
             form = UrlForm(request.POST)
             file_url = request.POST['file_url']
             idx_url = request.POST['index_url']
@@ -329,7 +345,8 @@ def nexus_search(request):
                     f"{idx_url}"
                 )
 
-                return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
+                return render(
+                    request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
             # if "bai" not ifile and "bai" in idx_url:
             # check urls in correct fields
@@ -351,7 +368,8 @@ def nexus_search(request):
                 context_dict["cytoband"] = CYTOBAND_38
                 context_dict["refseq"] = REFSEQ_38
 
-            return render(request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
+            return render(
+                request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
         else:
             # WHEN VIEW IN IGV IS SELECTED (SINGLE SAMPLE VIEW)
             # check for reference by button name pressed
@@ -379,6 +397,7 @@ def nexus_search(request):
             context_dict["file_url"] = bam_url
             context_dict["idx_url"] = idx_url
 
-            return render(request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
+            return render(
+                request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)

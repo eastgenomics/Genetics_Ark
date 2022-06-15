@@ -71,6 +71,7 @@ load_dotenv(find_dotenv())
 
 PROJECT_CNVS = os.environ["PROJECT_CNVS"]
 
+
 def get_002_projects():
     """
     Get list of all 002 sequencing projects on DNAnexus to pull bams
@@ -81,13 +82,15 @@ def get_002_projects():
     Returns: - project_002_list (list): list of all 002 project id
     """
 
-    projects = list(dx.search.find_projects(name="002*", name_mode="glob", describe=True))
+    projects = list(
+        dx.search.find_projects(name="002*", name_mode="glob", describe=True))
     project_002_list = [x["id"] for x in projects]
     projects_name = {x['id']: x['describe']['name'] for x in projects}
 
     DEV_PROJECT_NAME = os.environ["DEV_PROJECT_NAME"]
 
-    dev_project = list(dx.search.find_projects(name=DEV_PROJECT_NAME, name_mode="glob"))
+    dev_project = list(
+        dx.search.find_projects(name=DEV_PROJECT_NAME, name_mode="glob"))
 
     if dev_project:
         dev_project = [x['id'] for x in dev_project]
@@ -136,7 +139,6 @@ def find_dx_bams(project_002_list, project_names):
         bams = list(dx.search.find_data_objects(
             name="*bam", name_mode="glob", project=project, describe=True))
 
-
         idxs = list(dx.search.find_data_objects(
             name="*bam.bai", name_mode="glob", project=project, describe=True))
 
@@ -145,13 +147,15 @@ def find_dx_bams(project_002_list, project_names):
 
             # add path, name and id of each bam and index to dicts
             for bam in bams:
-                bam_dict[(bam["describe"]["folder"], bam["describe"]["name"])] = {
+                bam_dict[
+                    (bam["describe"]["folder"], bam["describe"]["name"])] = {
                     'id': bam["id"],
                     'archivalState': bam['describe']['archivalState']
                     }
 
             for idx in idxs:
-                idx_dict[(idx["describe"]["folder"], idx["describe"]["name"])] = {
+                idx_dict[
+                    (idx["describe"]["folder"], idx["describe"]["name"])] = {
                     'id': idx["id"],
                     'archivalState': bam['describe']['archivalState']
                     }
@@ -195,7 +199,7 @@ def find_dx_bams(project_002_list, project_names):
 
                 bam_id = bam_dict[path, bam_file]['id']
                 bam_archival_state = bam_dict[path, bam_file]['archivalState']
-                
+
                 idx_id = idx_dict[(path, idx)]['id']
                 idx_archival_state = bam_dict[path, bam_file]['archivalState']
 
@@ -211,13 +215,13 @@ def find_dx_bams(project_002_list, project_names):
                     "file_archival_state": bam_archival_state,
                     "idx_archival_state": idx_archival_state
                 })
-    
+
     find_cnvs(dx_data)
 
     # ensure output jsons go to /DNAnexus_to_igv/jsons dir
     output_dir = f'{Path(__file__).parent.absolute()}/jsons'
     print(f'JSON saved to: {output_dir}')
-    
+
     outfile_bam = f'{output_dir}/dx_002_bams.json'
     outfile_missing = f'{output_dir}/dx_missing_bam.json'
 
@@ -229,6 +233,7 @@ def find_dx_bams(project_002_list, project_names):
         with open(outfile_missing, 'w') as missing_file:
             json.dump(missing_bam, missing_file, indent=2)
 
+
 def find_cnvs(data_dict):
 
     print('Searching for CNVs')
@@ -237,16 +242,15 @@ def find_cnvs(data_dict):
 
     for file in list(
         dx.find_data_objects(
-            project=PROJECT_CNVS, 
-            name='.*_copy_ratios.gcnv.bed.gz\Z', 
-            name_mode='regexp', 
+            project=PROJECT_CNVS,
+            name='.*_copy_ratios.gcnv.bed.gz\Z',
+            name_mode='regexp',
             describe=True)):
-        
+
         cnv_name = file['describe']['name']
         cnv_path = file['describe']['folder']
         cnv_id = file['id']
         cnv_archival_status = file['describe']['archivalState']
-
 
         cnv_index = list(dx.find_data_objects(
             project=PROJECT_CNVS,
@@ -258,26 +262,28 @@ def find_cnvs(data_dict):
         ))
 
         cnv_dict = {
-            'file_name':cnv_name,
-            'file_id':cnv_id,
-            'file_path':cnv_path,
-            'file_archival_state':cnv_archival_status,
-            'project_id':PROJECT_CNVS,
-            'project_name':project_name,
-            'CNV':True
+            'file_name': cnv_name,
+            'file_id': cnv_id,
+            'file_path': cnv_path,
+            'file_archival_state': cnv_archival_status,
+            'project_id': PROJECT_CNVS,
+            'project_name': project_name,
+            'CNV': True
         }
 
         if cnv_index:
             cnv_dict['idx_name'] = cnv_index[0]['describe']['name']
             cnv_dict['idx_id'] = cnv_index[0]['id']
             cnv_dict['idx_path'] = cnv_index[0]['describe']['folder']
-            cnv_dict['idx_archival_state'] = cnv_index[0]['describe']['archivalState']
+            cnv_dict['idx_archival_state'] = cnv_index[0][
+                'describe']['archivalState']
         else:
             cnv_dict['idx_name'] = None
             cnv_dict['idx_id'] = None
             cnv_dict['idx_path'] = None
             cnv_dict['idx_archival_state'] = None
 
-        data_dict['CNV'][cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
-    
+        data_dict['CNV'][
+            cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
+
     print('Searching for CNVs End')

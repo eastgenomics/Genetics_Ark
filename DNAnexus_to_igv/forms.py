@@ -11,7 +11,7 @@ class SearchForm(forms.Form):
     sample_id = forms.CharField(
         required=True,
         label='Sample ID',
-        widget= forms.TextInput(
+        widget=forms.TextInput(
             attrs={
                 'placeholder': 'Enter Sample ID',
                 'class': 'form-control',
@@ -20,7 +20,7 @@ class SearchForm(forms.Form):
         )
     )
     sample_type = forms.ChoiceField(
-        widget= forms.Select(
+        widget=forms.Select(
             attrs={
                 'class': 'form-group',
                 'style': 'width:475px'
@@ -47,7 +47,7 @@ class UrlForm(forms.Form):
         )
     )
     index_url = forms.CharField(
-        required=True, 
+        required=True,
         label='Index URL',
         widget=forms.Textarea(
             attrs={
