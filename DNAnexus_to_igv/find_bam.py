@@ -89,12 +89,16 @@ def get_002_projects():
 
     DEV_PROJECT_NAME = os.environ["DEV_PROJECT_NAME"]
 
+    # might return multiple results as it's searched by name
     dev_project = list(
         dx.search.find_projects(name=DEV_PROJECT_NAME, name_mode="glob"))
 
     if dev_project:
         dev_project = [x['id'] for x in dev_project]
-        project_002_list.append(dev_project)
+        project_002_list += dev_project
+
+        for proj_id in dev_project:
+            projects_name[proj_id] = DEV_PROJECT_NAME
     else:
         print('DEV PROJECT DOES NOT APPEAR TO EXIST')
 
@@ -287,3 +291,6 @@ def find_cnvs(data_dict):
             cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
 
     print('Searching for CNVs End')
+
+proj_list, proj_name = get_002_projects()
+find_dx_bams(proj_list, proj_name)

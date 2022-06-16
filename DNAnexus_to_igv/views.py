@@ -246,7 +246,7 @@ def nexus_search(request):
 
                 for bam in flat_data:
                     # can be mix of lists and nested lists
-                    if "dev" in str(bam["project_name"]):
+                    if "dev" in bam["project_name"].lower():
                         # if dev data project add development after path
                         path = f"{bam['file_path']} - DEVELOPMENT"
                     else:

@@ -36,6 +36,25 @@
 {% endblock %}
 
 {% block body %}
+<!-- Hidden Modal Bootstrap -->
+<div class="modal" id="warningModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Development Project Selected</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>The selected data is for development use and must not be used for service work. Please confirm if you still want to load IGV.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container p-5 mb-5">
     <div class="card p-2">
         <div class="card-body">
@@ -115,9 +134,9 @@
                 Load BAMs for sample in web IGV with appropriate reference build: 
                 <br></br>
         
-                <form action="" method="POST" name="igv_form" onsubmit="return checkProject()" target="_blank">
+                <form action="" method="POST" name="igv_form">
                     {% csrf_token %}
-                    <input type="hidden" name="project_name" value={{ project_name }}>
+                    <input type="hidden" id="igv_proj_name" name="project_name" value="{{ project_name }}">
                     <button name="action" value="igv_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV (GRCh37)</button>
                     <button name="action" value="igv_38" type="submit" class ="btn btn-warning btn-sm m-2 px-3">View in web IGV (GRCh38)</button>
                 </form>
@@ -165,16 +184,10 @@
 {% block script %}
 <script type="text/javascript">
     //function to check if selected sample is in the dev data project and req. confirmation to load
-    function checkProject() {
-        var x = document.forms["igv_form"]["project_name"].value;
-        if (x.includes("dev")) {
-            if (confirm("The selected data is for development use and must not be used for service work.\n Please confirm if you still want to load IGV.")) {
-                confirm = true;
-            } else {
-                confirm = false;
-            }
-            return confirm;
-        }
+    //https://stackoverflow.com/questions/11404711/how-can-i-trigger-a-bootstrap-modal-programmatically
+    var projName = document.getElementById("igv_proj_name").value;  
+    if (projName.toLowerCase().includes('dev')) {
+        $('#warningModal').modal('show');
     }
 
     //function to display loading spinner on form submit
