@@ -16,8 +16,6 @@ from ga_core.settings import DEFAULT_FROM_EMAIL
 
 error_log = logging.getLogger("ga_error")
 
-
-@login_required
 def index(request):
     return render(request, '/')
 

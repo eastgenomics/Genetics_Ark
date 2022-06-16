@@ -40,8 +40,6 @@
     <div class="card p-2">
         <div class="card-body">
             <h2>DNAnexus to IGV</h2></br>
-    
-            Currently only newly sequenced samples processed through DNAnexus will be available to view through this instance of IGV.<br></br>
         
             This page may be used to generate URLs to view BAMs on IGV installed locally on your PC, or to view directly within IGV on Genetics Ark. <br></br>
         
@@ -128,18 +126,18 @@
             <!-- MULTIPLE SAMPLES VIEW-->
             {% if bam_list %}
             <h2 class="mt-5">Results</h2>
-            <b>{{ bam_no}}</b> BAMs found for sample <b>{{ sample_id }}</b><br>
-            Please select which project to load the BAM from:</b><br></b><br>
+            <b>{{ file_no}}</b> Files found for sample <b>{{ sample_id }}</b><br>
+            Please select which project to load the sample from:</b><br></b><br>
             <ul class="list-group-scrollable">
                 {% for file in bam_list %}
                     <div class="card m-3">
                         <div class="card-body">
-                            <h5 class="card-title">{{ file.project_name }}</h5>
+                            <h5 class="card-title">{{ file.file_name }}</h5>
                             {% if file.file_archival_state == 'live' %}
                                 <h6 class="card-subtitle py-1 text-muted">
-                                    <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>{{ file.file_name }}
+                                    <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
                                 </h6>
-                                <p class="card-text">Directory: {{ file.file_path }}<br>FILE ID: {{ file.file_id }}<br>Index Name: {{ file.idx_name }}</p>
+                                <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
                                 <form action="" method="post" name="select_bam" target="_blank">
                                     {% csrf_token %}
                                     <input type="hidden" name="selected_bam_input" value="{{ file.file_id }}">
@@ -147,9 +145,9 @@
                                 </form>
                             {% else %}
                                 <h6 class="card-subtitle py-1 text-muted">
-                                    <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>{{ file.file_name }}
+                                    <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
                                 </h6>
-                                <p class="card-text">Directory: {{ file.file_path }}<br>FILE ID: {{ file.file_id }}<br>Index Name: {{ file.idx_name }}</p>
+                                <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
                                 <div class="alert alert-warning" role="alert">
                                     To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
                                 </div>

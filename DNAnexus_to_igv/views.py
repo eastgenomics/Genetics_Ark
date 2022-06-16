@@ -147,14 +147,15 @@ def nexus_search(request):
                 # select bams matching sample id, return original entry from
                 # JSON by matching against upper name and search term
                 # (structure of json may be found in find_dx_bams.py)
+                ## change to search partial
                 sample_data = [
                     value for key, value in json_bams['BAM'].items() if
-                    key.upper() == sample_id.upper()]
+                    sample_id.upper() in key.upper()]
             else:
                 # CNV handling
                 sample_data = [
                     value for key, value in json_bams['CNV'].items() if
-                    sample_id.upper() in key.upper()]
+                    key.upper() in sample_id.upper()]
 
             # NO BAM FOUND
             if len(sample_data) == 0:
@@ -178,11 +179,11 @@ def nexus_search(request):
                 return render(
                     request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
-            sample_data = sample_data[0]
+            flat_data = [x for xs in sample_data for x in xs]
 
-            if len(sample_data) == 1:
+            if len(flat_data) == 1:
                 # ONLY ONE SAMPLE FOUND
-                sample_dict = sample_data[0]
+                sample_dict = flat_data[0]
 
                 file_url, idx_url = get_dx_urls(
                     sample_id,
@@ -243,7 +244,7 @@ def nexus_search(request):
 
                 bam_list = []
 
-                for bam in sample_data:
+                for bam in flat_data:
                     # can be mix of lists and nested lists
                     if "dev" in str(bam["project_name"]):
                         # if dev data project add development after path
@@ -264,7 +265,7 @@ def nexus_search(request):
                     })
 
                 context_dict["bam_list"] = bam_list
-                context_dict["bam_no"] = len(bam_list)
+                context_dict["file_no"] = len(bam_list)
                 request.session["bam_list"] = bam_list
 
                 return render(
@@ -278,7 +279,7 @@ def nexus_search(request):
 
             for bam in session_bams:
                 if selected_bam in bam.values():
-                    sample_id = bam["file_name"].split('.')[0]
+                    sample_id = request.session['sample_id']
 
                     # generate urls for selected sample
                     file_url, idx_url = get_dx_urls(
