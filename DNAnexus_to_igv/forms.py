@@ -38,7 +38,7 @@ class UrlForm(forms.Form):
         label='BAM URL',
         widget=forms.Textarea(
             attrs={
-                'placeholder': 'Enter BAM URL',
+                'placeholder': 'Enter DNANexus URL',
                 'class': 'form-control',
                 'style': 'width:500px',
                 'rows': 2,
@@ -51,7 +51,7 @@ class UrlForm(forms.Form):
         label='Index URL',
         widget=forms.Textarea(
             attrs={
-                'placeholder': 'Enter BAM Index URL',
+                'placeholder': 'Enter DNANexus URL',
                 'class': 'form-control',
                 'style': 'width:500px',
                 'rows': 2,

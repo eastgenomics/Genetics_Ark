@@ -1,8 +1,8 @@
 """
-Searches DNAnexus cloud platform for all available 002 projects, and
+Searches DNAnexus for all available 002 projects, and
 creates a .json output file containing all samples with available BAMs
 and another of those missing indexes, along with required attributes to
-generate dx download links.
+generate dx download links + CNVs
 
 Must be reguarly run (i.e. via cron) to keep up to date with new
 sequencing runs. Also need to ensure the output json is in the
@@ -60,17 +60,50 @@ Jethro Rainford 080620
 
 import datetime as date
 import dxpy as dx
-import json
+import requests
 import os
+import json
+import logging
+from dotenv import load_dotenv, find_dotenv
 
 from collections import defaultdict
 from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-PROJECT_CNVS = os.environ["PROJECT_CNVS"]
+DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
+PROJECT_CNVS = os.environ['PROJECT_CNVS']
+DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
+SLACK_TOKEN = os.environ['SLACK_TOKEN']
 
+error_log = logging.getLogger("ga_error")
+
+def dx_login():
+    """
+    Function to check DNANexus auth token. Send Slack notification
+    if auth failed.
+
+    """
+    DX_SECURITY_CONTEXT = {
+        "auth_token_type": "Bearer",
+        "auth_token": DNANEXUS_TOKEN
+    }
+
+    # set token to env
+    dx.set_security_context(DX_SECURITY_CONTEXT)
+
+    try:
+        dx.api.system_whoami()
+    except Exception as err:
+        message = (
+            'Genetic Ark: Find Bam DNANexus Auth Failed\n'
+            f'Error Message: {err}'
+        )
+
+        post_message_to_slack('egg-alerts', message)
+        return False
+    
+    return True
 
 def get_002_projects():
     """
@@ -86,8 +119,6 @@ def get_002_projects():
         dx.search.find_projects(name="002*", name_mode="glob", describe=True))
     project_002_list = [x["id"] for x in projects]
     projects_name = {x['id']: x['describe']['name'] for x in projects}
-
-    DEV_PROJECT_NAME = os.environ["DEV_PROJECT_NAME"]
 
     # might return multiple results as it's searched by name
     dev_project = list(
@@ -109,23 +140,20 @@ def get_002_projects():
 
 def find_dx_bams(project_002_list, project_names):
     """
-    Function to find file and index id for a bam in DNAnexus given a
-    sample id.
+    Function to find file-id and index-id for BAM and CNVs
+    on DNAnexus
 
-    Args: - project_002_list (list): list of all 002 dx projects
+    Input:
+        project_002_list: list of project-id
+        project_names: dict of key (proj-id) : value (proj-name)
 
     Returns: None
 
-    Outputs: - dx_002_bams.json (file): contains all 002 bams, for each:
-
-            - bam_file_id (str): file id of BAM
-            - idx_file_id (str): file id of BAM index
-            - bam_name (str): human name of BAM file
-            - idx_name (str): human name of index file
-            - project_id (str): project id containing BAM
-            - project_name (str): human name of project
-            - bam_path (str): dir path of bam file
+    Output: 
+        - dx_002_bams.json contains BAMs and CNVs on DNANexus
+        - dx_missing_bam.json
     """
+
     # empty dict to store bams for output in use defaultdict to handle
     # add or update of keys
     dx_data = defaultdict(lambda: defaultdict(list))
@@ -239,6 +267,17 @@ def find_dx_bams(project_002_list, project_names):
 
 
 def find_cnvs(data_dict):
+    """
+    Function to add CNVs samples into the larger data_dict
+    for find_dx_bams function
+
+    Input:
+        data_dict: dict of BAMs on DNANexus
+
+    Returns:
+        data_dict
+
+    """
 
     print('Searching for CNVs')
 
@@ -292,5 +331,40 @@ def find_cnvs(data_dict):
 
     print('Searching for CNVs End')
 
-proj_list, proj_name = get_002_projects()
-find_dx_bams(proj_list, proj_name)
+def post_message_to_slack(channel, message):
+    """
+    Function to send Slack notification
+    Taken from: https://github.com/eastgenomics/ansible-run-monitoring/blob/main/util.py
+    Inputs:
+        channel: egg-alerts
+        message: text
+    Returns:
+        dict: slack api response
+    """
+
+    try:
+        response = requests.post('https://slack.com/api/chat.postMessage', {
+            'token': SLACK_TOKEN,
+            'channel': f'U02HPRQ9X7Z',
+            'text': message
+        }).json()
+
+        if response['ok']:
+            print(f'POST request to channel #{channel} successful')
+            return
+        else:
+            # slack api request failed
+            error_code = response['error']
+            error_log.error(f'Error Code From Slack: {error_code}')
+
+    except Exception as e:
+        # endpoint request fail from server
+        error_log.error(f'Error sending POST request to channel #{channel}')
+        error_log.error(e)
+
+if __name__ == "__main__":
+
+    if dx_login():
+        proj_list, proj_name = get_002_projects()
+        find_dx_bams(proj_list, proj_name)
+

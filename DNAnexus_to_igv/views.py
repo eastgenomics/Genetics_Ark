@@ -20,7 +20,7 @@ from pathlib import Path
 import re
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 from django.utils.safestring import mark_safe
 from django.shortcuts import render
 import dxpy as dx
@@ -28,33 +28,27 @@ import dxpy as dx
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 from ga_core.settings import (
-    AUTH_TOKEN, FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
+    FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38
 )
 
 error_log = logging.getLogger("ga_error")
 
-# set env variable for dxpy authentication
-DX_SECURITY_CONTEXT = {
-    "auth_token_type": "Bearer",
-    "auth_token": AUTH_TOKEN
-}
-
-# set token to env
-dx.set_security_context(DX_SECURITY_CONTEXT)
-
-
 def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
     """
-    Get preauthenticated dx download urls for bam and index
+    Get preauthenticated dx download urls for file and its index
 
     Args:
-        - bam_file_id (str): file id of BAM
-        - idx_file_id (str): file id of BAM index
+        - sample-id (str): for error reporting purpose
+        - bam_file_id (str): BAM/CNV file-id
+        - idx_file_id (str): BAM/CNV index file-id
+        - bam_file_name (str): BAM/CNV filename
+        - idx_file_name (str): BAM/CNV index filename
+        - project_id (str): project-id
     Returns:
-        - bam_url (str): DNAnexus url for downloading BAM file
-        - idx_url (str): DNAnexus url for downloading index file
+        - bam_url (str): DNAnexus url for downloading BAM/CNV file
+        - idx_url (str): DNAnexus url for downloading its index file
     """
     try:
         bam_info = dx.bindings.dxfile.DXFile(

@@ -18,7 +18,9 @@ try:
     # manage.py), or when run via docker and passed with --env-file
     SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = os.environ['DEBUG']  # should be false in production
-    AUTH_TOKEN = os.environ['AUTH_TOKEN']
+
+    # DNANexus Token
+    DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
 
     PROD_HOST = os.environ['PROD_HOST']
     DEBUG_HOST = os.environ['DEBUG_HOST']
@@ -34,17 +36,13 @@ try:
 
     GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
-    REF_37 = os.environ['REF_37']
-    REF_38 = os.environ['REF_38']
-    DBSNP_37 = os.environ['DBSNP_37']
-    DBSNP_38 = os.environ['DBSNP_38']
-
+    # SMTP Email
     EMAIL_USER = os.environ['EMAIL_USER']
     SMTP_RELAY = os.environ['SMTP_RELAY']
     PORT = os.environ['PORT']
     EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
-    # URLs for IGV
+    # IGVs
     FASTA_37 = os.environ['FASTA_37']
     FASTA_IDX_37 = os.environ['FASTA_IDX_37']
     CYTOBAND_37 = os.environ['CYTOBAND_37']
@@ -54,10 +52,22 @@ try:
     FASTA_IDX_38 = os.environ['FASTA_IDX_38']
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
+    
+    PROJECT_CNVS = os.environ['PROJECT_CNVS']
+    DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
 
-    # path to primer designer & its reference files
-    PRIMER_DESIGNER_DIR_PATH = os.environ['PRIMER_DESIGNER_DIR_PATH']
+    # Primer
+    REF_37 = os.environ['REF_37']
+    REF_38 = os.environ['REF_38']
+    DBSNP_37 = os.environ['DBSNP_37']
+    DBSNP_38 = os.environ['DBSNP_38']
+
     PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
+    PRIMER_IMAGE = os.environ['PRIMER_IMAGE']
+
+    # Slack Token
+    SLACK_TOKEN = os.environ['SLACK_TOKEN']
+
 
 except KeyError as e:
     key = e.args[0]
