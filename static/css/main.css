@@ -2183,3 +2183,11 @@ body.is-menu-visible #menu {
   top: 50%;
   transform: translate(-50%, -50%);
 }
+
+.alert.hide {
+    position: relative;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-10px);
+    transition: visibility 0s 250ms, opacity 250ms, transform 250ms;
+}

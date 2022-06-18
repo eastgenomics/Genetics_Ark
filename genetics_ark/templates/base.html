@@ -12,7 +12,7 @@
 		<meta charset="utf-8">
     	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-		<!-- jQuery -->
+		<!-- jQuery JS v3.6.0 -->
 		<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
 
 		<!-- Main CSS -->
@@ -40,16 +40,17 @@
 			}
 		</script>
 
-		<!-- IGV JS -->
+		<!-- Bootstrap JS -->
+		<script rel="stylesheet" src="{% static 'js/popper.min.js' %}"></script>
+		<script rel="stylesheet" src="{% static 'js/bootstrap.min.js' %}"></script>
+
+		<!-- IGV JS v2.12.6 -->
 		<script type="text/javascript" src="{% static 'js/igv.min.js' %}"></script>
 
 		<link rel="shortcut icon" type="image/png" href="/static/images/favicon.ico"/>
 		{% block css %}{% endblock %}
 	</head>
 	<body class="is-preload">
-		<!-- Bootstrap 4 CDN -->
-		<script rel="stylesheet" src="{% static 'js/popper.min.js' %}"></script>
-		<script rel="stylesheet" src="{% static 'js/bootstrap.min.js' %}"></script>
 
 		<!-- Header -->
 		<header id="header">
@@ -86,7 +87,7 @@
 		<!-- messages loader -->
 		{% if messages %}
 			{% for message in messages %}
-				<div class="alert {{ message.tags }} alert-dismissible fade show my-0" role="alert">
+				<div id="message" class="alert {{ message.tags }} alert-dismissible fade show my-0" role="alert">
 					{{ message }}
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
@@ -99,7 +100,7 @@
 		<!-- body block for inheriting page content -->
 		{% endblock %}
 		
-		<!-- JS Script for MenuBar, IndexPage Banner -->
+		<!-- Custom JS Script for MenuBar, IndexPage Banner -->
 		<script src="{% static 'js/breakpoints.min.js' %}"></script>
 		<script src="{% static 'js/util.js' %}"></script>
 		<script src="{% static 'js/main.js' %}"></script>
@@ -116,7 +117,7 @@
 				if (s == true) {
 					var s = document.getElementById('message').style;
 					s.opacity = 1;
-					setTimeout(() => {  (function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,10)})(); }, 10000);
+					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,5)})(); }, 5000);
 				}
 			});
 		</script>

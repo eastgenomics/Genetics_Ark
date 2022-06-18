@@ -46,7 +46,7 @@ def index(request):
             messages.add_message(
                 request,
                 messages.ERROR,
-                "Error in given primer design input"
+                f"Error in given primer design input {regions_form.data['regions']}"
             )
     else:
         regions_form = Forms.RegionsForm()
