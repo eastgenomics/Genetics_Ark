@@ -1,7 +1,4 @@
-from django.contrib import admin
-from django.urls import path, include
-from django_email_verification import urls as mail_urls
-from .views import sign_up
+from django.urls import path
 
 from . import views
 

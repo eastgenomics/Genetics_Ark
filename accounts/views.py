@@ -1,24 +1,21 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout, get_user_model, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import send_mail
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from django.utils.encoding import force_text, force_bytes
-from django.utils.http import urlsafe_base64_decode
+
 import logging
 
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from ga_core.settings import ALLOWED_HOSTS, DEFAULT_FROM_EMAIL, LOGGING
+from ga_core.settings import DEFAULT_FROM_EMAIL
 
 error_log = logging.getLogger("ga_error")
 
-
-@login_required
 def index(request):
     return render(request, '/')
 
@@ -28,7 +25,7 @@ def log_out(request):
     messages.add_message(
         request,
         messages.SUCCESS,
-        """Successfully logged out"""
+        "Successfully logged out"
     )
     # redirect to home page which goes back to login
     return redirect('/')
@@ -112,16 +109,14 @@ def sign_up(request):
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    err_msg,
-                    extra_tags="alert-danger"
+                    err_msg
                 )
         else:
             # error in form
             messages.add_message(
                 request,
                 messages.ERROR,
-                "Error in sign up form, please check the form and try again",
-                extra_tags="alert-danger"
+                "Error in sign up form, please check the form and try again"
             )
 
     return render(request, 'registration/sign_up.html', {'form': form})

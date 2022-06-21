@@ -1,14 +1,7 @@
 {% extends 'base.html' %}
 
-{% block body_block %}
-
+{% block css %}
 <style>
-  .spinner {
-    display: flex;
-    align-items: center;
-    padding-left: 1%;
-  }
-
   pre.inline {
     display: inline;
     background-color: #d3d3d3;
@@ -16,92 +9,66 @@
     padding: 3px
 }
 </style>
+{% endblock %}
 
-<!-- function to display loading spinner on form submit -->
-<script>
-  function spinner_function() {
-      var x = document.getElementById("spinner");
-      if (x.style.display === "none") 
-          {x.style.display = "block";}
-      else 
-          {x.style.display = "none";}
-  }
-</script>
+{% block body %}
+{% load crispy_forms_tags %}
+<div class="container">
+  <div class="card p-5 my-5">
+    <div class="card-body">
+      <h2> Primer Designer</h2>
+      <div>
+          Enter regions to design primers for (one region per line)
+    
+          <br></br>
+    
+          Example input formats:<br>
+    
+          <ul>
+            <li class="my-2">Single Position: <pre class="inline px-2">x:123213 grch37</pre></li>
+            <li class="my-2">Range Position: <pre class="inline px-2">x:123213-547363 grch37</pre></li>
+            <li class="my-2">Fusion Design: <pre class="inline px-2">1:125432:b:1 2:2635462:a:1 grch37</pre></li>
+          </ul>
+    
+          For fusion designs, each should be in the format of <pre class="inline">chr:pos:side:strand</pre> for both regions,<br>
+          followed by the <pre class="inline">grch37</pre> or <pre class="inline">grch38</pre>.<br></br>
+          <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>
+          should be either <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
+          
+          <br></br>
+          <p>Example: 1:1625342 grch37</p>
+    
+          <!-- Input form -->
+          <form id="primer_form" clas="my-5" method="POST">
+            {% csrf_token %}
+            {{ regions_form|crispy }}
+            <div class="row justify-content-between px-3">
+              <button id="primer_submit" type="submit" class="btn btn-primary btn-sm">Submit</button>
+              <a id="primerHome" class="btn btn-info btn-sm" href="/" role="button">Home</a>
+            </div>
+          </form>
+      </div>
 
-
-<div class="card border-light" style="width:75%; margin: auto; padding: 50px; margin-top: 100px;">
-  <h2> Primer Designer</h2><br>
-  <div>
-      Enter regions to design primers for (one region per line)
-
-      <br></br>
-
-      Example input formats:<br>
-
-      <ul>
-        <li>Single position: <pre class="inline" style="margin-left: 1px;">x:123213 grch37</pre></li>
-        <li>Range position: <pre class="inline">x:123213-547363 grch37</pre></li>
-        <li>Fusion design: <pre class="inline" style="margin-left: 7px;">1:125432:b:1 2:2635462:a:1 grch37</pre></li>
-      </ul>
-
-      For fusion designs, each should be in the format of <pre class="inline">chr:pos:side:strand</pre> for both regions,<br>
-      followed by the <pre class="inline">grch37</pre> or <pre class="inline">grch38</pre>.<br></br>
-      <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>
-      should be either <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
-
-      <br></br>
-
-      <!-- Input form -->
-      <form role="form"  id="panel_form" method="post" onsubmit="return spinner_function()">
-        {% csrf_token %}
-        <div class="input-group">
-          {{regions_form.regions}}
-        </div>
-        <br>
-        <div class="input-group">
-          <span class="input-group-btn">
-            <button class="btn alert-success" type="submit">Design primers</button>
-          </span>
-        </div>
-      </form>
-  </div>
-
-  <!-- loading spinner -->
-  <div id="spinner" class="spinner" style="display:none">
-    <span style="vertical-align:middle">Designing primers...</span>
-    <img id='spinner' src='/static/images/dna_loader.gif' alt="Please wait .."  style="width:300px;height:165px; vertical-align:middle">
+      <!-- loading spinner -->
+      <div id="spinner" style="display:none;">
+        <span style="vertical-align:middle">Designing primers...</span>
+        <img id='spinner' src='/static/images/dna-loader.gif' alt="Please wait .."  style="width:300px;height:165px; vertical-align:middle">
+      </div>
+    </div>
   </div>
 </div>
-
 {% endblock %}
 
 
 {% block script %}
-
-$(function() {
-
-   // This is quite hacky, here I am using the template language to generate js,
-
-  {% for field in regions_form %}
-
-     // If a field have an error alert the user
-     {% if field.errors %}
-
-      console.log("error on:", '{{field.id_for_label}}');
-      console.log("error on:", '{{field.errors|striptags}}');
-
-      // change the colour of the input/select to red
-      $("textarea#{{field.id_for_label}}").addClass('alert-danger');
-
-      // Add a data-toogle parameter to the input/select field
-      $("textarea#{{field.id_for_label}}").attr('data-toggle', 'tooltip');
-
-      // Set title to the error message, striptags remove all html formatting
-      $("textarea#{{field.id_for_label}}").attr('title', '{{field.errors|striptags}}');
-
-  {% endif %}
-{% endfor %}
-
-})
-
+<!-- function to display loading spinner on form submit -->
+<script>
+  $(document).ready(function() {
+    $("#primer_form").on("submit", function() {
+      $("#spinner").fadeIn();
+      $(this).find(':input[type=submit]').prop('disabled', true);
+      $("#primerHome").addClass("disabled");
+    });
+  });
+</script>
 {% endblock %}

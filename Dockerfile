@@ -1,14 +1,13 @@
-FROM primer_designer:1.2
+FROM python:3.8.10
 
 ENV PYTHONUNBUFFERED 1
-# Sets the container's working directory to /app
 WORKDIR /home/ga
 
-ADD requirements.txt ./
+COPY requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-ADD ./ ./
+COPY ./ ./
 
 EXPOSE 8000
 

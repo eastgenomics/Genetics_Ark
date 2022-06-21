@@ -2,9 +2,9 @@
 Django settings for ga_core project.
 """
 import os
-from pathlib import Path
 
-from django.contrib.messages import constants as messages
+from pathlib import Path
+from django.contrib.messages import constants
 
 # Passwords and database credentials stored in .env file
 # NOT IN VERSION CONTROL
@@ -18,7 +18,9 @@ try:
     # manage.py), or when run via docker and passed with --env-file
     SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = os.environ['DEBUG']  # should be false in production
-    AUTH_TOKEN = os.environ['AUTH_TOKEN']
+
+    # DNANexus Token
+    DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
 
     PROD_HOST = os.environ['PROD_HOST']
     DEBUG_HOST = os.environ['DEBUG_HOST']
@@ -34,16 +36,13 @@ try:
 
     GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
-    REF_37 = os.environ['REF_37']
-    REF_38 = os.environ['REF_38']
-    DBSNP_37 = os.environ['DBSNP_37']
-    DBSNP_38 = os.environ['DBSNP_38']
-
+    # SMTP Email
     EMAIL_USER = os.environ['EMAIL_USER']
     SMTP_RELAY = os.environ['SMTP_RELAY']
     PORT = os.environ['PORT']
+    EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
-    # URLs for IGV
+    # IGVs
     FASTA_37 = os.environ['FASTA_37']
     FASTA_IDX_37 = os.environ['FASTA_IDX_37']
     CYTOBAND_37 = os.environ['CYTOBAND_37']
@@ -53,9 +52,22 @@ try:
     FASTA_IDX_38 = os.environ['FASTA_IDX_38']
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
+    
+    PROJECT_CNVS = os.environ['PROJECT_CNVS']
+    DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
 
-    # path to bulk design script in primer designer
-    PRIMER_DESIGNER_DIR_PATH = os.environ['PRIMER_DESIGNER_DIR_PATH']
+    # Primer
+    REF_37 = os.environ['REF_37']
+    REF_38 = os.environ['REF_38']
+    DBSNP_37 = os.environ['DBSNP_37']
+    DBSNP_38 = os.environ['DBSNP_38']
+
+    PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
+    PRIMER_IMAGE = os.environ['PRIMER_IMAGE']
+
+    # Slack Token
+    SLACK_TOKEN = os.environ['SLACK_TOKEN']
+
 
 except KeyError as e:
     key = e.args[0]
@@ -88,7 +100,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
-    'crispy_forms'
+    'crispy_forms',
+    # 'django_q'
 ]
 
 # django crispy forms for nice form rendering
@@ -98,10 +111,10 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
@@ -124,27 +137,30 @@ TEMPLATES = [
     },
 ]
 
-
-
 MESSAGE_TAGS = {
-    messages.DEBUG: 'alert-secondary',
-    messages.INFO: 'alert-info',
-    messages.SUCCESS: 'alert-success',
-    messages.WARNING: 'alert-warning',
-    messages.ERROR: 'alert-danger',
+    constants.DEBUG: 'alert-secondary',
+    constants.INFO: 'alert-info',
+    constants.SUCCESS: 'alert-success',
+    constants.WARNING: 'alert-warning',
+    constants.ERROR: 'alert-danger',
 }
 
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
 # Database
+# default engine (django.db.backends.mysql) doesn't work
+# with dockerized django app
+# mysql engine: mysql.connector.django
+# https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': ACCOUNT_DB_NAME,
         'USER': ACCOUNT_DB_USER,
         'PASSWORD': ACCOUNT_DB_PASSWORD,
-        'HOST': ACCOUNT_DB_HOST
+        'HOST': ACCOUNT_DB_HOST,
+        'PORT': 3306
     }
 }
 
@@ -159,7 +175,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': ('django.contrib.auth.password_validation.'
-                'MinimumLengthValidator'),
+                 'MinimumLengthValidator'),
     },
     {
         'NAME': ('django.contrib.auth.password_validation.'
@@ -242,7 +258,9 @@ LOGGING = {
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-STATIC_URL = '/static/'
+# Explanation on why:
+# https://www.mattlayman.com/understand-django/serving-static-files/
+STATIC_URL = 'static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
