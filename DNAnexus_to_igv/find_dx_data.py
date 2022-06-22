@@ -64,19 +64,10 @@ import requests
 import os
 import json
 import logging
-from dotenv import load_dotenv, find_dotenv
 
+from dotenv import load_dotenv
 from collections import defaultdict
 from pathlib import Path
-
-load_dotenv(find_dotenv())
-
-DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
-PROJECT_CNVS = os.environ['PROJECT_CNVS']
-DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
-SLACK_TOKEN = os.environ['SLACK_TOKEN']
-
-error_log = logging.getLogger("ga_error")
 
 def dx_login():
     """
@@ -345,7 +336,7 @@ def post_message_to_slack(channel, message):
     try:
         response = requests.post('https://slack.com/api/chat.postMessage', {
             'token': SLACK_TOKEN,
-            'channel': f'U02HPRQ9X7Z',
+            'channel': f'#{channel}',
             'text': message
         }).json()
 
@@ -363,6 +354,16 @@ def post_message_to_slack(channel, message):
         error_log.error(e)
 
 if __name__ == "__main__":
+
+    load_dotenv()
+
+    DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
+    PROJECT_CNVS = os.environ['PROJECT_CNVS']
+    DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
+    SLACK_TOKEN = os.environ['SLACK_TOKEN']
+    DEBUG = os.environ['DEBUG']
+
+    error_log = logging.getLogger("ga_error")
 
     if dx_login():
         proj_list, proj_name = get_002_projects()

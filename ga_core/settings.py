@@ -5,6 +5,7 @@ import os
 
 from pathlib import Path
 from django.contrib.messages import constants
+from dotenv import load_dotenv
 
 # Passwords and database credentials stored in .env file
 # NOT IN VERSION CONTROL
@@ -12,6 +13,7 @@ from django.contrib.messages import constants
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 try:
     # env variables will either be set to environment when run (loaded in
@@ -63,6 +65,7 @@ try:
     DBSNP_38 = os.environ['DBSNP_38']
 
     PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
+    PRIMER_DESIGNER_OUT_PATH = os.environ['PRIMER_DESIGNER_OUT_PATH']
     PRIMER_IMAGE = os.environ['PRIMER_IMAGE']
 
     # Slack Token
@@ -153,16 +156,16 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 # with dockerized django app
 # mysql engine: mysql.connector.django
 # https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': ACCOUNT_DB_NAME,
-        'USER': ACCOUNT_DB_USER,
-        'PASSWORD': ACCOUNT_DB_PASSWORD,
-        'HOST': ACCOUNT_DB_HOST,
-        'PORT': 3306
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': ACCOUNT_DB_NAME,
+#         'USER': ACCOUNT_DB_USER,
+#         'PASSWORD': ACCOUNT_DB_PASSWORD,
+#         'HOST': ACCOUNT_DB_HOST,
+#         'PORT': 3306
+#     }
+# }
 
 
 # Password validation

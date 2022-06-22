@@ -1,0 +1,4 @@
+# start cron
+*/10 * * * * rm -rf /home/ga/static/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /var/log/cron.log 2>&1
+*/10 * * * * /usr/local/bin/python -u /home/ga/DNAnexus_to_igv/find_dx_data.py >> /var/log/cron.log 2>&1
+# end cron

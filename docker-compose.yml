@@ -1,9 +1,21 @@
 version: '3.3'
 services:
-   web:
-      build: .
-      command: bash -c "python manage.py collectstatic && python manage.py runserver 0.0.0.0:8000"
-      volumes:
-        - .:/home/ga
-      ports:
-        - 8000:8000
+  web:
+    build: .
+    command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - /home/jason/github/Genetics_Ark/.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /home/jason/github/Genetics_Ark/static/tmp:/home/ga/static/tmp
+    ports:
+      - 8000:8000
+  cron:
+    build: .
+    command: bash -c "printenv > /etc/environment && cron -f"
+    env_file:
+      - /home/jason/github/Genetics_Ark/.env
+    volumes:
+      - /home/jason/github/Genetics_Ark/static/tmp:/home/ga/static/tmp
+      - /home/jason/github/Genetics_Ark/DNAnexus_to_igv/jsons:/home/ga/DNAnexus_to_igv/jsons
