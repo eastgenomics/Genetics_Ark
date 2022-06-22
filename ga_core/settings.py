@@ -54,7 +54,7 @@ try:
     FASTA_IDX_38 = os.environ['FASTA_IDX_38']
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
-    
+
     PROJECT_CNVS = os.environ['PROJECT_CNVS']
     DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
 
@@ -210,9 +210,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Settings for logging
 if not os.path.exists(f'/home/ga/logs/ga-error.log'):
-    with open(f'/home/ga/logs/ga-error.log', 'w'): pass
+    with open(f'/home/ga/logs/ga-error.log', 'w'):
+        pass
 if not os.path.exists(f'/home/ga/logs/ga-debug.log'):
-    with open(f'/home/ga/logs/ga-debug.log', 'w'): pass
+    with open(f'/home/ga/logs/ga-debug.log', 'w'):
+        pass
 
 LOGGING = {
     'version': 1,
@@ -237,7 +239,7 @@ LOGGING = {
             'maxBytes': 5242880,
             'backupCount': 2
         },
-         'debug-log': {
+        'debug-log': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': f'/home/ga/logs/ga-debug.log',

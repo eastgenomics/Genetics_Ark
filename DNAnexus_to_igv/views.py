@@ -30,12 +30,13 @@ from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
-    FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38, 
+    FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
     DNANEXUS_TOKEN, SLACK_TOKEN
 )
 from .find_dx_data import dx_login
 
 logger = logging.getLogger("general")
+
 
 def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
                 idx_file_name, project_id):
@@ -75,7 +76,10 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
         idx_url = idx[0]
 
     except Exception as e:
-        logger.error(f'Error generating dx download url for sample {sample_id} in {project_id}')
+        logger.error(
+            f'Error generating dx download url for sample '
+            '{sample_id} in {project_id}'
+            )
         logger.error(e)
 
         bam_url = None
@@ -145,7 +149,7 @@ def nexus_search(request):
                 # select bams matching sample id, return original entry from
                 # JSON by matching against upper name and search term
                 # (structure of json may be found in find_dx_bams.py)
-                ## change to search partial
+                # change to search partial
                 sample_data = [
                     value for key, value in json_bams['BAM'].items() if
                     sample_id.upper() in key.upper()]
@@ -178,7 +182,7 @@ def nexus_search(request):
                     request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
             flat_data = [x for xs in sample_data for x in xs]
-            
+
             logger.info(f'{len(flat_data)} sample found')
 
             if len(flat_data) == 1:

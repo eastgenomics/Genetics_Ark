@@ -69,6 +69,7 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from pathlib import Path
 
+
 def dx_login(dnanexus_token, slack_token):
     """
     Function to check DNANexus auth token. Send Slack notification
@@ -94,8 +95,9 @@ def dx_login(dnanexus_token, slack_token):
 
         post_message_to_slack('egg-alerts', message, slack_token)
         return False
-    
+
     return True
+
 
 def get_002_projects():
     """
@@ -141,7 +143,7 @@ def find_dx_bams(project_002_list, project_names):
 
     Returns: None
 
-    Output: 
+    Output:
         - dx_002_bams.json contains BAMs and CNVs on DNANexus
         - dx_missing_bam.json
     """
@@ -155,7 +157,8 @@ def find_dx_bams(project_002_list, project_names):
 
     # loop through proj to get bam file in each of them
     for index, project in enumerate(project_002_list):
-        logger.info(f'Searching {project} ({index + 1}/{len(project_002_list)})')
+        logger.info(
+            f'Searching {project} ({index + 1}/{len(project_002_list)})')
 
         bam_dict = {}
         idx_dict = {}
@@ -323,10 +326,12 @@ def find_cnvs(data_dict):
 
     logger.info('Searching for CNVs End')
 
+
 def post_message_to_slack(channel, message, slack_token):
     """
     Function to send Slack notification
-    Taken from: https://github.com/eastgenomics/ansible-run-monitoring/blob/main/util.py
+    Taken from:
+    https://github.com/eastgenomics/ansible-run-monitoring/blob/main/util.py
     Inputs:
         channel: egg-alerts
         message: text
@@ -354,6 +359,7 @@ def post_message_to_slack(channel, message, slack_token):
         logger.error(f'Error sending POST request to channel #{channel}')
         logger.error(e)
 
+
 if __name__ == "__main__":
 
     load_dotenv()
@@ -369,4 +375,3 @@ if __name__ == "__main__":
     if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN):
         proj_list, proj_name = get_002_projects()
         find_dx_bams(proj_list, proj_name)
-

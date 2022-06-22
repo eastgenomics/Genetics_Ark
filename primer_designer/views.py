@@ -22,7 +22,7 @@ from django.shortcuts import render
 import primer_designer.forms as Forms
 
 from ga_core.settings import (
-    PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_IMAGE, 
+    PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_IMAGE,
     PRIMER_DESIGNER_OUT_PATH, REF_38, DBSNP_38
     )
 
@@ -44,10 +44,11 @@ def index(request):
             # generate primers
             return create(request, regions_form)
         else:
+            region = regions_form.data['regions']
             messages.add_message(
                 request,
                 messages.ERROR,
-                f"Error in given primer design input {regions_form.data['regions']}"
+                f"Error in given primer design input {region}"
             )
     else:
         regions_form = Forms.RegionsForm()
@@ -119,7 +120,7 @@ def call_primer_designer(request, cmd, output_path):
         - cmd (str): region formatted str to pass to primer designer docker cmd
         - output_path: path to output generated PDFs
 
-    Returns: 
+    Returns:
         Boolean if Subprocess success or failed
     """
     genome_build = cmd.split(' ')[-1].lstrip('--')
@@ -145,7 +146,7 @@ def call_primer_designer(request, cmd, output_path):
                 f"{PRIMER_IMAGE} "
                 f"python3 bin/primer_designer_region.py {cmd}"
             )
-    
+
     logger.info(primer_cmd)
 
     try:
@@ -181,9 +182,9 @@ def create(request, regions_form):
     """
     Create Page
 
-    Function called when valid form submitted, generates output file 
+    Function called when valid form submitted, generates output file
     then runs primer3 via primer_designer with given regions.
-    
+
     Return:
         link to download PDFs zip
     """
@@ -200,15 +201,15 @@ def create(request, regions_form):
     # create tmp folder (if not exist) - just in case
     Path(f'{parent_path}/static/tmp').mkdir(parents=True, exist_ok=True)
 
-     # define output dir to host filesystem for primer cmd
+    # define output dir to host filesystem for primer cmd
     out_dir = f'{PRIMER_DESIGNER_OUT_PATH}/{output_name}/'
-    
+
     # mounted output directory (within docker container)
     mounted_dir = '/home/ga/static/tmp'
     output_zip = f'{mounted_dir}/{output_name}.zip'
 
     # make directory for all the generated PDF(s) to zip later
-    os.mkdir(Path(f'{mounted_dir}/{output_name}')) # empty dir to add reports to
+    os.mkdir(Path(f'{mounted_dir}/{output_name}'))
 
     for region in regions:
         # format each given region as input args for primer designer & call
