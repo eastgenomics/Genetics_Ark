@@ -69,7 +69,7 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from pathlib import Path
 
-def dx_login():
+def dx_login(dnanexus_token, slack_token):
     """
     Function to check DNANexus auth token. Send Slack notification
     if auth failed.
@@ -77,7 +77,7 @@ def dx_login():
     """
     DX_SECURITY_CONTEXT = {
         "auth_token_type": "Bearer",
-        "auth_token": DNANEXUS_TOKEN
+        "auth_token": dnanexus_token
     }
 
     # set token to env
@@ -90,8 +90,9 @@ def dx_login():
             'Genetic Ark: Find Bam DNANexus Auth Failed\n'
             f'Error Message: {err}'
         )
+        logger.error(err)
 
-        post_message_to_slack('egg-alerts', message)
+        post_message_to_slack('egg-alerts', message, slack_token)
         return False
     
     return True
@@ -122,9 +123,9 @@ def get_002_projects():
         for proj_id in dev_project:
             projects_name[proj_id] = DEV_PROJECT_NAME
     else:
-        print('DEV PROJECT DOES NOT APPEAR TO EXIST')
+        logger.info('DEV PROJECT DOES NOT APPEAR TO EXIST')
 
-    print("Total 002 projects found:", len(project_002_list))
+    logger.info("Total 002 projects found:", len(project_002_list))
 
     return project_002_list, projects_name
 
@@ -154,7 +155,7 @@ def find_dx_bams(project_002_list, project_names):
 
     # loop through proj to get bam file in each of them
     for index, project in enumerate(project_002_list):
-        print(f'Searching {project} ({index + 1}/{len(project_002_list)})')
+        logger.info(f'Searching {project} ({index + 1}/{len(project_002_list)})')
 
         bam_dict = {}
         idx_dict = {}
@@ -243,7 +244,7 @@ def find_dx_bams(project_002_list, project_names):
 
     # ensure output jsons go to /DNAnexus_to_igv/jsons dir
     output_dir = f'{Path(__file__).parent.absolute()}/jsons'
-    print(f'JSON saved to: {output_dir}')
+    logger.info(f'JSON saved to: {output_dir}')
 
     outfile_bam = f'{output_dir}/dx_002_bams.json'
     outfile_missing = f'{output_dir}/dx_missing_bam.json'
@@ -270,7 +271,7 @@ def find_cnvs(data_dict):
 
     """
 
-    print('Searching for CNVs')
+    logger.info('Searching for CNVs')
 
     project_name = dx.DXProject(PROJECT_CNVS).describe()['name']
 
@@ -320,9 +321,9 @@ def find_cnvs(data_dict):
         data_dict['CNV'][
             cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
 
-    print('Searching for CNVs End')
+    logger.info('Searching for CNVs End')
 
-def post_message_to_slack(channel, message):
+def post_message_to_slack(channel, message, slack_token):
     """
     Function to send Slack notification
     Taken from: https://github.com/eastgenomics/ansible-run-monitoring/blob/main/util.py
@@ -335,23 +336,23 @@ def post_message_to_slack(channel, message):
 
     try:
         response = requests.post('https://slack.com/api/chat.postMessage', {
-            'token': SLACK_TOKEN,
-            'channel': f'#{channel}',
+            'token': slack_token,
+            'channel': f'U02HPRQ9X7Z',
             'text': message
         }).json()
 
         if response['ok']:
-            print(f'POST request to channel #{channel} successful')
+            logger.info(f'POST request to channel #{channel} successful')
             return
         else:
             # slack api request failed
             error_code = response['error']
-            error_log.error(f'Error Code From Slack: {error_code}')
+            logger.error(f'Error Code From Slack: {error_code}')
 
     except Exception as e:
         # endpoint request fail from server
-        error_log.error(f'Error sending POST request to channel #{channel}')
-        error_log.error(e)
+        logger.error(f'Error sending POST request to channel #{channel}')
+        logger.error(e)
 
 if __name__ == "__main__":
 
@@ -363,9 +364,9 @@ if __name__ == "__main__":
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
     DEBUG = os.environ['DEBUG']
 
-    error_log = logging.getLogger("ga_error")
+    logger = logging.getLogger("general")
 
-    if dx_login():
+    if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN):
         proj_list, proj_name = get_002_projects()
         find_dx_bams(proj_list, proj_name)
 

@@ -136,6 +136,10 @@
         
                 <form action="" method="POST" name="igv_form">
                     {% csrf_token %}
+                    <input type="hidden" name="file_name" value="{{ file_name }}">
+                    <input type="hidden" name="file_url" value="{{ file_url }}">
+                    <input type="hidden" name="idx_url" value="{{ idx_url }}">
+                    <input type="hidden" name="file_id" value="{{ file_id }}">
                     <input type="hidden" id="igv_proj_name" name="project_name" value="{{ project_name }}">
                     <button name="action" value="igv_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV (GRCh37)</button>
                     <button name="action" value="igv_38" type="submit" class ="btn btn-warning btn-sm m-2 px-3">View in web IGV (GRCh38)</button>
@@ -159,7 +163,9 @@
                                 <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
                                 <form action="" method="post" name="select_bam" target="_blank">
                                     {% csrf_token %}
-                                    <input type="hidden" name="selected_bam_input" value="{{ file.file_id }}">
+                                    <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
+                                    <input type="hidden" name="bam_list" value="{{ bam_list }}">
+                                    <input type="hidden" name="sample_id" value="{{ sample_id }}">
                                     <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
                                 </form>
                             {% else %}

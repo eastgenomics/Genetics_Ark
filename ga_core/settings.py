@@ -152,10 +152,7 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
 # Database
-# default engine (django.db.backends.mysql) doesn't work
-# with dockerized django app
-# mysql engine: mysql.connector.django
-# https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
+# default engine (django.db.backends.mysql)
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
@@ -212,49 +209,55 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # Settings for logging
-log_dir = os.path.join(BASE_DIR, "logs")
+if not os.path.exists(f'/home/ga/logs/ga-error.log'):
+    with open(f'/home/ga/logs/ga-error.log', 'w'): pass
+if not os.path.exists(f'/home/ga/logs/ga-debug.log'):
+    with open(f'/home/ga/logs/ga-debug.log', 'w'): pass
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'timestamp': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
             'format': '{asctime} {levelname} {message}',
             'style': '{',
         },
     },
     # Handlers
     'handlers': {
-        'debug-file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': f'{log_dir}/ga-debug.log',
-            'formatter': 'timestamp'
-        },
-        'error-file': {
+        'error-log': {
             'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': f'{log_dir}/ga-error.log',
-            'formatter': 'timestamp'
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': f'/home/ga/logs/ga-error.log',
+            'formatter': 'simple',
+            'maxBytes': 5242880,
+            'backupCount': 2
         },
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'timestamp'
+         'debug-log': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': f'/home/ga/logs/ga-debug.log',
+            'formatter': 'verbose',
+            'maxBytes': 5242880,
+            'backupCount': 2
         },
     },
     # Loggers
     'loggers': {
-        'ga_debug': {
-            'handlers': ['debug-file'],
-            'level': 'DEBUG',
-            'propagate': True,
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')
-        },
-        'ga_error': {
-            'handlers': ['error-file'],
+        'general': {
+            'handlers': ['error-log'],
             'level': 'ERROR',
-            'propagate': True,
-            'level': "ERROR"
+            'propagate': True
         },
+        '': {
+            'handlers': ['debug-log'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
     },
 }
 

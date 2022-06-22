@@ -26,7 +26,7 @@ from ga_core.settings import (
     PRIMER_DESIGNER_OUT_PATH, REF_38, DBSNP_38
     )
 
-error_log = logging.getLogger("ga_error")
+logger = logging.getLogger("general")
 
 
 # @login_required
@@ -123,6 +123,7 @@ def call_primer_designer(request, cmd, output_path):
         Boolean if Subprocess success or failed
     """
     genome_build = cmd.split(' ')[-1].lstrip('--')
+    logger.info(genome_build)
 
     if genome_build == 'grch37':
         primer_cmd = (
@@ -145,7 +146,7 @@ def call_primer_designer(request, cmd, output_path):
                 f"python3 bin/primer_designer_region.py {cmd}"
             )
     
-    print(primer_cmd)
+    logger.info(primer_cmd)
 
     try:
         call = subprocess.run(
@@ -163,8 +164,8 @@ def call_primer_designer(request, cmd, output_path):
         else:
             err_msg = traceback
 
-        error_log.error(f':Primer designer: {traceback}')
-        error_log.error(primer_cmd)
+        logger.error(f':Primer Designer traceback: {traceback}')
+        logger.error(primer_cmd)
 
         messages.add_message(
             request,
@@ -194,7 +195,7 @@ def create(request, regions_form):
 
     # get parent path in docker container e.g. /home/ga
     parent_path = Path(__file__).parent.parent.absolute()
-    print(parent_path)
+    logger.info(parent_path)
 
     # create tmp folder (if not exist) - just in case
     Path(f'{parent_path}/static/tmp').mkdir(parents=True, exist_ok=True)

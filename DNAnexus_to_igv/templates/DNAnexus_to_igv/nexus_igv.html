@@ -3,10 +3,11 @@
 {% block body %}
 <div class="container-fluid mt-2 mb-5 p-5">
     
-  <h2>IGV browser for {{ sample_id }}</h2>
+  <h2>IGV browser for {{ file_name }}</h2>
   <div>
     <h3 style="display: inline;"> Using reference: </h3>
     <h3 style="display: inline; text-transform: lowercase;"><b>{{ reference }}</b></h3>
+    <h4>File ID: {{ file_id }}</h4>
   </div>
   <br>
   Note: Samples with high depth of sequencing may take a while to load.
@@ -34,7 +35,7 @@
         "cytobandURL": "{{ cytoband }}",
         "tracks": [
           {
-            "name": "{{ sample_id }}",
+            "name": "{{ file_name }}",
             "url": "{{ file_url }}",
             "indexURL": "{{ idx_url }}",
             "displayMode": "EXPANDED"

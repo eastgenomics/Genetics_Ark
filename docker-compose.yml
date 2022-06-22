@@ -9,6 +9,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
       - /home/jason/github/Genetics_Ark/static/tmp:/home/ga/static/tmp
+      - /home/jason/github/Genetics_Ark/DNAnexus_to_igv/jsons:/home/ga/DNAnexus_to_igv/jsons
+      - /home/jason/github/Genetics_Ark/logs:/home/ga/logs
     ports:
       - 8000:8000
   cron:
