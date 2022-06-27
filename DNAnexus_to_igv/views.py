@@ -31,7 +31,7 @@ from DNAnexus_to_igv.forms import UrlForm, SearchForm
 from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
-    DNANEXUS_TOKEN, SLACK_TOKEN
+    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG
 )
 from .find_dx_data import dx_login
 
@@ -54,7 +54,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
         - bam_url (str): DNAnexus url for downloading BAM/CNV file
         - idx_url (str): DNAnexus url for downloading its index file
     """
-    dx_login(DNANEXUS_TOKEN, SLACK_TOKEN)
+    dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG)
 
     try:
         bam_info = dx.bindings.dxfile.DXFile(
@@ -78,7 +78,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
     except Exception as e:
         logger.error(
             f'Error generating dx download url for sample '
-            '{sample_id} in {project_id}'
+            f'{sample_id} in {project_id}'
             )
         logger.error(e)
 
@@ -108,11 +108,6 @@ def nexus_search(request):
     if request.method == 'POST':
         # WHEN SEARCH BUTTON IS PRESSED
         if request.POST['action'] == 'search':
-            # flush session cache to remove any old search variables
-            # for key in list(request.session.keys()):
-            #     if "auth" not in key:
-            #         del request.session[key]
-
             sample_id = request.POST["sample_id"]
             sample_id = str(sample_id).strip()  # in case spaces
 
@@ -135,11 +130,6 @@ def nexus_search(request):
                     DNAnexus to find samples, please contact\
                     the bioinformatics team"""
                 )
-                logger.error(re.sub(
-                    r'\s+', ' ', """Failed to load sample list from JSON, most
-                    likely the JSON has not been generated with
-                    find_dx_data.py"""
-                ))
                 logger.error(IOe)
 
                 return render(
@@ -208,6 +198,11 @@ def nexus_search(request):
                             f"{sample_id}. Please contact the bioinformatics "
                             "team for help."), extra_tags="alert-danger"
                     )
+
+                    logger.error(
+                        f'Error generating url for sample {sample_id}.'
+                        'Additional info: {sample_dict}'
+                        )
 
                     return render(
                         request, 'DNAnexus_to_igv/nexus_search.html',

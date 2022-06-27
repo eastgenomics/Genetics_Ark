@@ -69,11 +69,22 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from pathlib import Path
 
+logger = logging.getLogger("general")
 
-def dx_login(dnanexus_token, slack_token):
+
+def dx_login(
+        dnanexus_token: str,
+        slack_token: str,
+        debug: str,
+        cron: bool = False) -> None:
     """
     Function to check DNANexus auth token. Send Slack notification
     if auth failed.
+
+    dnanexus_token: dnanexus api token
+    slack_token: slack api token
+    debug: if run in debug, send to #egg-test
+    cron: if the function is ran from this script
 
     """
     DX_SECURITY_CONTEXT = {
@@ -88,12 +99,16 @@ def dx_login(dnanexus_token, slack_token):
         dx.api.system_whoami()
     except Exception as err:
         message = (
-            'Genetic Ark: Find Bam DNANexus Auth Failed\n'
-            f'Error Message: {err}'
+            'Genetics Ark: Failed connecting to DNAnexus\n'
+            f'Error Message: `{err}`'
         )
         logger.error(err)
 
-        post_message_to_slack('egg-alerts', message, slack_token)
+        if cron:
+            if debug == 'FALSE':
+                post_message_to_slack('egg-alerts', message, slack_token)
+            else:
+                post_message_to_slack('egg-test', message, slack_token)
         return False
 
     return True
@@ -132,7 +147,7 @@ def get_002_projects():
     return project_002_list, projects_name
 
 
-def find_dx_bams(project_002_list, project_names):
+def find_dx_bams(project_002_list: list, project_names: dict):
     """
     Function to find file-id and index-id for BAM and CNVs
     on DNAnexus
@@ -261,7 +276,7 @@ def find_dx_bams(project_002_list, project_names):
             json.dump(missing_bam, missing_file, indent=2)
 
 
-def find_cnvs(data_dict):
+def find_cnvs(data_dict: dict):
     """
     Function to add CNVs samples into the larger data_dict
     for find_dx_bams function
@@ -327,7 +342,7 @@ def find_cnvs(data_dict):
     logger.info('Searching for CNVs End')
 
 
-def post_message_to_slack(channel, message, slack_token):
+def post_message_to_slack(channel: str, message: str, slack_token: str):
     """
     Function to send Slack notification
     Taken from:
@@ -335,6 +350,7 @@ def post_message_to_slack(channel, message, slack_token):
     Inputs:
         channel: egg-alerts
         message: text
+        slack_token: slack api token
     Returns:
         dict: slack api response
     """
@@ -342,7 +358,7 @@ def post_message_to_slack(channel, message, slack_token):
     try:
         response = requests.post('https://slack.com/api/chat.postMessage', {
             'token': slack_token,
-            'channel': f'U02HPRQ9X7Z',
+            'channel': f'#{channel}',
             'text': message
         }).json()
 
@@ -368,10 +384,8 @@ if __name__ == "__main__":
     PROJECT_CNVS = os.environ['PROJECT_CNVS']
     DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
-    DEBUG = os.environ['DEBUG']
+    DEBUG = os.environ['GENETIC_DEBUG']
 
-    logger = logging.getLogger("general")
-
-    if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN):
+    if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, True):
         proj_list, proj_name = get_002_projects()
         find_dx_bams(proj_list, proj_name)

@@ -19,7 +19,7 @@ try:
     # env variables will either be set to environment when run (loaded in
     # manage.py), or when run via docker and passed with --env-file
     SECRET_KEY = os.environ['SECRET_KEY']
-    DEBUG = os.environ['DEBUG']  # should be false in production
+    DEBUG = os.environ['GENETIC_DEBUG']  # should be false in production
 
     # DNANexus Token
     DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
@@ -209,12 +209,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # Settings for logging
-if not os.path.exists(f'/home/ga/logs/ga-error.log'):
-    with open(f'/home/ga/logs/ga-error.log', 'w'):
-        pass
-if not os.path.exists(f'/home/ga/logs/ga-debug.log'):
-    with open(f'/home/ga/logs/ga-debug.log', 'w'):
-        pass
+with open('/home/ga/logs/ga-error.log', 'a'):
+    pass
+with open('/home/ga/logs/ga-debug.log', 'a'):
+    pass
 
 LOGGING = {
     'version': 1,
