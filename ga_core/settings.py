@@ -5,6 +5,7 @@ import os
 
 from pathlib import Path
 from django.contrib.messages import constants
+from dotenv import load_dotenv
 
 # Passwords and database credentials stored in .env file
 # NOT IN VERSION CONTROL
@@ -12,12 +13,13 @@ from django.contrib.messages import constants
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 try:
     # env variables will either be set to environment when run (loaded in
     # manage.py), or when run via docker and passed with --env-file
     SECRET_KEY = os.environ['SECRET_KEY']
-    DEBUG = os.environ['DEBUG']  # should be false in production
+    DEBUG = os.environ['GENETIC_DEBUG']  # should be false in production
 
     # DNANexus Token
     DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
@@ -52,7 +54,7 @@ try:
     FASTA_IDX_38 = os.environ['FASTA_IDX_38']
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
-    
+
     PROJECT_CNVS = os.environ['PROJECT_CNVS']
     DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
 
@@ -63,6 +65,7 @@ try:
     DBSNP_38 = os.environ['DBSNP_38']
 
     PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
+    PRIMER_DESIGNER_OUT_PATH = os.environ['PRIMER_DESIGNER_OUT_PATH']
     PRIMER_IMAGE = os.environ['PRIMER_IMAGE']
 
     # Slack Token
@@ -149,20 +152,17 @@ WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
 # Database
-# default engine (django.db.backends.mysql) doesn't work
-# with dockerized django app
-# mysql engine: mysql.connector.django
-# https://stackoverflow.com/questions/54633968/2059-authentication-plugin-caching-sha2-password-when-running-server-conne/54649081#54649081
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': ACCOUNT_DB_NAME,
-        'USER': ACCOUNT_DB_USER,
-        'PASSWORD': ACCOUNT_DB_PASSWORD,
-        'HOST': ACCOUNT_DB_HOST,
-        'PORT': 3306
-    }
-}
+# default engine (django.db.backends.mysql)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': ACCOUNT_DB_NAME,
+#         'USER': ACCOUNT_DB_USER,
+#         'PASSWORD': ACCOUNT_DB_PASSWORD,
+#         'HOST': ACCOUNT_DB_HOST,
+#         'PORT': 3306
+#     }
+# }
 
 
 # Password validation
@@ -209,49 +209,55 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # Settings for logging
-log_dir = os.path.join(BASE_DIR, "logs")
+with open('/home/ga/logs/ga-error.log', 'a'):
+    pass
+with open('/home/ga/logs/ga-debug.log', 'a'):
+    pass
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'timestamp': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
             'format': '{asctime} {levelname} {message}',
             'style': '{',
         },
     },
     # Handlers
     'handlers': {
-        'debug-file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': f'{log_dir}/ga-debug.log',
-            'formatter': 'timestamp'
-        },
-        'error-file': {
+        'error-log': {
             'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': f'{log_dir}/ga-error.log',
-            'formatter': 'timestamp'
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': f'/home/ga/logs/ga-error.log',
+            'formatter': 'simple',
+            'maxBytes': 5242880,
+            'backupCount': 2
         },
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'timestamp'
+        'debug-log': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': f'/home/ga/logs/ga-debug.log',
+            'formatter': 'verbose',
+            'maxBytes': 5242880,
+            'backupCount': 2
         },
     },
     # Loggers
     'loggers': {
-        'ga_debug': {
-            'handlers': ['debug-file'],
-            'level': 'DEBUG',
-            'propagate': True,
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG')
-        },
-        'ga_error': {
-            'handlers': ['error-file'],
+        'general': {
+            'handlers': ['error-log'],
             'level': 'ERROR',
-            'propagate': True,
-            'level': "ERROR"
+            'propagate': True
         },
+        '': {
+            'handlers': ['debug-log'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
     },
 }
 

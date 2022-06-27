@@ -6,92 +6,54 @@ Genetics Ark is a Django based web interface for hosting apps used by clinical s
 
 ## Requirements
 
-- MySQL database for storing user accounts
-- SMTP email credentials for sending user account activation links
-- GRCh37/38 reference files for primer designer
-- Docker (optional)
-- Python packages (`requirements.txt`)
+- GRCh37/38 reference files for Primer Designer (human reference genome & SNPs VCF)
+- Docker & Docker Compose
+- Primer Designer (deployed)
+
+#### primer designer
+When a primer input is submitted `<chromosome>:<position> <genome build>`, Genetic Ark calls the deployed primer designer in Docker 
+  
+```
+docker run -v <reference-file-dir>:/reference_files -v <host-output-dir>:/home/primer_designer/output --env REF_37 --env DBSNP_37 <primer_image> python3 bin/primer_designer_region.py <cmd>
+```
+This will generate the primer PDFs at `<host-output_dir>` (host filesystem) which is also mounted to Genetic Ark (see `docker-compose.yml` `<output-dir>:/home/ga/static/tmp`), thus allow Genetic Ark to generate download link to download the `.zip` file to the end user
 
 
+  
 ## Setup and Running 
 
-Genetics Ark requires confidential variables be passed in a `.env` file, this sets the variables to the environment and allows them to be accessible to Django.
-Once populated, this can be passed as the last argument when running from the cmd line (i.e. `python manage.py runserver <host>:<port> genetics_ark.env`) or with the `--env-file` argument if running with Docker.
-
-### Running in development
-
-For local development, not all the variables in the `.env` file are required to be filled if not being used (i.e. those for primer designer or email credentials), but the variable name must be present and left blank (see `example.env`).
-A MySQL database is required, the models building to the database and credentials adding to the `.env` file.
-
-### Running in production
-
-Steps for deploying to production:
-
-- local MySQL database created and mysqld running
-- populated `.env` file
-  - ensure `debug=False` is set
-- models migrated to database:
-  - with docker: 
-    - `docker <image-name> sh -c "python manage.py makemigrations”`
-    - `docker run <image-name> sh -c "python manage.py migrate”`
-  - without docker:
-    - `python manage.py makemigrations`
-    - `python manage.py migrate`
-- collect static files to serve
-  - with docker: `docker run <image-name> sh -c "python manage.py collectstatic --noinput"`
-  - without docker: `python manage.py collectstatic`
-- start server:
-  - with docker:
-    <div style="text-align: left">
-
-    ```
-    docker run --env-file ark.env \
-    -v /local_path_to_data_dir/reference_files:/reference_files \
-    -v /local_path_to_data_dir/logs/:/home/ga/logs \
-    -v /local_path_to_data_dir/bam_jsons/:/home/ga/DNAnexus_to_igv/jsons/ \
-    -v /local_path_to_data_dir/primer_designs/:/home/ga/static/tmp/ \
-    -p80:8000 --network=host <image-name>
-    ```
-    </div>
-  - without docker: `python manage.py runserver <host>:<port> ark.env`
-
-n.b. when running via Docker mounting volumes for DNAnexus_to_igv and primer designer is required for both running `find_dx_001_bams.py` to generate JSON of BAM file IDs, and clearing the tmp file directory of old primer designs. These should both be set to run as cron jobs using:
-
-<div style="text-align: left">
-
-```
-docker run --network=host \
--v /local_path_to_data_dir/bam_jsons/:/home/ga/DNAnexus_to_igv/jsons/ \
--v /local_path_to_data_dir/primer_designs/:/home/ga/static/tmp/  \
---env-file ~/configs/genetics_ark_docker.env genetics_ark:v2  \
-sh -c "python DNAnexus_to_igv/find_dx_002_bams.py"
-
-docker run --network=host \
--v /local_path_to_data_dir/bam_jsons/:/home/ga/DNAnexus_to_igv/jsons/ \
--v /local_path_to_data_dir/primer_designs/:/home/ga/static/tmp/  \
---env-file ~/configs/genetics_ark_docker.env genetics_ark:v2  \
-sh -c "rm -rf /home/ga/static/tmp/*"
-```
-This requires creating empty dirs to mount for the JSONs, primer designs and log files.
-
-</div>
-
-
-<br></br>
-
-## Current apps:
-
- - **Accounts**: Django user accounts, limits access to those with NHS email addresses through Django email authentication tokens. This also requires both
-   an email and SendGrid account for sending emails from.
-
- - **Primer designer**: app for designing new sequencing primers, utilises primer3 for designing primers and returns a .pdf report.
+Genetics Ark requires confidential environment variables in a `config.txt` or `.env` file. 
   
- - **DNAnexus_to_igv**: app to link samples stored in the DNAnexus cloud platform with Genetics Ark. On searching for a sample, if it is found within a "002" sequencing project within DNAnexus, download urls are provided for the BAM and index file to load within IGV installed on a PC. A link to stream the BAM directly to IGV.js is also provided.<br>
-n.b. find_dx_002_bams.py must first be run to generate a .json of samples in DNAnexus, this should be regularly run to stay up to date (i.e. via cron job). 
+Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 
-## Apps in development:
+### docker-compose
+#### web
+- Edit volume: `<host-output-dir>:/home/ga/static/tmp`
+- Edit volume: `<jsons-file-dir>:/home/ga/DNAnexus_to_igv/jsons`
 
-- **Primer database**: app to provide a web interface for interacting with the MySQL primer database, created to replace the current .xlsx "database". This will allow scientists to easily store new primer(s) and search for previously used ones, storing all relevant information to each primer. It also includes SNP checking functionality to automatically find variants present within the primer sequence against gnomAD.
+#### cron
+- Edit volume: `<host-output-dir>:/home/ga/static/tmp`
+- Edit volume: `<jsons-file-dir>:/home/ga/DNAnexus_to_igv/jsons`
+- Edit `crontab` file to tweak cron schedule
+```
+# start cron
+*/10 * * * * rm -rf /home/ga/static/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /var/log/cron.log 2>&1
+*/10 * * * * /usr/local/bin/python -u /home/ga/DNAnexus_to_igv/find_dx_data.py >> /var/log/cron.log 2>&1
+# end cron
+```
+- cron requires two volume to be mounted `<host-output-dir>` where primer PDFs and `.zip` files are located and `<jsons-file-dir>` where .json generated by `find_dx_data.py` is saved to. 
 
 
-</div>
+### Running in Production
+```
+docker compose build
+docker compose up
+```
+
+## Current Apps
+
+ - **Primer designer**: App for designing new sequencing primers, utilises primer3 for designing primers and returns a .pdf report
+  
+ - **DNAnexus_to_igv**: App to link samples stored in the DNAnexus cloud platform with Genetics Ark. On searching for a sample (BAM or CNV), if it is found within a 002 sequencing project within DNAnexus (for BAM) or in `PROJECT_CNVS` (for CNVs), download urls are provided for the file and its index file to load within IGV installed on a PC. A link to stream the file directly to IGV.js is also provided. cron container will periodically run find_dx_data.py to update the `.json` of samples
+  
+## Apps in Development:
