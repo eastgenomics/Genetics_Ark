@@ -23,7 +23,7 @@ import primer_designer.forms as Forms
 
 from ga_core.settings import (
     PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_IMAGE,
-    PRIMER_DESIGNER_OUT_PATH, REF_38, DBSNP_38
+    PRIMER_DESIGNER_OUT_PATH, REF_38, DBSNP_38, PRIMER_DOWNLOAD
     )
 
 logger = logging.getLogger("general")
@@ -198,9 +198,6 @@ def create(request, regions_form):
     parent_path = Path(__file__).parent.parent.absolute()
     logger.info(parent_path)
 
-    # create tmp folder (if not exist) - just in case
-    # Path(f'{parent_path}/static/tmp').mkdir(parents=True, exist_ok=True)
-
     # define output dir to host filesystem for primer cmd
     out_dir = f'{PRIMER_DESIGNER_OUT_PATH}/{output_name}/'
 
@@ -230,6 +227,6 @@ def create(request, regions_form):
 
     context_dict = {'key': output_name}
     context_dict["outfile_name"] = output_name
-    context_dict["url"] = f'http://localhost:1337/tmp/{output_name}.zip'
+    context_dict["url"] = f'{PRIMER_DOWNLOAD}/tmp/{output_name}.zip'
 
     return render(request, "primer_designer/create.html", context_dict)

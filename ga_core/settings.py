@@ -26,10 +26,13 @@ try:
 
     PROD_HOST = os.environ['PROD_HOST']
     DEBUG_HOST = os.environ['DEBUG_HOST']
+    CSRF_TRUSTED_ORIGINS = os.environ['CSRF_TRUSTED_ORIGINS']
 
     # hosts in config read as str, convert to list
     PROD_HOST = [host.strip() for host in PROD_HOST.split(',')]
     DEBUG_HOST = [host.strip() for host in DEBUG_HOST.split(',')]
+    CSRF_TRUSTED_ORIGINS = [
+        origin.strip() for origin in CSRF_TRUSTED_ORIGINS.split(',')]
 
     ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
     ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
@@ -67,6 +70,7 @@ try:
     PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
     PRIMER_DESIGNER_OUT_PATH = os.environ['PRIMER_DESIGNER_OUT_PATH']
     PRIMER_IMAGE = os.environ['PRIMER_IMAGE']
+    PRIMER_DOWNLOAD = os.environ['PRIMER_DOWNLOAD']
 
     # Slack Token
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
