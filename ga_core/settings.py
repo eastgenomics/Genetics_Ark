@@ -279,7 +279,3 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_REDIRECT_URL = 'home'
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:1337'
-    ]
