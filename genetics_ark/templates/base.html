@@ -56,16 +56,10 @@
 		<header id="header">
 			<a class="logo" href="/">GENETICS ARK</a>
 			<!-- Just display user info if logged in (i.e. hide from log in / sign up page) -->
-			{% if request.user.is_authenticated %}
-				<div class="user">
-					{% if request.user.is_staff %}
-						<!-- just disply link to admin page for admin user -->
-						<a class="staff" href="/admin"> Django admin &nbsp&nbsp | &nbsp&nbsp</a>
-					{% endif %}
-					<a>Logged in as {{ request.user.username }}</a>
-					<a class="logout" href="/accounts/log_out"> &nbsp&nbsp | &nbsp&nbsp Log out &nbsp&nbsp | &nbsp&nbsp</a>
-				</div>
-			{% endif %}
+			<div class="user">
+				<a>#</a>
+				<a class="logout" href="/accounts/log_out"> &nbsp&nbsp | &nbsp&nbsp Log out &nbsp&nbsp | &nbsp&nbsp</a>
+			</div>
 			<nav class="mr-2"><a href="#menu">Menu</a></nav>
 		</header>
 

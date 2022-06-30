@@ -199,13 +199,13 @@ def create(request, regions_form):
     logger.info(parent_path)
 
     # create tmp folder (if not exist) - just in case
-    Path(f'{parent_path}/static/tmp').mkdir(parents=True, exist_ok=True)
+    # Path(f'{parent_path}/static/tmp').mkdir(parents=True, exist_ok=True)
 
     # define output dir to host filesystem for primer cmd
     out_dir = f'{PRIMER_DESIGNER_OUT_PATH}/{output_name}/'
 
     # mounted output directory (within docker container)
-    mounted_dir = '/home/ga/static/tmp'
+    mounted_dir = '/home/ga/tmp'
     output_zip = f'{mounted_dir}/{output_name}.zip'
 
     # make directory for all the generated PDF(s) to zip later
@@ -230,6 +230,6 @@ def create(request, regions_form):
 
     context_dict = {'key': output_name}
     context_dict["outfile_name"] = output_name
-    context_dict["url"] = f'/static/tmp/{output_name}.zip'
+    context_dict["url"] = f'http://localhost:1337/tmp/{output_name}.zip'
 
     return render(request, "primer_designer/create.html", context_dict)

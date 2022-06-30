@@ -28,8 +28,8 @@ try:
     DEBUG_HOST = os.environ['DEBUG_HOST']
 
     # hosts in config read as str, convert to list
-    PROD_HOST = PROD_HOST.replace(' ', '').split(',')
-    DEBUG_HOST = DEBUG_HOST.replace(' ', '').split(',')
+    PROD_HOST = [host.strip() for host in PROD_HOST.split(',')]
+    DEBUG_HOST = [host.strip() for host in DEBUG_HOST.split(',')]
 
     ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
     ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
@@ -102,9 +102,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # pip installed app
     'django_tables2',
-    'crispy_forms',
-    # 'django_q'
+    'crispy_forms'
 ]
 
 # django crispy forms for nice form rendering
@@ -219,7 +219,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
         'simple': {
@@ -275,3 +275,7 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_REDIRECT_URL = 'home'
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:1337'
+    ]

@@ -212,6 +212,7 @@ def nexus_search(request):
                 context_dict["file_url"] = file_url
                 context_dict["idx_url"] = idx_url
                 context_dict["sample_id"] = sample_id
+                context_dict['file_id'] = sample_dict['file_id']
                 context_dict["file_name"] = sample_dict["file_name"]
                 context_dict["project_name"] = sample_dict["project_name"]
                 context_dict['file_path'] = sample_dict['file_path']

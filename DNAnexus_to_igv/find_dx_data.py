@@ -69,8 +69,6 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from pathlib import Path
 
-logger = logging.getLogger("general")
-
 
 def dx_login(
         dnanexus_token: str,
@@ -102,7 +100,7 @@ def dx_login(
             'Genetics Ark: Failed connecting to DNAnexus\n'
             f'Error Message: `{err}`'
         )
-        logger.error(err)
+        print(err)
 
         if cron:
             if debug == 'FALSE':
@@ -140,9 +138,9 @@ def get_002_projects():
         for proj_id in dev_project:
             projects_name[proj_id] = DEV_PROJECT_NAME
     else:
-        logger.info('DEV PROJECT DOES NOT APPEAR TO EXIST')
+        print('DEV PROJECT DOES NOT APPEAR TO EXIST')
 
-    logger.info("Total 002 projects found:", len(project_002_list))
+    print("Total 002 projects found:", len(project_002_list))
 
     return project_002_list, projects_name
 
@@ -172,8 +170,6 @@ def find_dx_bams(project_002_list: list, project_names: dict):
 
     # loop through proj to get bam file in each of them
     for index, project in enumerate(project_002_list):
-        logger.info(
-            f'Searching {project} ({index + 1}/{len(project_002_list)})')
 
         bam_dict = {}
         idx_dict = {}
@@ -262,7 +258,7 @@ def find_dx_bams(project_002_list: list, project_names: dict):
 
     # ensure output jsons go to /DNAnexus_to_igv/jsons dir
     output_dir = f'{Path(__file__).parent.absolute()}/jsons'
-    logger.info(f'JSON saved to: {output_dir}')
+    print(f'JSON saved to: {output_dir}')
 
     outfile_bam = f'{output_dir}/dx_002_bams.json'
     outfile_missing = f'{output_dir}/dx_missing_bam.json'
@@ -289,7 +285,7 @@ def find_cnvs(data_dict: dict):
 
     """
 
-    logger.info('Searching for CNVs')
+    print('Searching for CNVs')
 
     project_name = dx.DXProject(PROJECT_CNVS).describe()['name']
 
@@ -339,7 +335,7 @@ def find_cnvs(data_dict: dict):
         data_dict['CNV'][
             cnv_name.rstrip('_copy_ratios.gcnv.bed.gz')].append(cnv_dict)
 
-    logger.info('Searching for CNVs End')
+    print('Searching for CNVs End')
 
 
 def post_message_to_slack(channel: str, message: str, slack_token: str):
@@ -363,17 +359,17 @@ def post_message_to_slack(channel: str, message: str, slack_token: str):
         }).json()
 
         if response['ok']:
-            logger.info(f'POST request to channel #{channel} successful')
+            print(f'POST request to channel #{channel} successful')
             return
         else:
             # slack api request failed
             error_code = response['error']
-            logger.error(f'Error Code From Slack: {error_code}')
+            print(f'Error Code From Slack: {error_code}')
 
     except Exception as e:
         # endpoint request fail from server
-        logger.error(f'Error sending POST request to channel #{channel}')
-        logger.error(e)
+        print(f'Error sending POST request to channel #{channel}')
+        print(e)
 
 
 if __name__ == "__main__":
