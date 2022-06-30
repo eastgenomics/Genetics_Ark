@@ -44,6 +44,7 @@ Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 ```
 docker compose build
 docker compose up -d
+# http://localhost:1337
 ```
 This will spin up 3 containers: `genetics_ark_web`, `genetics_ark_cron`, `genetics_ark_nginx`
 
