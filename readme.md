@@ -7,8 +7,9 @@ Genetics Ark is a Django based web interface for hosting apps used by clinical s
 ## Requirements
 
 - GRCh37/38 reference files for Primer Designer (human reference genome & SNPs VCF)
+- reference files for IGV.js (fasta, fai, cytoband, refseq)
 - Docker & Docker Compose
-- Primer Designer (deployed)
+- Primer Designer (deployed on Docker)
 
 #### primer designer
 When a primer input is submitted `<chromosome>:<position> <genome build>`, Genetic Ark calls the deployed primer designer in Docker 
@@ -16,7 +17,7 @@ When a primer input is submitted `<chromosome>:<position> <genome build>`, Genet
 ```
 docker run -v <reference-file-dir>:/reference_files -v <host-output-dir>:/home/primer_designer/output --env REF_37 --env DBSNP_37 <primer_image> python3 bin/primer_designer_region.py <cmd>
 ```
-This will generate the primer PDFs at `<host-output_dir>` (host filesystem) which is also mounted to Genetic Ark (see `docker-compose.yml` `<output-dir>:/home/ga/static/tmp`), thus allow Genetic Ark to generate download link to download the `.zip` file to the end user
+This will generate the primer PDFs at `<host-output_dir>` (host filesystem) which is also mounted to Genetic Ark (see `docker-compose.yml` `<output-dir>:/home/ga/tmp`), thus allow Genetic Ark to generate download link to download the `.zip` file to the end user
 
 
   
@@ -27,17 +28,12 @@ Genetics Ark requires confidential environment variables in a `config.txt` or `.
 Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 
 ### docker-compose
-#### web
-- Edit volume: `<host-output-dir>:/home/ga/static/tmp`
-- Edit volume: `<jsons-file-dir>:/home/ga/DNAnexus_to_igv/jsons`
 
 #### cron
-- Edit volume: `<host-output-dir>:/home/ga/static/tmp`
-- Edit volume: `<jsons-file-dir>:/home/ga/DNAnexus_to_igv/jsons`
 - Edit `crontab` file to tweak cron schedule
 ```
 # start cron
-*/10 * * * * rm -rf /home/ga/static/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /var/log/cron.log 2>&1
+*/10 * * * * rm -rf /home/ga/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /var/log/cron.log 2>&1
 */10 * * * * /usr/local/bin/python -u /home/ga/DNAnexus_to_igv/find_dx_data.py >> /var/log/cron.log 2>&1
 # end cron
 ```
@@ -47,8 +43,20 @@ Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 ### Running in Production
 ```
 docker compose build
-docker compose up
+docker compose up -d
 ```
+This will spin up 3 containers: `genetics_ark_web`, `genetics_ark_cron`, `genetics_ark_nginx`
+
+#### genetics_ark_web
+Main web interface
+
+#### genetics_ark_cron
+Cron schedule for updating BAM jsons & removing generated primer design PDFs in `/home/ga/tmp`
+
+#### genetics_ark_nginx
+Nginx server used to serve django staticfiles, reference files for `igv.js` and to download primer designer zip file
+
+*access individual container using cmd: `docker exec -it <container id> bash`
 
 ## Current Apps
 
