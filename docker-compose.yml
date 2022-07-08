@@ -4,13 +4,13 @@ services:
     build: .
     command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8000 --workers 3"
     env_file:
-      - /home/jason/github/Genetics_Ark/.env
+      - /home/lingj-loc/config.txt
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # to call host docker
       - /usr/bin/docker:/usr/bin/docker # to call host docker
-      - /home/jason/github/Genetics_Ark/tmp:/home/ga/tmp # zip generated primer designer PDFs
-      - /home/jason/github/Genetics_Ark/DNAnexus_to_igv/jsons:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
-      - /home/jason/github/Genetics_Ark/logs:/home/ga/logs # write logging
+      - /home/lingj-loc/tmp:/home/ga/tmp # zip generated primer designer PDFs
+      - /home/lingj-loc/jsons:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
+      - /var/log:/home/ga/logs # write logging
       - static_volume:/home/ga/staticfiles # staticfiles
     expose:
       - 8000
@@ -18,15 +18,15 @@ services:
     build: .
     command: bash -c "printenv > /etc/environment && cron -f"
     env_file:
-      - /home/jason/github/Genetics_Ark/.env
+      - /home/lingj-loc/config.txt
     volumes:
-      - /home/jason/github/Genetics_Ark/tmp:/home/ga/tmp # clear generated primer designer PDFs
-      - /home/jason/github/Genetics_Ark/DNAnexus_to_igv/jsons:/home/ga/DNAnexus_to_igv/jsons # update BAM jsons
+      - /home/lingj-loc/tmp:/home/ga/tmp # clear generated primer designer PDFs
+      - /home/lingj-loc/jsons:/home/ga/DNAnexus_to_igv/jsons # update BAM jsons
   nginx:
     build: ./nginx
     volumes:
-      - /home/jason/github/primer_designer/test/reference_files:/home/ga/reference_files # serve igv references
-      - /home/jason/github/Genetics_Ark/tmp:/home/ga/tmp # zip generated primer designer PDFs
+      - /appdata/refs:/home/ga/reference_files # serve igv references
+      - /home/lingj-loc/tmp:/home/ga/tmp # zip generated primer designer PDFs
       - static_volume:/home/ga/staticfiles # serve staticfiles
     ports:
       - "1337:80"
