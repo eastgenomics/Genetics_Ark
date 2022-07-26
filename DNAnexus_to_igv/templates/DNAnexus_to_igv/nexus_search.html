@@ -86,7 +86,7 @@
         
             <!-- FORM FOR MAIN SEARCH -->
             {% load crispy_forms_tags %}
-            <form method="post" action="" name="search_form" onsubmit="return spinner_function()">
+            <form method="POST" action="search" name="search_form" onsubmit="return spinner_function()">
                 {% csrf_token %}
                 {{ search_form|crispy }}<br>
 
@@ -110,7 +110,7 @@
                 <br></br>
         
                 <!-- FORM FOR DIRECT LINKS -->
-                <form method="post" action=""  name="url_form" >
+                <form method="POST" action="link"  name="url_form" >
                     {% csrf_token %}
                     {{ url_form|crispy }}
                     <div class="form-group-row">
@@ -132,7 +132,7 @@
                 Directory: <b>{{ file_path }}</b>
                 
                 <br></br>
-                BAMs/CNVs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
+                BAMs/CNVs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
                 <br></br>
                 
                 <ul class="list-group">
@@ -152,7 +152,7 @@
                 Load BAMs for sample in web IGV with appropriate reference build: 
                 <br></br>
         
-                <form action="" method="POST" name="igv_form" target="_blank">
+                <form action="view" method="POST" name="igv_form" target="_blank">
                     {% csrf_token %}
                     <input type="hidden" name="file_name" value="{{ file_name }}">
                     <input type="hidden" name="file_url" value="{{ file_url }}">
@@ -166,39 +166,52 @@
         
             <!-- MULTIPLE SAMPLES VIEW-->
             {% if bam_list %}
-            <h2 class="mt-5">Results</h2>
-            <b>{{ file_no}}</b> Files found for sample <b>{{ sample_id }}</b><br>
-            Please select which project to load the sample from:</b><br></b><br>
-            <ul class="list-group-scrollable">
-                {% for file in bam_list %}
-                    <div class="card m-3">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ file.file_name }}</h5>
-                            {% if file.file_archival_state == 'live' %}
-                                <h6 class="card-subtitle py-1 text-muted">
-                                    <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
-                                </h6>
-                                <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                <form action="" method="post" name="select_bam" target="_blank">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
-                                    <input type="hidden" name="bam_list" value="{{ bam_list }}">
-                                    <input type="hidden" name="sample_id" value="{{ sample_id }}">
-                                    <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
-                                </form>
-                            {% else %}
-                                <h6 class="card-subtitle py-1 text-muted">
-                                    <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
-                                </h6>
-                                <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                <div class="alert alert-warning" role="alert">
-                                    To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
-                                </div>
-                            {% endif %}
+                <h2 class="mt-5">Results</h2>
+                <b>{{ file_no }}</b> files found for sample <b>{{ sample_id }}</b><br>
+                Please select which project to load the sample from:</b><br></b><br>
+                <ul class="list-group-scrollable mr-4">
+                    {% for file in bam_list %}
+                        <div class="card m-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ file.file_name }}</h5>
+                                {% if file.file_archival_state == 'live' %}
+                                    <h6 class="card-subtitle py-1 text-muted">
+                                        <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
+                                    </h6>
+                                    <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
+                                    <form action="select" method="POST" name="select_bam" target="_blank">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
+                                        <input type="hidden" name="sample_type" value="{{ sample_type }}">
+                                        <input type="hidden" name="sample_id" value="{{ sample_id }}">
+                                        <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
+                                    </form>
+                                {% else %}
+                                    <h6 class="card-subtitle py-1 text-muted">
+                                        <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
+                                    </h6>
+                                    <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
+                                    <div class="alert alert-warning" role="alert">
+                                        To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                {% endfor %}
-            </ul>
+                    {% endfor %}
+                </ul>
+                <div class="row justify-content-start">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            {% if bam_list.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ bam_list.previous_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Previous</a></li>
+                            {% endif %}
+                            <li class="page-item"><a class="page-link" href="#">{{ bam_list.number }} of {{ bam_list.paginator.num_pages }}</a></li>
+                            {% if bam_list.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ bam_list.next_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Next</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
             {% endif %}
         </div>
     </div>

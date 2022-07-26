@@ -31,7 +31,7 @@ services:
       - /home/jason/github/primer_designer/test/reference_files:/reference_files # serve igv references through nginx
       - primer_volume:/tmp # zip generated primer designer PDFs
       - static_volume:/staticfiles # serve staticfiles
-      - /home/jason/github/Genetics_Ark/logs:/home/ga/log
+      - /home/jason/github/Genetics_Ark/logs:/home/ga/log # logging for nginx
     ports:
       - "1337:80"
     depends_on:

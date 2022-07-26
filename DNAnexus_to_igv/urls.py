@@ -4,5 +4,9 @@ from . import views
 app_name = 'igv'
 
 urlpatterns = [
-    path('', views.nexus_search, name='nexus_search'),
+    path('', views.index, name='index'),
+    path('search', views.search, name='search'),
+    path('select', views.select, name='select'),
+    path('view', views.view, name='view'),
+    path('link', views.link, name='link')
 ]

@@ -26,7 +26,6 @@ from ga_core.settings import PRIMER_DOWNLOAD
 logger = logging.getLogger("general")
 
 
-# @login_required
 def index(request):
     """
     Index Page
@@ -160,7 +159,6 @@ def call_primer_designer(request, cmd):
     return True
 
 
-# @login_required
 def create(request, regions_form):
     """
     Create Page
