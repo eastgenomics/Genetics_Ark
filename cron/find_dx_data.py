@@ -63,7 +63,6 @@ import dxpy as dx
 import requests
 import os
 import json
-import logging
 
 from dotenv import load_dotenv
 from collections import defaultdict
@@ -73,7 +72,7 @@ from pathlib import Path
 def dx_login(
         dnanexus_token: str,
         slack_token: str,
-        debug: str,
+        debug: bool,
         cron: bool = False) -> None:
     """
     Function to check DNANexus auth token. Send Slack notification
@@ -103,7 +102,7 @@ def dx_login(
         print(err)
 
         if cron:
-            if debug == 'FALSE':
+            if not debug:
                 post_message_to_slack('egg-alerts', message, slack_token)
             else:
                 post_message_to_slack('egg-test', message, slack_token)
@@ -161,6 +160,7 @@ def find_dx_bams(project_002_list: list, project_names: dict):
         - dx_missing_bam.json
     """
 
+    print('Finding BAM...')
     # empty dict to store bams for output in use defaultdict to handle
     # add or update of keys
     dx_data = defaultdict(lambda: defaultdict(list))
@@ -169,7 +169,7 @@ def find_dx_bams(project_002_list: list, project_names: dict):
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
-    for index, project in enumerate(project_002_list):
+    for _, project in enumerate(project_002_list):
 
         bam_dict = {}
         idx_dict = {}
@@ -256,7 +256,7 @@ def find_dx_bams(project_002_list: list, project_names: dict):
 
     find_cnvs(dx_data)
 
-    # ensure output jsons go to /DNAnexus_to_igv/jsons dir
+    # ensure output jsons go to /jsons
     output_dir = f'{Path(__file__).parent.absolute()}/jsons'
     print(f'JSON saved to: {output_dir}')
 
@@ -374,13 +374,11 @@ def post_message_to_slack(channel: str, message: str, slack_token: str):
 
 if __name__ == "__main__":
 
-    load_dotenv()
-
-    DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
-    PROJECT_CNVS = os.environ['PROJECT_CNVS']
-    DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
-    SLACK_TOKEN = os.environ['SLACK_TOKEN']
-    DEBUG = os.environ['GENETIC_DEBUG']
+    DNANEXUS_TOKEN = os.environ.get('DNANEXUS_TOKEN', False)
+    PROJECT_CNVS = os.environ.get('PROJECT_CNVS', False)
+    DEV_PROJECT_NAME = os.environ.get('DEV_PROJECT_NAME', False)
+    SLACK_TOKEN = os.environ.get('SLACK_TOKEN', False)
+    DEBUG = os.environ.get('GENETIC_DEBUG', False)
 
     if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, True):
         proj_list, proj_name = get_002_projects()

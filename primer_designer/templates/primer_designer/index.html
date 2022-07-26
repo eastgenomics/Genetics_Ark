@@ -7,7 +7,28 @@
     background-color: #d3d3d3;
     border-radius: 4px;
     padding: 3px
-}
+  }
+
+  #spinner {
+    position: fixed;
+    z-index: 1000;
+    margin:auto;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+  }
+
+  #shader {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65);
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    position: fixed;
+  }
 </style>
 {% endblock %}
 
@@ -18,7 +39,7 @@
     <div class="card-body">
       <h2> Primer Designer</h2>
       <div>
-          Enter regions to design primers for (one region per line)
+          Enter regions to design primers for (one region per line - maximum 3)
     
           <br></br>
     
@@ -50,9 +71,10 @@
       </div>
 
       <!-- loading spinner -->
-      <div id="spinner" style="display:none;">
-        <span style="vertical-align:middle">Designing primers...</span>
-        <img id='spinner' src='/static/images/dna-loader.gif' alt="Please wait .."  style="width:300px;height:165px; vertical-align:middle">
+      <div id="shader" style="display:none">
+        <div id="spinner" style="display:none">
+          <img id='spinner' src='/static/images/dna-loader.gif' alt="loading.gif"  style="width:300px;height:165px;">
+        </div>
       </div>
     </div>
   </div>
@@ -66,6 +88,7 @@
   $(document).ready(function() {
     $("#primer_form").on("submit", function() {
       $("#spinner").fadeIn();
+      $('#shader').fadeIn();
       $(this).find(':input[type=submit]').prop('disabled', true);
       $("#primerHome").addClass("disabled");
     });

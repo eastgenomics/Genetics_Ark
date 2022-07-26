@@ -1,20 +1,8 @@
 # config.py must NOT be in version control
 django_example/config.py
-
-*.pyc
-django_example/urls.pyc
-django_example/wsgi.pyc
-ga_core/config.py
-DNAnexus_to_igv/jsons/*.json
-static/tmp/*
-.vscode/settings.json
-config.txt
-db.sqlite3
-.coverage
-db.sqlite3
-coverage_reports/dx_002_coverage_reports.json
-db.sqlite3
+env
+__pycache__
 logs/*
-.env
-staticfiles
 tmp/*
+.env
+DNAnexus_to_igv/jsons/*

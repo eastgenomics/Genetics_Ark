@@ -25,17 +25,93 @@ from django.contrib import messages
 from django.utils.safestring import mark_safe
 from django.shortcuts import render
 import dxpy as dx
+import requests
 
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
-    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG
+    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES
 )
-from .find_dx_data import dx_login
 
 logger = logging.getLogger("general")
+
+
+def dx_login(
+        dnanexus_token: str,
+        slack_token: str,
+        debug: str,
+        cron: bool = False) -> None:
+    """
+    Function to check DNANexus auth token. Send Slack notification
+    if auth failed.
+
+    dnanexus_token: dnanexus api token
+    slack_token: slack api token
+    debug: if run in debug, send to #egg-test
+    cron: if the function is ran from this script
+
+    """
+    DX_SECURITY_CONTEXT = {
+        "auth_token_type": "Bearer",
+        "auth_token": dnanexus_token
+    }
+
+    # set token to env
+    dx.set_security_context(DX_SECURITY_CONTEXT)
+
+    try:
+        dx.api.system_whoami()
+    except Exception as err:
+        message = (
+            'Genetics Ark: Failed connecting to DNAnexus\n'
+            f'Error Message: `{err}`'
+        )
+        logger.error(err)
+
+        if cron:
+            if debug == 'FALSE':
+                post_message_to_slack('egg-alerts', message, slack_token)
+            else:
+                post_message_to_slack('egg-test', message, slack_token)
+        return False
+
+    return True
+
+
+def post_message_to_slack(channel: str, message: str, slack_token: str):
+    """
+    Function to send Slack notification
+    Taken from:
+    https://github.com/eastgenomics/ansible-run-monitoring/blob/main/util.py
+    Inputs:
+        channel: egg-alerts
+        message: text
+        slack_token: slack api token
+    Returns:
+        dict: slack api response
+    """
+
+    try:
+        response = requests.post('https://slack.com/api/chat.postMessage', {
+            'token': slack_token,
+            'channel': f'#{channel}',
+            'text': message
+        }).json()
+
+        if response['ok']:
+            logger.info(f'POST request to channel #{channel} successful')
+            return
+        else:
+            # slack api request failed
+            error_code = response['error']
+            logger.error(f'Error Code From Slack: {error_code}')
+
+    except Exception as e:
+        # endpoint request fail from server
+        logger.error(f'Error sending POST request to channel #{channel}')
+        logger.error(e)
 
 
 def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
@@ -126,15 +202,13 @@ def nexus_search(request):
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    """An error has occured connecting with\
-                    DNAnexus to find samples, please contact\
-                    the bioinformatics team"""
+                    """JSON file containing samples not found.\
+                    Please contact the bioinformatics team"""
                 )
                 logger.error(IOe)
 
                 return render(
                     request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
-
             if request.POST['sample_type'] == 'BAM':
                 # select bams matching sample id, return original entry from
                 # JSON by matching against upper name and search term
@@ -147,7 +221,7 @@ def nexus_search(request):
                 # CNV handling
                 sample_data = [
                     value for key, value in json_bams['CNV'].items() if
-                    key.upper() in sample_id.upper()]
+                    sample_id.upper() in key.upper()]
 
             # NO BAM FOUND
             if len(sample_data) == 0:
@@ -364,6 +438,8 @@ def nexus_search(request):
                 context_dict["fasta_idx"] = FASTA_IDX_38
                 context_dict["cytoband"] = CYTOBAND_38
                 context_dict["refseq"] = REFSEQ_38
+
+            context_dict['genomes'] = GENOMES
 
             sample = request.POST['file_name']
             bam_url = request.POST['file_url']

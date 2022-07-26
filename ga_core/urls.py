@@ -15,15 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path, re_path
-from genetics_ark.views import home
+
+from genetics_ark.views import error404, error500, error502
+
+handler404 = error404
+handler500 = error500
+handler502 = error502
 
 urlpatterns = [
-    re_path('^', include('django.contrib.auth.urls')),
-    path('', home, name='home'),
-    path('genetics_ark/', include('genetics_ark.urls')),
     path('admin/', admin.site.urls),
-    path('', include("accounts.urls")),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('', include('DNAnexus_to_igv.urls')),
-    path('', include('primer_designer.urls'))
+    re_path(r'^$', include('genetics_ark.urls')),
+    path('igv/', include('DNAnexus_to_igv.urls')),
+    path('primer_designer/', include('primer_designer.urls'))
 ]

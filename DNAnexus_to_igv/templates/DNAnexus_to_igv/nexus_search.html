@@ -1,11 +1,27 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block css %}
 <style>
-    .spinner{
-        position: relative;
-        bottom: 80px;
-        left: 200px;
+    #spinner {
+        position: fixed;
+        z-index: 1000;
+        margin:auto;
+        left:0;
+        right:0;
+        top:0;
+        bottom:0;
+    }
+    #shader {
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.65);
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        position: fixed;
+        z-index: 999;
     }
     .text-small {
         font-size: 80%;
@@ -29,7 +45,7 @@
     .list-group-scrollable {
         max-height: 800px;
         margin-bottom: 10px;
-        overflow:scroll;
+        overflow: scroll;
         -webkit-overflow-scrolling: touch;
     }
 </style>
@@ -55,6 +71,7 @@
         </div>
     </div>
 </div>
+<!-- Main Body -->
 <div class="container p-5 mb-5">
     <div class="card p-2">
         <div class="card-body">
@@ -75,11 +92,12 @@
 
                 <button name="action" value="search" id="search" type="submit" class="btn btn-primary btn-sm">Search</button>
             </form>
-        
+
             <!-- SPINNER VIEW -->
-            <div id="spinner" class="spinner" style="display:none">
-                <img id='spinner' src='/static/images/cloud-loader.gif' alt="Please wait .."  style="width:75px;height:50px;"> 
-                <b>Searching DNAnexus for samples</b>
+            <div id="shader" style="display:none">
+                <div id="spinner" style="display:none">
+                    <img id="spinner" src="{% static 'images/cloud-loader.gif' %}" alt="loading.gif"  style="width:375px;height:350px"> 
+                </div>
             </div>
             
             <!-- IF NORMAL SEARCH FIELD USED, REMOVE DIRECT LINK FIELDS -->
@@ -134,7 +152,7 @@
                 Load BAMs for sample in web IGV with appropriate reference build: 
                 <br></br>
         
-                <form action="" method="POST" name="igv_form">
+                <form action="" method="POST" name="igv_form" target="_blank">
                     {% csrf_token %}
                     <input type="hidden" name="file_name" value="{{ file_name }}">
                     <input type="hidden" name="file_url" value="{{ file_url }}">
@@ -202,11 +220,16 @@
 
     //function to display loading spinner on form submit
     function spinner_function() {
-        var x = document.getElementById("spinner");
-        if (x.style.display === "none") 
-            {x.style.display = "block";}
+        var spinner = document.getElementById("spinner");
+        var shader = document.getElementById("shader");
+        if (spinner.style.display === "none") 
+            {spinner.style.display = "block";}
         else 
-            {x.style.display = "none";}
+            {spinner.style.display = "none";}
+        if (shader.style.display === "none") 
+            {shader.style.display = "block";}
+        else 
+            {shader.style.display = "none";}
     }
 
     //Function to copy text to clipboard

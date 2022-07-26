@@ -1,0 +1,17 @@
+FROM python:3.8-slim
+
+RUN apt-get update && apt-get -y install -qq --force-yes cron
+WORKDIR /home
+
+ENV PYTHONUNBUFFERED 1
+
+COPY requirements.txt find_dx_data.py ./
+
+RUN pip install -r requirements.txt
+
+COPY crontab /etc/cron.d/crontab
+RUN chmod 0644 /etc/cron.d/crontab
+RUN crontab /etc/cron.d/crontab
+
+RUN touch /var/log/cron.log
+

@@ -21,10 +21,7 @@ from django.shortcuts import render
 
 import primer_designer.forms as Forms
 
-from ga_core.settings import (
-    PRIMER_DESIGNER_REF_PATH, REF_37, DBSNP_37, PRIMER_IMAGE,
-    PRIMER_DESIGNER_OUT_PATH, REF_38, DBSNP_38, PRIMER_DOWNLOAD
-    )
+from ga_core.settings import PRIMER_DOWNLOAD
 
 logger = logging.getLogger("general")
 
@@ -80,7 +77,7 @@ def time_stamp():
     return datetime.now().strftime("%Y%m%d%H%M")
 
 
-def format_region(region):
+def format_region(region, dir):
     """
     Format region from input form as command (str) for primer designer
 
@@ -91,7 +88,7 @@ def format_region(region):
         # format for fusion design, will be in format
         # chr:pos:side:strand chr:pos:side:strand build 'fusion'
         args = region.split()
-        cmd = f'--fusion --b1 {args[0]} --b2 {args[1]} --{args[2]}'
+        cmd = f'--fusion --b1 {args[0]} --b2 {args[1]} --{args[2]} -d {dir}'
     else:
         # either position or range design
         if '-' in region:
@@ -100,18 +97,18 @@ def format_region(region):
             chr, pos = region.split(':')
             pos1, pos2 = pos.split('-')
 
-            cmd = f'-c {chr} -r {pos1} {pos2} --{build}'
+            cmd = f'-c {chr} -r {pos1} {pos2} --{build} -d {dir}'
         else:
             # normal position design, in format chr:pos build
             region, build = region.split()
             chr, pos = region.split(':')
 
-            cmd = f'-c {chr} -p {pos} --{build}'
+            cmd = f'-c {chr} -p {pos} --{build} -d {dir}'
 
     return cmd
 
 
-def call_primer_designer(request, cmd, output_path):
+def call_primer_designer(request, cmd):
     """
     Calls primer designer with given formatted cmd string
 
@@ -126,26 +123,12 @@ def call_primer_designer(request, cmd, output_path):
     genome_build = cmd.split(' ')[-1].lstrip('--')
     logger.info(genome_build)
 
+    primer_path = '/home/primer_designer/bin'
+
     if genome_build == 'grch37':
-        primer_cmd = (
-                "docker run "
-                f"-v {PRIMER_DESIGNER_REF_PATH}:/reference_files "
-                f"-v {output_path}:/home/primer_designer/output "
-                f"--env REF_37=/reference_files/{genome_build}/{REF_37} "
-                f"--env DBSNP_37=/reference_files/{genome_build}/{DBSNP_37} "
-                f"{PRIMER_IMAGE} "
-                f"python3 bin/primer_designer_region.py {cmd}"
-            )
+        primer_cmd = f'python3 {primer_path}/primer_designer_region.py {cmd}'
     else:
-        primer_cmd = (
-                "docker run "
-                f"-v {PRIMER_DESIGNER_REF_PATH}:/reference_files "
-                f"-v {output_path}:/home/primer_designer/output "
-                f"--env REF_38=/reference_files/{genome_build}/{REF_38} "
-                f"--env DBSNP_38=/reference_files/{genome_build}/{DBSNP_38} "
-                f"{PRIMER_IMAGE} "
-                f"python3 bin/primer_designer_region.py {cmd}"
-            )
+        primer_cmd = f'python3 {primer_path}/primer_designer_region.py {cmd}'
 
     logger.info(primer_cmd)
 
@@ -191,39 +174,45 @@ def create(request, regions_form):
     regions = regions_form.data['regions'].split('\n')
     regions = [x.rstrip('\r').strip() for x in regions if x]
 
+    if len(regions) > 3:
+        messages.add_message(
+                request,
+                messages.ERROR,
+                f"{len(regions)} lines detected. "
+                "Maximum three lines at a time."
+                )
+        return render(
+            request,
+            "primer_designer/index.html",
+            {'regions_form': Forms.RegionsForm()})
+
     # unique name of date and random 5 char str
     output_name = f'{time_stamp()}{random_string()}'
 
-    # get parent path in docker container e.g. /home/ga
-    parent_path = Path(__file__).parent.parent.absolute()
-    logger.info(parent_path)
-
     # define output dir to host filesystem for primer cmd
-    out_dir = f'{PRIMER_DESIGNER_OUT_PATH}/{output_name}/'
-
-    # mounted output directory (within docker container)
-    mounted_dir = '/home/ga/tmp'
-    output_zip = f'{mounted_dir}/{output_name}.zip'
+    parent_path = '/home/primer_designer/output'
 
     # make directory for all the generated PDF(s) to zip later
-    os.mkdir(Path(f'{mounted_dir}/{output_name}'))
+    output_directory = f'{parent_path}/{output_name}'
+    Path(output_directory).mkdir(parents=True, exist_ok=True)
 
     for region in regions:
         # format each given region as input args for primer designer & call
-        cmd = format_region(region)
+        cmd = format_region(region, output_name)
         output = call_primer_designer(
-            request, cmd, out_dir)
+            request, cmd)
 
         if not output:
             return render(
                 request,
                 "primer_designer/index.html",
-                {'regions_form': regions_form})
+                {'regions_form': Forms.RegionsForm()})
 
     # zip the PDFs in output dir
-    with ZipFile(output_zip, 'w') as zfile:
-        for pdf in os.listdir(f'{mounted_dir}/{output_name}'):
-            zfile.write(f'{mounted_dir}/{output_name}/{pdf}', Path(pdf).name)
+    with ZipFile(f'{output_directory}.zip', 'w') as zfile:
+        for pdf in os.listdir(output_directory):
+            zfile.write(
+                f'{output_directory}/{pdf}', Path(pdf).name)
 
     context_dict = {'key': output_name}
     context_dict["outfile_name"] = output_name
