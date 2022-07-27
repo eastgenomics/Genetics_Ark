@@ -1,23 +1,42 @@
-version: '3.3'
+version: '2.6'
 services:
   web:
+    image: genetic_ark_web:2.0.0
     build: .
-    command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8000 --timeout 600"
     env_file:
       - /home/jason/github/Genetics_Ark/.env
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/bin/docker:/usr/bin/docker
-      - /home/jason/github/Genetics_Ark/static/tmp:/home/ga/static/tmp
-      - /home/jason/github/Genetics_Ark/DNAnexus_to_igv/jsons:/home/ga/DNAnexus_to_igv/jsons
-      - /home/jason/github/Genetics_Ark/logs:/home/ga/logs
-    ports:
-      - 8000:8000
+      - primer_volume:/home/primer_designer/output # zip generated primer designer PDFs
+      - igv_volume:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
+      - static_volume:/home/ga/staticfiles # staticfiles
+      - /home/jason/github/Genetics_Ark/logs:/home/ga/logs # write logging
+      - /home/jason/github/primer_designer/test/reference_files:/reference_files # refs for primer designer
+    expose:
+      - 8000
   cron:
-    build: .
+    image: genetic_ark_cron:2.0.0
+    build: ./cron
     command: bash -c "printenv > /etc/environment && cron -f"
     env_file:
       - /home/jason/github/Genetics_Ark/.env
     volumes:
-      - /home/jason/github/Genetics_Ark/static/tmp:/home/ga/static/tmp
-      - /home/jason/github/Genetics_Ark/DNAnexus_to_igv/jsons:/home/ga/DNAnexus_to_igv/jsons
+      - primer_volume:/home/tmp # to clear generated pdfs
+      - igv_volume:/home/jsons # to update the sample json
+      - /home/jason/github/Genetics_Ark/logs:/home/log # cron job logging
+  nginx:
+    image: genetic_ark_nginx:2.0.0
+    build: ./nginx
+    volumes:
+      - /home/jason/github/primer_designer/test/reference_files:/reference_files # serve igv references through nginx
+      - primer_volume:/tmp # zip generated primer designer PDFs
+      - static_volume:/staticfiles # serve staticfiles
+      - /home/jason/github/Genetics_Ark/logs:/home/ga/log # logging for nginx
+    ports:
+      - "1337:80"
+    depends_on:
+      - web
+volumes:
+  static_volume:
+  primer_volume:
+  igv_volume:

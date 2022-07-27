@@ -19,26 +19,7 @@
 		<link rel="stylesheet" type='text/css' href="{% static 'css/main.css' %}"/>
 
 		<!-- Bootstrap 4 CSS -->
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-		<script>
-			var test = document.createElement("div")
-			test.className = "hidden d-none"
-		
-			document.head.appendChild(test)
-			var cssLoaded = window.getComputedStyle(test).display === "none"
-			document.head.removeChild(test)
-		
-			if (!cssLoaded) {
-				console.log('Bootstrap CDN Failed!')
-				var link = document.createElement("link");
-		
-				link.type = "text/css";
-				link.rel = "stylesheet";
-				link.href = "{% static 'css/bootstrap.min.css' %}";
-		
-				document.head.appendChild(link);
-			}
-		</script>
+		<link rel="stylesheet" type='text/css' href="{% static 'css/bootstrap.min.css' %}"/>
 
 		<!-- Bootstrap JS -->
 		<script rel="stylesheet" src="{% static 'js/popper.min.js' %}"></script>
@@ -47,7 +28,7 @@
 		<!-- IGV JS v2.12.6 -->
 		<script type="text/javascript" src="{% static 'js/igv.min.js' %}"></script>
 
-		<link rel="shortcut icon" type="image/png" href="/static/images/favicon.ico"/>
+		<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
 		{% block css %}{% endblock %}
 	</head>
 	<body class="is-preload">
@@ -55,17 +36,6 @@
 		<!-- Header -->
 		<header id="header">
 			<a class="logo" href="/">GENETICS ARK</a>
-			<!-- Just display user info if logged in (i.e. hide from log in / sign up page) -->
-			{% if request.user.is_authenticated %}
-				<div class="user">
-					{% if request.user.is_staff %}
-						<!-- just disply link to admin page for admin user -->
-						<a class="staff" href="/admin"> Django admin &nbsp&nbsp | &nbsp&nbsp</a>
-					{% endif %}
-					<a>Logged in as {{ request.user.username }}</a>
-					<a class="logout" href="/accounts/log_out"> &nbsp&nbsp | &nbsp&nbsp Log out &nbsp&nbsp | &nbsp&nbsp</a>
-				</div>
-			{% endif %}
 			<nav class="mr-2"><a href="#menu">Menu</a></nav>
 		</header>
 

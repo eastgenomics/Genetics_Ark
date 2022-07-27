@@ -19,24 +19,28 @@ try:
     # env variables will either be set to environment when run (loaded in
     # manage.py), or when run via docker and passed with --env-file
     SECRET_KEY = os.environ['SECRET_KEY']
-    DEBUG = os.environ['GENETIC_DEBUG']  # should be false in production
+    DEBUG = os.environ.get('GENETIC_DEBUG', False)
 
     # DNANexus Token
     DNANEXUS_TOKEN = os.environ['DNANEXUS_TOKEN']
 
     PROD_HOST = os.environ['PROD_HOST']
     DEBUG_HOST = os.environ['DEBUG_HOST']
+    CSRF_TRUSTED_ORIGINS = os.environ['CSRF_TRUSTED_ORIGINS']
 
     # hosts in config read as str, convert to list
-    PROD_HOST = PROD_HOST.replace(' ', '').split(',')
-    DEBUG_HOST = DEBUG_HOST.replace(' ', '').split(',')
+    PROD_HOST = [host.strip() for host in PROD_HOST.split(',')]
+    DEBUG_HOST = [host.strip() for host in DEBUG_HOST.split(',')]
+    CSRF_TRUSTED_ORIGINS = [
+        origin.strip() for origin in CSRF_TRUSTED_ORIGINS.split(',')]
 
-    ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
-    ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
-    ACCOUNT_DB_PASSWORD = os.environ['ACCOUNT_DB_PASSWORD']
-    ACCOUNT_DB_HOST = os.environ['ACCOUNT_DB_HOST']
+    # Database (not used currently)
+    # ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
+    # ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
+    # ACCOUNT_DB_PASSWORD = os.environ['ACCOUNT_DB_PASSWORD']
+    # ACCOUNT_DB_HOST = os.environ['ACCOUNT_DB_HOST']
 
-    GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
+    # GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
     # SMTP Email
     EMAIL_USER = os.environ['EMAIL_USER']
@@ -55,18 +59,13 @@ try:
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
 
+    GENOMES = os.environ['GENOMES']
+
     PROJECT_CNVS = os.environ['PROJECT_CNVS']
     DEV_PROJECT_NAME = os.environ['DEV_PROJECT_NAME']
 
-    # Primer
-    REF_37 = os.environ['REF_37']
-    REF_38 = os.environ['REF_38']
-    DBSNP_37 = os.environ['DBSNP_37']
-    DBSNP_38 = os.environ['DBSNP_38']
-
-    PRIMER_DESIGNER_REF_PATH = os.environ['PRIMER_DESIGNER_REF_PATH']
-    PRIMER_DESIGNER_OUT_PATH = os.environ['PRIMER_DESIGNER_OUT_PATH']
-    PRIMER_IMAGE = os.environ['PRIMER_IMAGE']
+    # Primer IGV Download URL
+    PRIMER_DOWNLOAD = os.environ['PRIMER_DOWNLOAD']
 
     # Slack Token
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
@@ -102,9 +101,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # pip installed app
     'django_tables2',
     'crispy_forms',
-    # 'django_q'
+    'corsheaders'
 ]
 
 # django crispy forms for nice form rendering
@@ -112,6 +112,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -151,7 +152,7 @@ MESSAGE_TAGS = {
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
-# Database
+# Database (not used currently)
 # default engine (django.db.backends.mysql)
 # DATABASES = {
 #     'default': {
@@ -209,52 +210,47 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # Settings for logging
-with open('/home/ga/logs/ga-error.log', 'a'):
+with open('/home/ga/logs/ga-error.log', 'a+'):
     pass
-with open('/home/ga/logs/ga-debug.log', 'a'):
+with open('/home/ga/logs/ga-debug.log', 'a+'):
     pass
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{asctime} {levelname} {message}',
-            'style': '{',
-        },
+        'standard': {
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{'
+        }
     },
     # Handlers
     'handlers': {
-        'error-log': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': f'/home/ga/logs/ga-error.log',
-            'formatter': 'simple',
-            'maxBytes': 5242880,
-            'backupCount': 2
-        },
-        'debug-log': {
+        'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': f'/home/ga/logs/ga-debug.log',
-            'formatter': 'verbose',
-            'maxBytes': 5242880,
+            'filename': '/home/ga/logs/ga-debug.log',
+            'formatter': 'standard',
+            'maxBytes': 1024*1024*5,
             'backupCount': 2
         },
-    },
-    # Loggers
-    'loggers': {
-        'general': {
-            'handlers': ['error-log'],
+        'error_log': {
             'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/home/ga/logs/ga-error.log',
+            'formatter': 'standard',
+            'maxBytes': 1024*1024*5,
+            'backupCount': 2
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
             'propagate': True
         },
-        '': {
-            'handlers': ['debug-log'],
+        'general': {
+            'handlers': ['error_log'],
             'level': 'DEBUG',
             'propagate': True
         }
@@ -275,3 +271,9 @@ STATICFILES_DIRS = [
 ]
 
 LOGIN_REDIRECT_URL = 'home'
+
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:1337',
+#     'dl.ec1.dnanex.us'
+# ]
+CORS_ALLOW_ALL_ORIGINS = True

@@ -20,34 +20,46 @@ added to the menu bar in base.html -->
 	<div class="inner">
 		<div class="highlights">
 			<section>
-				<div class="content" data-tooltip="Bioinformatics service desk for queries and requests">
-					<a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank"><img alt="service.png" src="/static/images/main-1.png" style="width:150px;height:170px;"></a>
-				</div>
+				<a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">
+					<div class="content" data-tooltip="Bioinformatics service desk for queries and requests">
+						<img alt="service.png" src="{% static 'images/main-1.png' %}" style="width:150px;height:170px;">
+					</div>
+				</a>
 			</section>
 			<section>
-				<div class="content" data-tooltip="Documentation for bioinformatics team development projects">
-					<a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/P/overview" target="_blank"><img alt="projects.png" src="/static/images/main-2.png" style="width:150px;height:170px;"></a>
-				</div>
+				<a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/P/overview" target="_blank">
+					<div class="content" data-tooltip="Documentation for bioinformatics team development projects">
+						<img alt="projects.png" src="{% static 'images/main-2.png' %}" style="width:150px;height:170px;">
+					</div>
+				</a>
 			</section>
 			<section>
-				<div class="content" data-tooltip="Blog page for updates from the bioinformatics team">
-					<a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/BLOG/overview" target="_blank"><img alt="blog.png" src="/static/images/main-3.png" style="width:150px;height:170px;"></a>
-				</div>
+				<a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/BLOG/overview" target="_blank">
+					<div class="content" data-tooltip="Blog page for updates from the bioinformatics team">
+						<img alt="blog.png" src="{% static 'images/main-3.png' %}" style="width:150px;height:170px;">
+					</div>
+				</a>
 			</section>
 			<section>
-				<div class="content" data-tooltip="Design primers for genomic coordinates">
-					<a href="primer_designer"><img alt="primer.png" src="/static/images/main-4.png" style="width:150px;height:170px;"></a>
-				</div>
+				<a href="primer_designer">
+					<div class="content" data-tooltip="Design primers for genomic coordinates">
+						<img alt="primer.png" src="{% static 'images/main-4.png' %}" style="width:150px;height:170px;">
+					</div>
+				</a>
 			</section>
 			<section>
-				<div class="content" data-tooltip="Load IGV for visualisation of sequencing data">
-					<a href="nexus_search"><img alt="igv.png" src="/static/images/main-5.png" style="width:150px;height:170px;"></a>
-				</div>
+				<a href="igv">
+					<div class="content" data-tooltip="Load IGV for visualisation of sequencing data">
+						<img alt="igv.png" src="{% static 'images/main-5.png' %}" style="width:150px;height:170px;">
+					</div>
+				</a>
 			</section>
 			<section>
-				<div class="content" data-tooltip="Load IVA for reviewing clinical cases and variant interpretation">
-					<a href="https://eglh.app.zettagenomics.com/#home" target="_blank"><img alt="zetta.png" src="/static/images/main-6.png" style="width:150px;height:170px;"></a>
-				</div>
+				<a href="https://eglh.app.zettagenomics.com/#home" target="_blank">
+					<div class="content" data-tooltip="Load IVA for reviewing clinical cases and variant interpretation">
+						<img alt="zetta.png" src="{% static 'images/main-6.png' %}" style="width:150px;height:170px;">
+					</div>
+				</a>
 			</section>
 		</div>
 	</div>

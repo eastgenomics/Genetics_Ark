@@ -1,7 +1,12 @@
 from django.urls import path
 from . import views
 
-app_name = 'DNAnexus_to_igv'
+app_name = 'igv'
+
 urlpatterns = [
-    path('nexus_search', views.nexus_search, name='nexus_search'),
+    path('', views.index, name='index'),
+    path('search', views.search, name='search'),
+    path('select', views.select, name='select'),
+    path('view', views.view, name='view'),
+    path('link', views.link, name='link')
 ]

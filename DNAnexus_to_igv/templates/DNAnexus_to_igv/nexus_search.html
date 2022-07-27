@@ -1,11 +1,27 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block css %}
 <style>
-    .spinner{
-        position: relative;
-        bottom: 80px;
-        left: 200px;
+    #spinner {
+        position: fixed;
+        z-index: 1000;
+        margin:auto;
+        left:0;
+        right:0;
+        top:0;
+        bottom:0;
+    }
+    #shader {
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.65);
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        position: fixed;
+        z-index: 999;
     }
     .text-small {
         font-size: 80%;
@@ -29,7 +45,7 @@
     .list-group-scrollable {
         max-height: 800px;
         margin-bottom: 10px;
-        overflow:scroll;
+        overflow: scroll;
         -webkit-overflow-scrolling: touch;
     }
 </style>
@@ -55,6 +71,7 @@
         </div>
     </div>
 </div>
+<!-- Main Body -->
 <div class="container p-5 mb-5">
     <div class="card p-2">
         <div class="card-body">
@@ -69,17 +86,18 @@
         
             <!-- FORM FOR MAIN SEARCH -->
             {% load crispy_forms_tags %}
-            <form method="post" action="" name="search_form" onsubmit="return spinner_function()">
+            <form method="POST" action="search" name="search_form" onsubmit="return spinner_function()">
                 {% csrf_token %}
                 {{ search_form|crispy }}<br>
 
                 <button name="action" value="search" id="search" type="submit" class="btn btn-primary btn-sm">Search</button>
             </form>
-        
+
             <!-- SPINNER VIEW -->
-            <div id="spinner" class="spinner" style="display:none">
-                <img id='spinner' src='/static/images/cloud-loader.gif' alt="Please wait .."  style="width:75px;height:50px;"> 
-                <b>Searching DNAnexus for samples</b>
+            <div id="shader" style="display:none">
+                <div id="spinner" style="display:none">
+                    <img id="spinner" src="{% static 'images/cloud-loader.gif' %}" alt="loading.gif"  style="width:375px;height:350px"> 
+                </div>
             </div>
             
             <!-- IF NORMAL SEARCH FIELD USED, REMOVE DIRECT LINK FIELDS -->
@@ -92,7 +110,7 @@
                 <br></br>
         
                 <!-- FORM FOR DIRECT LINKS -->
-                <form method="post" action=""  name="url_form" >
+                <form method="POST" action="link"  name="url_form" >
                     {% csrf_token %}
                     {{ url_form|crispy }}
                     <div class="form-group-row">
@@ -104,7 +122,7 @@
             
             <!-- SINGLE SAMPLE VIEW -->
             {% if file_name %}
-                <h2 class="mt-5">{{ file_id}}</h2>
+                <h2 class="mt-5">{{ file_id }}</h2>
                 <div class="alert alert-primary" role="alert">
                     Make sure to double-check the unique FILE ID
                 </div>
@@ -114,7 +132,7 @@
                 Directory: <b>{{ file_path }}</b>
                 
                 <br></br>
-                BAMs/CNVs may be viewed on IGV installed on PC by going to File -> Load from URL, and pasting the following links:
+                BAMs/CNVs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
                 <br></br>
                 
                 <ul class="list-group">
@@ -134,7 +152,7 @@
                 Load BAMs for sample in web IGV with appropriate reference build: 
                 <br></br>
         
-                <form action="" method="POST" name="igv_form">
+                <form action="view" method="POST" name="igv_form" target="_blank">
                     {% csrf_token %}
                     <input type="hidden" name="file_name" value="{{ file_name }}">
                     <input type="hidden" name="file_url" value="{{ file_url }}">
@@ -148,39 +166,52 @@
         
             <!-- MULTIPLE SAMPLES VIEW-->
             {% if bam_list %}
-            <h2 class="mt-5">Results</h2>
-            <b>{{ file_no}}</b> Files found for sample <b>{{ sample_id }}</b><br>
-            Please select which project to load the sample from:</b><br></b><br>
-            <ul class="list-group-scrollable">
-                {% for file in bam_list %}
-                    <div class="card m-3">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ file.file_name }}</h5>
-                            {% if file.file_archival_state == 'live' %}
-                                <h6 class="card-subtitle py-1 text-muted">
-                                    <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
-                                </h6>
-                                <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                <form action="" method="post" name="select_bam" target="_blank">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
-                                    <input type="hidden" name="bam_list" value="{{ bam_list }}">
-                                    <input type="hidden" name="sample_id" value="{{ sample_id }}">
-                                    <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
-                                </form>
-                            {% else %}
-                                <h6 class="card-subtitle py-1 text-muted">
-                                    <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
-                                </h6>
-                                <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                <div class="alert alert-warning" role="alert">
-                                    To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
-                                </div>
-                            {% endif %}
+                <h2 class="mt-5">Results</h2>
+                <b>{{ file_no }}</b> files found for sample <b>{{ sample_id }}</b><br>
+                Please select which project to load the sample from:</b><br></b><br>
+                <ul class="list-group-scrollable mr-4">
+                    {% for file in bam_list %}
+                        <div class="card m-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ file.file_name }}</h5>
+                                {% if file.file_archival_state == 'live' %}
+                                    <h6 class="card-subtitle py-1 text-muted">
+                                        <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
+                                    </h6>
+                                    <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
+                                    <form action="select" method="POST" name="select_bam" target="_blank">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
+                                        <input type="hidden" name="sample_type" value="{{ sample_type }}">
+                                        <input type="hidden" name="sample_id" value="{{ sample_id }}">
+                                        <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
+                                    </form>
+                                {% else %}
+                                    <h6 class="card-subtitle py-1 text-muted">
+                                        <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
+                                    </h6>
+                                    <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
+                                    <div class="alert alert-warning" role="alert">
+                                        To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                {% endfor %}
-            </ul>
+                    {% endfor %}
+                </ul>
+                <div class="row justify-content-start">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            {% if bam_list.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ bam_list.previous_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Previous</a></li>
+                            {% endif %}
+                            <li class="page-item"><a class="page-link" href="#">{{ bam_list.number }} of {{ bam_list.paginator.num_pages }}</a></li>
+                            {% if bam_list.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ bam_list.next_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Next</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
             {% endif %}
         </div>
     </div>
@@ -191,18 +222,27 @@
 <script type="text/javascript">
     //function to check if selected sample is in the dev data project and req. confirmation to load
     //https://stackoverflow.com/questions/11404711/how-can-i-trigger-a-bootstrap-modal-programmatically
-    var projName = document.getElementById("igv_proj_name").value;  
-    if (projName.toLowerCase().includes('dev')) {
-        $('#warningModal').modal('show');
+    var projExist = !!document.getElementById("igv_proj_name");
+    if (projExist == true) {
+        var projName = document.getElementById("igv_proj_name").value;
+
+        if (projName.toLowerCase().includes('dev')) {
+            $('#warningModal').modal('show');
+        }
     }
 
     //function to display loading spinner on form submit
     function spinner_function() {
-        var x = document.getElementById("spinner");
-        if (x.style.display === "none") 
-            {x.style.display = "block";}
+        var spinner = document.getElementById("spinner");
+        var shader = document.getElementById("shader");
+        if (spinner.style.display === "none") 
+            {spinner.style.display = "block";}
         else 
-            {x.style.display = "none";}
+            {spinner.style.display = "none";}
+        if (shader.style.display === "none") 
+            {shader.style.display = "block";}
+        else 
+            {shader.style.display = "none";}
     }
 
     //Function to copy text to clipboard
