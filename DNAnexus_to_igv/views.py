@@ -470,8 +470,8 @@ def select(request):
         )
 
         logger.error(
-            f'Error generating url for sample {selected_file_id} {sample_type} '
-            f'{bam}'
+            f'Error generating url for sample {selected_file_id} '
+            f'{sample_type} {bam}'
             )
 
         return render(
