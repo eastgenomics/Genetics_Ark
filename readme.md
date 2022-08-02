@@ -6,10 +6,10 @@ Genetics Ark is a Django based web interface for hosting apps used by clinical s
 
 ## Requirements
 
-- GRCh37/38 reference files for Primer Designer (human reference genome & SNPs VCF)
+- GRCh37/38 reference files for primer designer (human reference genome & SNPs VCF)
 - reference files for IGV.js (fasta, fai, cytoband, refseq)
 - Docker & Docker Compose
-- Primer Designer (deployed on Docker)
+- [Primer Designer](https://github.com/eastgenomics/primer_designer) (deployed on Docker)
 
 #### primer designer
 Genetic Ark allows primer input submission: `<chromosome>:<position> <genome build>`
@@ -17,7 +17,7 @@ Genetic Ark allows primer input submission: `<chromosome>:<position> <genome bui
   
 ## Setup and Running 
 
-Genetics Ark requires confidential environment variables in a `config.txt` or `.env` file. 
+Genetics Ark requires environment variables in a `config.txt` or `.env` file 
   
 Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 
