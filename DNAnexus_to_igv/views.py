@@ -44,7 +44,7 @@ PAGINATION = 10
 def dx_login(
         dnanexus_token: str,
         slack_token: str,
-        debug: str,
+        debug: bool,
         cron: bool = False) -> None:
     """
     Function to check DNANexus auth token. Send Slack notification
@@ -53,7 +53,7 @@ def dx_login(
     dnanexus_token: dnanexus api token
     slack_token: slack api token
     debug: if run in debug, send to #egg-test
-    cron: if the function is ran from this script
+    cron: if the function is ran from cron container
 
     """
     DX_SECURITY_CONTEXT = {
@@ -74,7 +74,7 @@ def dx_login(
         logger.error(err)
 
         if cron:
-            if debug == 'FALSE':
+            if not debug:
                 post_message_to_slack('egg-alerts', message, slack_token)
             else:
                 post_message_to_slack('egg-test', message, slack_token)
@@ -133,9 +133,11 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
         - bam_url (str): DNAnexus url for downloading BAM/CNV file
         - idx_url (str): DNAnexus url for downloading its index file
     """
-    dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG)
+    bam_url = None
+    idx_url = None
 
-    try:
+    if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG):
+
         bam_info = dx.bindings.dxfile.DXFile(
             dxid=bam_file_id, project=project_id
         )
@@ -154,16 +156,11 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
         bam_url = bam[0]
         idx_url = idx[0]
 
-    except Exception as e:
+    else:
         logger.error(
             f'Error generating dx download url for sample '
             f'{sample_id} in {project_id}'
             )
-        logger.error(e)
-
-        bam_url = None
-        idx_url = None
-
     return bam_url, idx_url
 
 
@@ -279,8 +276,8 @@ def search(request):
                 )
 
                 logger.error(
-                    f'Error generating url for sample {sample_id}.'
-                    'Additional info: {sample_dict}'
+                    f'Error generating url for sample {sample_id} '
+                    f'{sample_dict}'
                     )
 
                 return render(
@@ -341,6 +338,7 @@ def search(request):
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
     else:
+        # for pagination purpose - GET request
         context_dict = {}
 
         try:
@@ -460,6 +458,27 @@ def select(request):
         bam["project_id"]
     )
 
+    if file_url is None or idx_url is None:
+        # error generating urls, display message
+        messages.add_message(
+            request,
+            messages.ERROR,
+            mark_safe(
+                "Error generating download URLs for sample "
+                f"{selected_file_id}. Please contact the bioinformatics "
+                "team for help."), extra_tags="alert-danger"
+        )
+
+        logger.error(
+            f'Error generating url for sample {selected_file_id} {sample_type} '
+            f'{bam}'
+            )
+
+        return render(
+            request, 'DNAnexus_to_igv/nexus_search.html',
+            context_dict
+        )
+
     context_dict["sample_id"] = sample_id
     context_dict["file_name"] = bam["file_name"]
     context_dict["project_name"] = bam["project_name"]
@@ -551,9 +570,8 @@ def link(request):
         return render(
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
-    # if "bai" not ifile and "bai" in idx_url:
-    # check urls in correct fields
-    context_dict["sample_id"] = "DIRECT URL"
+    context_dict["file_name"] = "DIRECT URL"
+    context_dict["file_id"] = "DIRECT URL"
     context_dict["file_url"] = file_url
     context_dict["idx_url"] = idx_url
 
