@@ -57,8 +57,10 @@
 		<!-- messages loader -->
 		{% if messages %}
 			{% for message in messages %}
-				<div id="message" class="alert {{ message.tags }} alert-dismissible fade show my-0" role="alert">
+				<div id="message" class="alert {{ message.tags }} alert-dismissible fade show my-0" role="alert" onclick="copyToClipboard('message', 1)" data-value="{{ message }}">
 					{{ message }}
+					<a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" class="alert-link" target="_blank">Click here to contact helpdesk</a>
+					<span id="custom-tooltip-1">COPIED</span>
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
@@ -87,9 +89,39 @@
 				if (s == true) {
 					var s = document.getElementById('message').style;
 					s.opacity = 1;
-					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,5)})(); }, 5000);
+					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,15)})(); }, 15000);
 				}
 			});
+
+			//Function to copy text to clipboard
+			//Credit: https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
+			//Credit: https://stackoverflow.com/questions/61092432/display-success-message-after-copying-url-to-clipboard
+			function copyToClipboard(elementId, num) {
+				// Create a "hidden" input
+				var aux = document.createElement("input");
+				// Assign it the value of the specified element
+				aux.setAttribute("value", document.getElementById(elementId).getAttribute('data-value'));
+				// Append it to the body
+				document.body.appendChild(aux);
+				// Highlight its content
+				aux.select();
+				// Copy the highlighted text
+				document.execCommand("copy");
+				// Remove it from the body
+				document.body.removeChild(aux);
+
+				if (num == 1) {
+					document.getElementById("custom-tooltip-1").style.display = "inline";
+					setTimeout( function() {
+						document.getElementById("custom-tooltip-1").style.display = "none";
+					}, 1000);
+				} else {
+					document.getElementById("custom-tooltip-2").style.display = "inline";
+					setTimeout( function() {
+						document.getElementById("custom-tooltip-2").style.display = "none";
+					}, 1000);
+				}
+			}
 		</script>
 	</body>
 </html>

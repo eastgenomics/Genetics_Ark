@@ -137,14 +137,14 @@
                 
                 <ul class="list-group">
                     <li class="list-group-item">
-                        <span class="font-italic text-small" id="bam-url">{{ file_url }}</span>
+                        <span class="font-italic text-small" id="bam-url" data-value="{{ file_url }}">{{ file_url }}</span>
                         <input type="image" class="ml-1 m-y-0 p-0" src="/static/images/clipboard.png" onclick="copyToClipboard('bam-url', 1)" width="20" height="20"/>
-                        <span id="custom-tooltip-1">copied</span>
+                        <span id="custom-tooltip-1">COPIED</span>
                     </li>
                     <li class="list-group-item">
-                        <span class="font-italic text-small" id="idx-url">{{ idx_url }}</span>
+                        <span class="font-italic text-small" id="idx-url" data-value="{{ idx_url }}">{{ idx_url }}</span>
                         <input type="image" class="ml-1 m-y-0 p-0" src="/static/images/clipboard.png" onclick="copyToClipboard('idx-url', 2)" width="20" height="20"/>
-                        <span id="custom-tooltip-2">copied</span>
+                        <span id="custom-tooltip-2">COPIED</span>
                     </li>
                 </ul>
         
@@ -243,36 +243,6 @@
             {shader.style.display = "block";}
         else 
             {shader.style.display = "none";}
-    }
-
-    //Function to copy text to clipboard
-    //Credit: https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
-    //Credit: https://stackoverflow.com/questions/61092432/display-success-message-after-copying-url-to-clipboard
-    function copyToClipboard(elementId, num) {
-        // Create a "hidden" input
-        var aux = document.createElement("input");
-        // Assign it the value of the specified element
-        aux.setAttribute("value", document.getElementById(elementId).innerHTML);
-        // Append it to the body
-        document.body.appendChild(aux);
-        // Highlight its content
-        aux.select();
-        // Copy the highlighted text
-        document.execCommand("copy");
-        // Remove it from the body
-        document.body.removeChild(aux);
-
-        if (num == 1) {
-            document.getElementById("custom-tooltip-1").style.display = "inline";
-            setTimeout( function() {
-                document.getElementById("custom-tooltip-1").style.display = "none";
-            }, 1000);
-        } else {
-            document.getElementById("custom-tooltip-2").style.display = "inline";
-            setTimeout( function() {
-                document.getElementById("custom-tooltip-2").style.display = "none";
-            }, 1000);
-        }
     }
 </script>
 {% endblock %}

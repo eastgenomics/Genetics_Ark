@@ -203,8 +203,7 @@ def search(request):
             messages.add_message(
                 request,
                 messages.ERROR,
-                """JSON file containing samples not found.\
-                Please contact the bioinformatics team"""
+                'JSON file containing samples not found.'
             )
             logger.error(IOe)
 
@@ -466,7 +465,7 @@ def select(request):
             mark_safe(
                 "Error generating download URLs for sample "
                 f"{selected_file_id}. Please contact the bioinformatics "
-                "team for help."), extra_tags="alert-danger"
+                "team for help.")
         )
 
         logger.error(
@@ -558,7 +557,7 @@ def link(request):
                 File: {file_url}
                 Index: {idx_url}""".format(
                 file_url=file_url, idx_url=idx_url
-            ), extra_tags="alert-danger"
+            )
         )
 
         logger.error(
