@@ -81,6 +81,8 @@
         
             Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV if installed locally <br>
             on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
+
+            CNV visualisation will only work within the browser and can't be loaded in IGV desktop<br>
         
             The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
         
@@ -122,17 +124,15 @@
             
             <!-- SINGLE SAMPLE VIEW -->
             {% if file_name %}
+                <hr>
                 <h2 class="mt-5">{{ file_id }}</h2>
-                <div class="alert alert-primary" role="alert">
-                    Make sure to double-check the unique FILE ID
-                </div>
-                Search Term: <b>{{ sample_id }}</b><br>
-                File Name: <b>{{ file_name }}</b><br>
-                Sequencing Project: <b>{{ project_name }}</b><br>
-                Directory: <b>{{ file_path }}</b>
+                Search Term: {{ sample_id }}<br>
+                File Name: {{ file_name }}<br>
+                Sequencing Project: {{ project_name }}<br>
+                Directory: {{ file_path }}
                 
                 <br></br>
-                BAMs/CNVs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
+                BAMs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
                 <br></br>
                 
                 <ul class="list-group">

@@ -185,6 +185,7 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
+        context_dict['desk'] = GRID_SERVICE_DESK
 
         sample_id = request.POST["sample_id"]
         sample_id = str(sample_id).strip()  # in case spaces
@@ -334,7 +335,6 @@ def search(request):
             context_dict["bam_list"] = page_obj
             context_dict["file_no"] = len(bam_list)
             context_dict['sample_type'] = request.POST['sample_type']
-            context_dict['desk'] = GRID_SERVICE_DESK
 
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
@@ -343,6 +343,7 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
+        context_dict['desk'] = GRID_SERVICE_DESK
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -363,6 +364,8 @@ def search(request):
                 Please contact the bioinformatics team"""
             )
             logger.error(IOe)
+
+            context_dict['desk'] = GRID_SERVICE_DESK
 
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
@@ -411,7 +414,6 @@ def search(request):
         context_dict["file_no"] = len(bam_list)
         context_dict['sample_type'] = request.GET['sample_type']
         context_dict["sample_id"] = sample_id
-        context_dict['desk'] = GRID_SERVICE_DESK
 
         return render(
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
@@ -431,6 +433,7 @@ def select(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
+    context_dict['desk'] = GRID_SERVICE_DESK
 
     sample_type = request.POST['sample_type']
     sample_id = request.POST['sample_id']
@@ -507,6 +510,7 @@ def view(request):
     Viewing a single sample on IGV
     """
     context_dict = {}
+    context_dict['desk'] = GRID_SERVICE_DESK
 
     if request.POST['action'] == 'igv_37':
         context_dict["reference"] = "hg19"
@@ -545,6 +549,8 @@ def link(request):
     """
 
     context_dict = {}
+    context_dict['desk'] = GRID_SERVICE_DESK
+
     form = UrlForm(request.POST)
     file_url = request.POST['file_url']
     idx_url = request.POST['index_url']
