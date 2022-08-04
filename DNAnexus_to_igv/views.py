@@ -172,6 +172,7 @@ def index(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
+    context_dict['desk'] = GRID_SERVICE_DESK
 
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
