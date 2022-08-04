@@ -208,11 +208,12 @@ DEFAULT_FROM_EMAIL = EMAIL_USER  # email address for sending activation emails
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+LOG_DIR = '/home/ga/logs'
 
 # Settings for logging
-with open('/home/ga/logs/ga-error.log', 'a+'):
+with open(f'{LOG_DIR}/ga-error.log', 'a+'):
     pass
-with open('/home/ga/logs/ga-debug.log', 'a+'):
+with open(f'{LOG_DIR}/ga-debug.log', 'a+'):
     pass
 
 LOGGING = {
@@ -229,7 +230,7 @@ LOGGING = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/ga/logs/ga-debug.log',
+            'filename': f'{LOG_DIR}/ga-debug.log',
             'formatter': 'standard',
             'maxBytes': 1024*1024*5,
             'backupCount': 2
@@ -237,7 +238,7 @@ LOGGING = {
         'error_log': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/ga/logs/ga-error.log',
+            'filename': f'{LOG_DIR}/ga-error.log',
             'formatter': 'standard',
             'maxBytes': 1024*1024*5,
             'backupCount': 2
@@ -272,6 +273,6 @@ STATICFILES_DIRS = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:1337',
-    'dl.ec1.dnanex.us'
+    'https://dl.ec1.dnanex.us'
 ]
 # CORS_ALLOW_ALL_ORIGINS = True

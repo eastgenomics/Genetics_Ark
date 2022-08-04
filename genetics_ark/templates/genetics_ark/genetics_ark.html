@@ -1,67 +1,73 @@
-<!DOCTYPE HTML>
-
 {% extends 'base.html' %}
 {% load static %}
 
 {% block body %}
 <!-- Banner -->
-<section id="banner">
-	<div class="inner">
-		<h1>GENETICS ARK</h1>
-		<p>Web portal for bioinformatics applications</p>
+<div class="jumbotron jumbotron-fluid my-0">
+	<div class="row justify-content-center">
+		<h1 class="display-4 text-center font-weight-bold col-12 mb-2 text-light">Genetics Ark</h1>
+		<p class="h3 text-center font-weight-bold text-dark">web portal for bioinformatics applications</p>
 	</div>
-</section>
+</div>
 
-<!-- Sections -->
-<!-- New apps should have a section creating below for the homepage, logo
-images for each have been created in canva.com. A new entry should also be
-added to the menu bar in base.html -->
-<section class="wrapper">
-	<div class="inner">
-		<div class="highlights">
-			<section>
+<div class="container my-5">
+	<div class="row justify-content-around">
+		<div class="col-4 text-center">
+			<div class="container">
 				<a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">
-					<div class="content" data-tooltip="Bioinformatics service desk for queries and requests">
-						<img alt="service.png" src="{% static 'images/main-1.png' %}" style="width:150px;height:170px;">
+					<div class="grow" data-toggle="tooltip" data-placement="bottom"  title="Bioinformatics service desk for queries and requests">
+						<img class="main-img" alt="service.png" src="{% static 'images/main-1.png' %}">
 					</div>
 				</a>
-			</section>
-			<section>
+			</div>
+		</div>
+		<div class="col-4 text-center">
+			<div class="container">
 				<a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/P/overview" target="_blank">
-					<div class="content" data-tooltip="Documentation for bioinformatics team development projects">
-						<img alt="projects.png" src="{% static 'images/main-2.png' %}" style="width:150px;height:170px;">
+					<div class="grow" data-toggle="tooltip" data-placement="bottom"  title="Documentation for bioinformatics team development projects">
+						<img class="main-img" alt="service.png" src="{% static 'images/main-2.png' %}">
 					</div>
 				</a>
-			</section>
-			<section>
+			</div>
+		</div>
+		<div class="col-4 text-center">
+			<div class="container">
 				<a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/BLOG/overview" target="_blank">
-					<div class="content" data-tooltip="Blog page for updates from the bioinformatics team">
-						<img alt="blog.png" src="{% static 'images/main-3.png' %}" style="width:150px;height:170px;">
+					<div class="grow" data-toggle="tooltip" data-placement="bottom"  title="Blog page for updates from the bioinformatics team">
+						<img class="main-img" alt="service.png" src="{% static 'images/main-3.png' %}">
 					</div>
 				</a>
-			</section>
-			<section>
-				<a href="/primer_designer">
-					<div class="content" data-tooltip="Design primers for genomic coordinates">
-						<img alt="primer.png" src="{% static 'images/main-4.png' %}" style="width:150px;height:170px;">
-					</div>
-				</a>
-			</section>
-			<section>
-				<a href="/igv">
-					<div class="content" data-tooltip="Load IGV for visualisation of sequencing data">
-						<img alt="igv.png" src="{% static 'images/main-5.png' %}" style="width:150px;height:170px;">
-					</div>
-				</a>
-			</section>
-			<section>
-				<a href="https://eglh.app.zettagenomics.com/#home" target="_blank">
-					<div class="content" data-tooltip="Load IVA for reviewing clinical cases and variant interpretation">
-						<img alt="zetta.png" src="{% static 'images/main-6.png' %}" style="width:150px;height:170px;">
-					</div>
-				</a>
-			</section>
+			</div>
 		</div>
 	</div>
-</section>
+	<div class="row justify-content-around pt-5">
+		<div class="col-4 text-center">
+			<div class="container">
+				<a href="/primer_designer">
+					<div class="grow" data-toggle="tooltip" data-placement="bottom"  title="Design primers for genomic coordinates">
+						<img class="main-img" alt="service.png" src="{% static 'images/main-4.png' %}">
+					</div>
+				</a>
+			</div>
+		</div>
+		<div class="col-4 text-center">
+			<div class="container">
+				<a href="/igv">
+					<div class="grow" data-toggle="tooltip" data-placement="bottom"  title="Load IGV for visualisation of sequencing data">
+						<img class="main-img" alt="service.png" src="{% static 'images/main-5.png' %}">
+					</div>
+				</a>
+			</div>
+		</div>
+		<div class="col-4 text-center">
+			<div class="container">
+				<a href="https://eglh.app.zettagenomics.com/#home" target="_blank">
+					<div class="grow" data-toggle="tooltip" data-placement="bottom"  title="Load IVA for reviewing clinical cases and variant interpretation">
+						<img class="main-img" alt="service.png" src="{% static 'images/main-6.png' %}">
+					</div>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
 {% endblock %}

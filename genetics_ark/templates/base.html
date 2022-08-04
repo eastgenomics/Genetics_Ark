@@ -31,39 +31,54 @@
 		<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
 		{% block css %}{% endblock %}
 	</head>
-	<body class="is-preload">
-
-		<!-- Header -->
-		<header id="header">
-			<a class="logo" href="/">GENETICS ARK</a>
-			<nav class="mr-2"><a href="#menu">Menu</a></nav>
-		</header>
-
-		<!-- Menu bar -->
-		<!-- New apps should have a line added both to the menu bar and a
-		<section></section> in genetics_ark.html -->
-		<nav id="menu">
-			<ul class="links">
-				<li><a href="/">Home</a></li>
-				<li><a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">Service Desk</a></li>
-				<li><a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/P/overview" target="_blank">Projects</a></li>
-				<li><a href="https://cuhbioinformatics.atlassian.net/wiki/spaces/BLOG/overview" target="_blank">Blog</a></li>
-				<li><a href="/primer_designer">Primer Designer</a></li>
-				<li><a href="/igv">IGV</a></li>
-				<li><a href="https://eglh.app.zettagenomics.com/#home" target="_blank">IVA</a></li>
-			</ul>
+	<body>
+		<!-- Navbar -->
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2e728d;">
+			<a class="navbar-brand text-white font-weight-bold navbar-logo" href="/">GENETICS ARK</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto pr-4">
+					<li class="nav-item">
+						<a class="nav-link text-white" href="/primer_designer">Primer Designer</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white" href="/igv">IGV</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white" target="_blank" href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4">Service Desk</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white" target="_blank" href="https://cuhbioinformatics.atlassian.net/wiki/spaces/P/overview">Projects</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white" target="_blank" href="https://cuhbioinformatics.atlassian.net/wiki/spaces/BLOG/overview">Blog</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white" target="_blank" href="https://eglh.app.zettagenomics.com/#home">IVA</a>
+					</li>
+				</ul>
+			</div>
 		</nav>
 
-		<!-- messages loader -->
+		<!-- Error Message -->
 		{% if messages %}
 			{% for message in messages %}
-				<div id="message" class="alert {{ message.tags }} alert-dismissible fade show my-0" role="alert" onclick="copyToClipboard('message', 1)" data-value="{{ message }}">
-					{{ message }}
-					<a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" class="alert-link" target="_blank">Click here to contact helpdesk</a>
-					<span id="custom-tooltip-1">COPIED</span>
+				<div id="message" class="alert {{ message.tags }}" role="alert">
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
+					<div class="row text-center">
+						<div data-value="{{ message }}" id="messageContent" class="col-12">
+							{{ message }}
+							<button type="button" class="btn btn-warning mx-2 btn-sm border-dark px-1 py-0" onclick="copyToClipboard('messageContent', 1)">copy</button>
+							<span id="custom-tooltip-1" class="ml-2" style="position:absolute;">COPIED</span>
+						</div>
+						<div class="col">
+							<a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" class="btn btn-info btn-sm px-2 py-0 border-dark" target="_blank">click here to contact helpdesk</a>
+						</div>
+					</div>
 				</div>
 			{% endfor %} 
 		{% endif %}
@@ -92,7 +107,10 @@
 					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,15)})(); }, 15000);
 				}
 			});
-
+			
+			$(function () {
+				$('[data-toggle="tooltip"]').tooltip()
+			})
 			//Function to copy text to clipboard
 			//Credit: https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
 			//Credit: https://stackoverflow.com/questions/61092432/display-success-message-after-copying-url-to-clipboard
