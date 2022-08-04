@@ -17,7 +17,7 @@ Genetic Ark allows primer input submission: `<chromosome>:<position> <genome bui
   
 ## Setup and Running 
 
-Genetics Ark requires environment variables in a `config.txt` or `.env` file 
+Genetics Ark requires environment variables in a `config.txt` or `.env` file (see example.env)
   
 Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 
@@ -35,8 +35,12 @@ Check schduled cron is running by accessing cron container `docker exec -it <con
 
 All cron run log will be stored in cron container `/home/log/cron.log`
 
+### Running in local system
+- change logging location in `ga_core/settings.py`
+- collect static files `python manage.py collectstatic`
+- run server `python manage.py runserver`
 
-### Running in Production
+### Running in production
 Ensure `GENETIC_DEBUG` is not in config file to run in production mode
 ```
 docker compose build
