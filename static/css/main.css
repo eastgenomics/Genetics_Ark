@@ -120,3 +120,7 @@
 /* grid image hover transform */
 .grow { transition: all .2s ease-in-out; }
 .grow:hover { transform: scale(1.05); }
+
+.asteriskField {
+  display: none;
+}

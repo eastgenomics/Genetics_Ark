@@ -6,3 +6,4 @@ logs/*
 tmp/*
 .env
 DNAnexus_to_igv/jsons/*
+staticfiles

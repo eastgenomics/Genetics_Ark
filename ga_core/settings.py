@@ -43,10 +43,10 @@ try:
     # GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
     # SMTP Email
-    EMAIL_USER = os.environ['EMAIL_USER']
-    SMTP_RELAY = os.environ['SMTP_RELAY']
-    PORT = os.environ['PORT']
-    EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+    # EMAIL_USER = os.environ['EMAIL_USER']
+    # SMTP_RELAY = os.environ['SMTP_RELAY']
+    # PORT = os.environ['PORT']
+    # EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
     # IGVs
     FASTA_37 = os.environ['FASTA_37']
@@ -69,6 +69,12 @@ try:
 
     # Slack Token
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
+
+    # Grid Links
+    GRID_SERVICE_DESK = os.environ['GRID_SERVICE_DESK']
+    GRID_PROJECT = os.environ['GRID_PROJECT']
+    GRID_BLOG = os.environ['GRID_BLOG']
+    GRID_IVA = os.environ['GRID_IVA']
 
 
 except KeyError as e:
@@ -198,11 +204,11 @@ USE_TZ = True
 
 
 # Settings for account app email verification
-EMAIL_HOST = SMTP_RELAY
-EMAIL_PORT = PORT
-EMAIL_HOST_USER = EMAIL_USER
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_USER  # email address for sending activation emails
+# EMAIL_HOST = SMTP_RELAY
+# EMAIL_PORT = PORT
+# EMAIL_HOST_USER = EMAIL_USER
+# EMAIL_USE_TLS = True
+# DEFAULT_FROM_EMAIL = EMAIL_USER
 
 # whitenoise static file serving compression & cacheing
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

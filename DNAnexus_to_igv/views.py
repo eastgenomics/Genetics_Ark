@@ -33,7 +33,8 @@ from DNAnexus_to_igv.forms import UrlForm, SearchForm
 from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
-    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES
+    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES,
+    GRID_SERVICE_DESK
 )
 
 logger = logging.getLogger("general")
@@ -333,12 +334,15 @@ def search(request):
             context_dict["bam_list"] = page_obj
             context_dict["file_no"] = len(bam_list)
             context_dict['sample_type'] = request.POST['sample_type']
+            context_dict['desk'] = GRID_SERVICE_DESK
 
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
     else:
         # for pagination purpose - GET request
         context_dict = {}
+        context_dict["search_form"] = SearchForm()
+        context_dict["url_form"] = UrlForm()
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -407,6 +411,7 @@ def search(request):
         context_dict["file_no"] = len(bam_list)
         context_dict['sample_type'] = request.GET['sample_type']
         context_dict["sample_id"] = sample_id
+        context_dict['desk'] = GRID_SERVICE_DESK
 
         return render(
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
