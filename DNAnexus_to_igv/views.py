@@ -33,7 +33,8 @@ from DNAnexus_to_igv.forms import UrlForm, SearchForm
 from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
-    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES
+    DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES,
+    GRID_SERVICE_DESK, REFSEQ_INDEX_37, REFSEQ_INDEX_38
 )
 
 logger = logging.getLogger("general")
@@ -44,7 +45,7 @@ PAGINATION = 10
 def dx_login(
         dnanexus_token: str,
         slack_token: str,
-        debug: str,
+        debug: bool,
         cron: bool = False) -> None:
     """
     Function to check DNANexus auth token. Send Slack notification
@@ -53,7 +54,7 @@ def dx_login(
     dnanexus_token: dnanexus api token
     slack_token: slack api token
     debug: if run in debug, send to #egg-test
-    cron: if the function is ran from this script
+    cron: if the function is ran from cron container
 
     """
     DX_SECURITY_CONTEXT = {
@@ -74,7 +75,7 @@ def dx_login(
         logger.error(err)
 
         if cron:
-            if debug == 'FALSE':
+            if not debug:
                 post_message_to_slack('egg-alerts', message, slack_token)
             else:
                 post_message_to_slack('egg-test', message, slack_token)
@@ -133,9 +134,11 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
         - bam_url (str): DNAnexus url for downloading BAM/CNV file
         - idx_url (str): DNAnexus url for downloading its index file
     """
-    dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG)
+    bam_url = None
+    idx_url = None
 
-    try:
+    if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG):
+
         bam_info = dx.bindings.dxfile.DXFile(
             dxid=bam_file_id, project=project_id
         )
@@ -154,16 +157,11 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
         bam_url = bam[0]
         idx_url = idx[0]
 
-    except Exception as e:
+    else:
         logger.error(
             f'Error generating dx download url for sample '
             f'{sample_id} in {project_id}'
             )
-        logger.error(e)
-
-        bam_url = None
-        idx_url = None
-
     return bam_url, idx_url
 
 
@@ -174,6 +172,7 @@ def index(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
+    context_dict['desk'] = GRID_SERVICE_DESK
 
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
@@ -187,6 +186,7 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
+        context_dict['desk'] = GRID_SERVICE_DESK
 
         sample_id = request.POST["sample_id"]
         sample_id = str(sample_id).strip()  # in case spaces
@@ -206,8 +206,7 @@ def search(request):
             messages.add_message(
                 request,
                 messages.ERROR,
-                """JSON file containing samples not found.\
-                Please contact the bioinformatics team"""
+                'JSON file containing samples not found.'
             )
             logger.error(IOe)
 
@@ -279,8 +278,8 @@ def search(request):
                 )
 
                 logger.error(
-                    f'Error generating url for sample {sample_id}.'
-                    'Additional info: {sample_dict}'
+                    f'Error generating url for sample {sample_id} '
+                    f'{sample_dict}'
                     )
 
                 return render(
@@ -341,7 +340,11 @@ def search(request):
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
     else:
+        # for pagination purpose - GET request
         context_dict = {}
+        context_dict["search_form"] = SearchForm()
+        context_dict["url_form"] = UrlForm()
+        context_dict['desk'] = GRID_SERVICE_DESK
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -362,6 +365,8 @@ def search(request):
                 Please contact the bioinformatics team"""
             )
             logger.error(IOe)
+
+            context_dict['desk'] = GRID_SERVICE_DESK
 
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
@@ -429,6 +434,7 @@ def select(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
+    context_dict['desk'] = GRID_SERVICE_DESK
 
     sample_type = request.POST['sample_type']
     sample_id = request.POST['sample_id']
@@ -460,6 +466,27 @@ def select(request):
         bam["project_id"]
     )
 
+    if file_url is None or idx_url is None:
+        # error generating urls, display message
+        messages.add_message(
+            request,
+            messages.ERROR,
+            mark_safe(
+                "Error generating download URLs for sample "
+                f"{selected_file_id}. Please contact the bioinformatics "
+                "team for help.")
+        )
+
+        logger.error(
+            f'Error generating url for sample {selected_file_id} '
+            f'{sample_type} {bam}'
+            )
+
+        return render(
+            request, 'DNAnexus_to_igv/nexus_search.html',
+            context_dict
+        )
+
     context_dict["sample_id"] = sample_id
     context_dict["file_name"] = bam["file_name"]
     context_dict["project_name"] = bam["project_name"]
@@ -484,6 +511,7 @@ def view(request):
     Viewing a single sample on IGV
     """
     context_dict = {}
+    context_dict['desk'] = GRID_SERVICE_DESK
 
     if request.POST['action'] == 'igv_37':
         context_dict["reference"] = "hg19"
@@ -491,12 +519,14 @@ def view(request):
         context_dict["fasta_idx"] = FASTA_IDX_37
         context_dict["cytoband"] = CYTOBAND_37
         context_dict["refseq"] = REFSEQ_37
+        context_dict["refindex"] = REFSEQ_INDEX_37
     else:
         context_dict["reference"] = "hg38"
         context_dict["fasta"] = FASTA_38
         context_dict["fasta_idx"] = FASTA_IDX_38
         context_dict["cytoband"] = CYTOBAND_38
         context_dict["refseq"] = REFSEQ_38
+        context_dict["refindex"] = REFSEQ_INDEX_38
 
     context_dict['genomes'] = GENOMES
 
@@ -522,6 +552,8 @@ def link(request):
     """
 
     context_dict = {}
+    context_dict['desk'] = GRID_SERVICE_DESK
+
     form = UrlForm(request.POST)
     file_url = request.POST['file_url']
     idx_url = request.POST['index_url']
@@ -539,7 +571,7 @@ def link(request):
                 File: {file_url}
                 Index: {idx_url}""".format(
                 file_url=file_url, idx_url=idx_url
-            ), extra_tags="alert-danger"
+            )
         )
 
         logger.error(
@@ -551,9 +583,8 @@ def link(request):
         return render(
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
-    # if "bai" not ifile and "bai" in idx_url:
-    # check urls in correct fields
-    context_dict["sample_id"] = "DIRECT URL"
+    context_dict["file_name"] = "DIRECT URL"
+    context_dict["file_id"] = "DIRECT URL"
     context_dict["file_url"] = file_url
     context_dict["idx_url"] = idx_url
 
@@ -564,12 +595,14 @@ def link(request):
         context_dict["fasta_idx"] = FASTA_IDX_37
         context_dict["cytoband"] = CYTOBAND_37
         context_dict["refseq"] = REFSEQ_37
+        context_dict["refindex"] = REFSEQ_INDEX_37
     else:
         context_dict["reference"] = "hg38"
         context_dict["fasta"] = FASTA_38
         context_dict["fasta_idx"] = FASTA_IDX_38
         context_dict["cytoband"] = CYTOBAND_38
         context_dict["refseq"] = REFSEQ_38
+        context_dict["refindex"] = REFSEQ_INDEX_38
 
     return render(
         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)

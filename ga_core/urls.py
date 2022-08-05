@@ -24,7 +24,7 @@ handler502 = error502
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    re_path(r'^$', include('genetics_ark.urls')),
+    path('', include('genetics_ark.urls')),
     path('igv/', include('DNAnexus_to_igv.urls')),
     path('primer_designer/', include('primer_designer.urls'))
 ]

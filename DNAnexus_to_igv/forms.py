@@ -22,8 +22,8 @@ class SearchForm(forms.Form):
     sample_type = forms.ChoiceField(
         widget=forms.Select(
             attrs={
-                'class': 'form-group',
-                'style': 'width:475px'
+                'class': 'form-control',
+                'style': 'width:100px'
             }
         ),
         label='Sample Type',

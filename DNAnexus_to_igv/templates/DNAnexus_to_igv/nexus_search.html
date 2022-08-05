@@ -81,6 +81,8 @@
         
             Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV if installed locally <br>
             on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
+
+            CNV visualisation will only work within the browser and can't be loaded in IGV desktop<br>
         
             The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
         
@@ -122,29 +124,27 @@
             
             <!-- SINGLE SAMPLE VIEW -->
             {% if file_name %}
+                <hr>
                 <h2 class="mt-5">{{ file_id }}</h2>
-                <div class="alert alert-primary" role="alert">
-                    Make sure to double-check the unique FILE ID
-                </div>
-                Search Term: <b>{{ sample_id }}</b><br>
-                File Name: <b>{{ file_name }}</b><br>
-                Sequencing Project: <b>{{ project_name }}</b><br>
-                Directory: <b>{{ file_path }}</b>
+                Search Term: {{ sample_id }}<br>
+                File Name: {{ file_name }}<br>
+                Sequencing Project: {{ project_name }}<br>
+                Directory: {{ file_path }}
                 
                 <br></br>
-                BAMs/CNVs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
+                BAMs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
                 <br></br>
                 
                 <ul class="list-group">
                     <li class="list-group-item">
-                        <span class="font-italic text-small" id="bam-url">{{ file_url }}</span>
+                        <span class="font-italic text-small" id="bam-url" data-value="{{ file_url }}">{{ file_url }}</span>
                         <input type="image" class="ml-1 m-y-0 p-0" src="/static/images/clipboard.png" onclick="copyToClipboard('bam-url', 1)" width="20" height="20"/>
-                        <span id="custom-tooltip-1">copied</span>
+                        <span id="custom-tooltip-1">COPIED</span>
                     </li>
                     <li class="list-group-item">
-                        <span class="font-italic text-small" id="idx-url">{{ idx_url }}</span>
+                        <span class="font-italic text-small" id="idx-url" data-value="{{ idx_url }}">{{ idx_url }}</span>
                         <input type="image" class="ml-1 m-y-0 p-0" src="/static/images/clipboard.png" onclick="copyToClipboard('idx-url', 2)" width="20" height="20"/>
-                        <span id="custom-tooltip-2">copied</span>
+                        <span id="custom-tooltip-2">COPIED</span>
                     </li>
                 </ul>
         
@@ -169,7 +169,7 @@
                 <h2 class="mt-5">Results</h2>
                 <b>{{ file_no }}</b> files found for sample <b>{{ sample_id }}</b><br>
                 Please select which project to load the sample from:</b><br></b><br>
-                <ul class="list-group-scrollable mr-4">
+                <ul class="list-group-scrollable pl-0">
                     {% for file in bam_list %}
                         <div class="card m-3">
                             <div class="card-body">
@@ -179,7 +179,7 @@
                                         <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
                                     </h6>
                                     <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                    <form action="select" method="POST" name="select_bam" target="_blank">
+                                    <form action="select" method="POST" name="select_bam">
                                         {% csrf_token %}
                                         <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
                                         <input type="hidden" name="sample_type" value="{{ sample_type }}">
@@ -192,14 +192,14 @@
                                     </h6>
                                     <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
                                     <div class="alert alert-warning" role="alert">
-                                        To request unarchive, <a href="https://cuhbioinformatics.atlassian.net/servicedesk/customer/portal/4" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
+                                        To request unarchive, <a href="{{ desk }}" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
                                     </div>
                                 {% endif %}
                             </div>
                         </div>
                     {% endfor %}
                 </ul>
-                <div class="row justify-content-start">
+                <div class="row justify-content-center">
                     <nav aria-label="Page navigation example">
                         <ul class="pagination">
                             {% if bam_list.has_previous %}
@@ -243,36 +243,6 @@
             {shader.style.display = "block";}
         else 
             {shader.style.display = "none";}
-    }
-
-    //Function to copy text to clipboard
-    //Credit: https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
-    //Credit: https://stackoverflow.com/questions/61092432/display-success-message-after-copying-url-to-clipboard
-    function copyToClipboard(elementId, num) {
-        // Create a "hidden" input
-        var aux = document.createElement("input");
-        // Assign it the value of the specified element
-        aux.setAttribute("value", document.getElementById(elementId).innerHTML);
-        // Append it to the body
-        document.body.appendChild(aux);
-        // Highlight its content
-        aux.select();
-        // Copy the highlighted text
-        document.execCommand("copy");
-        // Remove it from the body
-        document.body.removeChild(aux);
-
-        if (num == 1) {
-            document.getElementById("custom-tooltip-1").style.display = "inline";
-            setTimeout( function() {
-                document.getElementById("custom-tooltip-1").style.display = "none";
-            }, 1000);
-        } else {
-            document.getElementById("custom-tooltip-2").style.display = "inline";
-            setTimeout( function() {
-                document.getElementById("custom-tooltip-2").style.display = "none";
-            }, 1000);
-        }
     }
 </script>
 {% endblock %}

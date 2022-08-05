@@ -43,21 +43,23 @@ try:
     # GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
     # SMTP Email
-    EMAIL_USER = os.environ['EMAIL_USER']
-    SMTP_RELAY = os.environ['SMTP_RELAY']
-    PORT = os.environ['PORT']
-    EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+    # EMAIL_USER = os.environ['EMAIL_USER']
+    # SMTP_RELAY = os.environ['SMTP_RELAY']
+    # PORT = os.environ['PORT']
+    # EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
     # IGVs
     FASTA_37 = os.environ['FASTA_37']
     FASTA_IDX_37 = os.environ['FASTA_IDX_37']
     CYTOBAND_37 = os.environ['CYTOBAND_37']
     REFSEQ_37 = os.environ['REFSEQ_37']
+    REFSEQ_INDEX_37 = os.environ['REFSEQ_INDEX_37']
 
     FASTA_38 = os.environ['FASTA_38']
     FASTA_IDX_38 = os.environ['FASTA_IDX_38']
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
+    REFSEQ_INDEX_38 = os.environ['REFSEQ_INDEX_38']
 
     GENOMES = os.environ['GENOMES']
 
@@ -69,6 +71,12 @@ try:
 
     # Slack Token
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
+
+    # Grid Links
+    GRID_SERVICE_DESK = os.environ['GRID_SERVICE_DESK']
+    GRID_PROJECT = os.environ['GRID_PROJECT']
+    GRID_BLOG = os.environ['GRID_BLOG']
+    GRID_IVA = os.environ['GRID_IVA']
 
 
 except KeyError as e:
@@ -198,21 +206,22 @@ USE_TZ = True
 
 
 # Settings for account app email verification
-EMAIL_HOST = SMTP_RELAY
-EMAIL_PORT = PORT
-EMAIL_HOST_USER = EMAIL_USER
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_USER  # email address for sending activation emails
+# EMAIL_HOST = SMTP_RELAY
+# EMAIL_PORT = PORT
+# EMAIL_HOST_USER = EMAIL_USER
+# EMAIL_USE_TLS = True
+# DEFAULT_FROM_EMAIL = EMAIL_USER
 
 # whitenoise static file serving compression & cacheing
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+LOG_DIR = '/home/ga/logs'
 
 # Settings for logging
-with open('/home/ga/logs/ga-error.log', 'a+'):
+with open(f'{LOG_DIR}/ga-error.log', 'a+'):
     pass
-with open('/home/ga/logs/ga-debug.log', 'a+'):
+with open(f'{LOG_DIR}/ga-debug.log', 'a+'):
     pass
 
 LOGGING = {
@@ -229,7 +238,7 @@ LOGGING = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/ga/logs/ga-debug.log',
+            'filename': f'{LOG_DIR}/ga-debug.log',
             'formatter': 'standard',
             'maxBytes': 1024*1024*5,
             'backupCount': 2
@@ -237,7 +246,7 @@ LOGGING = {
         'error_log': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/ga/logs/ga-error.log',
+            'filename': f'{LOG_DIR}/ga-error.log',
             'formatter': 'standard',
             'maxBytes': 1024*1024*5,
             'backupCount': 2
@@ -270,10 +279,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-LOGIN_REDIRECT_URL = 'home'
-
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:1337',
-#     'dl.ec1.dnanex.us'
-# ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:1337',
+    'https://dl.ec1.dnanex.us'
+]
+# CORS_ALLOW_ALL_ORIGINS = True

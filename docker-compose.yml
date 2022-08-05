@@ -11,7 +11,7 @@ services:
       - igv_volume:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
       - static_volume:/home/ga/staticfiles # staticfiles
       - /home/jason/github/Genetics_Ark/logs:/home/ga/logs # write logging
-      - /home/jason/github/primer_designer/test/reference_files:/reference_files # refs for primer designer
+      - /home/jason/github/references:/reference_files # refs for primer designer
     expose:
       - 8000
   cron:
@@ -28,7 +28,7 @@ services:
     image: genetic_ark_nginx:2.0.0
     build: ./nginx
     volumes:
-      - /home/jason/github/primer_designer/test/reference_files:/reference_files # serve igv references through nginx
+      - /home/jason/github/references:/reference_files # serve igv references through nginx
       - primer_volume:/tmp # zip generated primer designer PDFs
       - static_volume:/staticfiles # serve staticfiles
       - /home/jason/github/Genetics_Ark/logs:/home/ga/log # logging for nginx
