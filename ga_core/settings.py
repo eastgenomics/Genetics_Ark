@@ -53,11 +53,13 @@ try:
     FASTA_IDX_37 = os.environ['FASTA_IDX_37']
     CYTOBAND_37 = os.environ['CYTOBAND_37']
     REFSEQ_37 = os.environ['REFSEQ_37']
+    REFSEQ_INDEX_37 = os.environ['REFSEQ_INDEX_37']
 
     FASTA_38 = os.environ['FASTA_38']
     FASTA_IDX_38 = os.environ['FASTA_IDX_38']
     CYTOBAND_38 = os.environ['CYTOBAND_38']
     REFSEQ_38 = os.environ['REFSEQ_38']
+    REFSEQ_INDEX_38 = os.environ['REFSEQ_INDEX_38']
 
     GENOMES = os.environ['GENOMES']
 

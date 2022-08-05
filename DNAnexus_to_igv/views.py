@@ -34,7 +34,7 @@ from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
     DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES,
-    GRID_SERVICE_DESK
+    GRID_SERVICE_DESK, REFSEQ_INDEX_37, REFSEQ_INDEX_38
 )
 
 logger = logging.getLogger("general")
@@ -519,12 +519,14 @@ def view(request):
         context_dict["fasta_idx"] = FASTA_IDX_37
         context_dict["cytoband"] = CYTOBAND_37
         context_dict["refseq"] = REFSEQ_37
+        context_dict["refindex"] = REFSEQ_INDEX_37
     else:
         context_dict["reference"] = "hg38"
         context_dict["fasta"] = FASTA_38
         context_dict["fasta_idx"] = FASTA_IDX_38
         context_dict["cytoband"] = CYTOBAND_38
         context_dict["refseq"] = REFSEQ_38
+        context_dict["refindex"] = REFSEQ_INDEX_38
 
     context_dict['genomes'] = GENOMES
 
@@ -593,12 +595,14 @@ def link(request):
         context_dict["fasta_idx"] = FASTA_IDX_37
         context_dict["cytoband"] = CYTOBAND_37
         context_dict["refseq"] = REFSEQ_37
+        context_dict["refindex"] = REFSEQ_INDEX_37
     else:
         context_dict["reference"] = "hg38"
         context_dict["fasta"] = FASTA_38
         context_dict["fasta_idx"] = FASTA_IDX_38
         context_dict["cytoband"] = CYTOBAND_38
         context_dict["refseq"] = REFSEQ_38
+        context_dict["refindex"] = REFSEQ_INDEX_38
 
     return render(
         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
