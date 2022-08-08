@@ -57,7 +57,7 @@ def index(request):
             )
     else:
         regions_form = Forms.RegionsForm()
-    
+
     context_dict['regions_form'] = regions_form
 
     return render(
@@ -229,7 +229,7 @@ def create(request, regions_form):
     context_dict['iva'] = GRID_IVA
     context_dict['project'] = GRID_PROJECT
 
-    context_dict ['key'] = output_name
+    context_dict['key'] = output_name
     context_dict["outfile_name"] = output_name
     context_dict["url"] = f'{PRIMER_DOWNLOAD}/tmp/{output_name}.zip'
 
