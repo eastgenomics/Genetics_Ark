@@ -96,7 +96,6 @@ else:
 
 
 INSTALLED_APPS = [
-    'whitenoise.runserver_nostatic',  # required for serving static files
     # own apps
     'genetics_ark',
     'accounts',
@@ -128,7 +127,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'ga_core.urls'
@@ -211,10 +209,6 @@ USE_TZ = True
 # EMAIL_HOST_USER = EMAIL_USER
 # EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = EMAIL_USER
-
-# whitenoise static file serving compression & cacheing
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 LOG_DIR = '/home/ga/logs'
 
