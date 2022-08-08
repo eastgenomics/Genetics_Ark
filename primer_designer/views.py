@@ -21,7 +21,9 @@ from django.shortcuts import render
 
 import primer_designer.forms as Forms
 
-from ga_core.settings import PRIMER_DOWNLOAD
+from ga_core.settings import (
+    PRIMER_DOWNLOAD, GRID_BLOG, GRID_SERVICE_DESK, GRID_IVA, GRID_PROJECT
+    )
 
 logger = logging.getLogger("general")
 
@@ -32,6 +34,13 @@ def index(request):
     If Form is submitted, return Create page (below)
     Else return Index page
     """
+
+    context_dict = {}
+    context_dict['blog'] = GRID_BLOG
+    context_dict['desk'] = GRID_SERVICE_DESK
+    context_dict['iva'] = GRID_IVA
+    context_dict['project'] = GRID_PROJECT
+
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
 
@@ -49,8 +58,10 @@ def index(request):
     else:
         regions_form = Forms.RegionsForm()
 
+    context_dict['regions_form'] = regions_form
+
     return render(
-        request, "primer_designer/index.html", {'regions_form': regions_form})
+        request, "primer_designer/index.html", context_dict)
 
 
 def random_string():
@@ -212,7 +223,13 @@ def create(request, regions_form):
             zfile.write(
                 f'{output_directory}/{pdf}', Path(pdf).name)
 
-    context_dict = {'key': output_name}
+    context_dict = {}
+    context_dict['blog'] = GRID_BLOG
+    context_dict['desk'] = GRID_SERVICE_DESK
+    context_dict['iva'] = GRID_IVA
+    context_dict['project'] = GRID_PROJECT
+
+    context_dict['key'] = output_name
     context_dict["outfile_name"] = output_name
     context_dict["url"] = f'{PRIMER_DOWNLOAD}/tmp/{output_name}.zip'
 

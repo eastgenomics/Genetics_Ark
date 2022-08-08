@@ -38,5 +38,4 @@ sqlparse==0.4.2
 urllib3==1.23
 wcwidth==0.2.5
 websocket-client==0.54.0
-whitenoise==6.2.0
 wrapt==1.14.1
