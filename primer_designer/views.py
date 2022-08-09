@@ -180,20 +180,27 @@ def create(request, regions_form):
     Return:
         link to download PDFs zip
     """
+    context_dict = {}
+    context_dict['blog'] = GRID_BLOG
+    context_dict['desk'] = GRID_SERVICE_DESK
+    context_dict['iva'] = GRID_IVA
+    context_dict['project'] = GRID_PROJECT
+    context_dict['regions_form'] = Forms.RegionsForm()
+
     regions = regions_form.data['regions'].split('\n')
     regions = [x.rstrip('\r').strip() for x in regions if x]
 
     if len(regions) > 3:
         messages.add_message(
-                request,
-                messages.ERROR,
-                f"{len(regions)} lines detected. "
-                "Maximum three lines at a time."
-                )
+            request,
+            messages.ERROR,
+            f"{len(regions)} lines detected. "
+            "Maximum three lines at a time."
+            )
         return render(
             request,
             "primer_designer/index.html",
-            {'regions_form': Forms.RegionsForm()})
+            context_dict)
 
     # unique name of date and random 5 char str
     output_name = f'{time_stamp()}{random_string()}'
@@ -215,19 +222,13 @@ def create(request, regions_form):
             return render(
                 request,
                 "primer_designer/index.html",
-                {'regions_form': Forms.RegionsForm()})
+                context_dict)
 
     # zip the PDFs in output dir
     with ZipFile(f'{output_directory}.zip', 'w') as zfile:
         for pdf in os.listdir(output_directory):
             zfile.write(
                 f'{output_directory}/{pdf}', Path(pdf).name)
-
-    context_dict = {}
-    context_dict['blog'] = GRID_BLOG
-    context_dict['desk'] = GRID_SERVICE_DESK
-    context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     context_dict['key'] = output_name
     context_dict["outfile_name"] = output_name
