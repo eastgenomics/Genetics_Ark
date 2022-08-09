@@ -109,7 +109,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # pip installed app
-    'django_tables2',
     'crispy_forms',
     'corsheaders'
 ]
