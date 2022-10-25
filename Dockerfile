@@ -1,4 +1,4 @@
-FROM primer_designer:2.0.1
+FROM primer_designer:2.0.2
 
 WORKDIR /home/ga
 
