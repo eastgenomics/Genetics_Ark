@@ -21,6 +21,10 @@
   font-family: 'Raleway';
  }
 
+ html {
+  scroll-behavior: smooth;
+}
+
  /* background image in body */
  body {
   background-image: url('../images/bg.png');

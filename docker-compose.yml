@@ -13,7 +13,7 @@ services:
       - /home/jason/github/Genetics_Ark/logs:/home/ga/logs # write logging
       - /home/jason/github/reference:/reference_files # refs for primer designer
     expose:
-      - 8000
+      - 8000 # expose port within the container ONLY
   cron:
     image: genetic_ark_cron:2.0.0
     build: ./cron
@@ -33,7 +33,7 @@ services:
       - static_volume:/staticfiles # serve staticfiles
       - /home/jason/github/Genetics_Ark/logs:/home/ga/log # logging for nginx
     ports:
-      - "80:80"
+      - "80:80" # define port
     depends_on:
       - web
 volumes:
