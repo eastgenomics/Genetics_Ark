@@ -264,7 +264,7 @@ LOGGING = {
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 # Explanation on why:
 # https://www.mattlayman.com/understand-django/serving-static-files/
-STATIC_URL = 'genetic_ark/static/'
+STATIC_URL = 'genetics_ark/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
