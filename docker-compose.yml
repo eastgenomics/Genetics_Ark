@@ -32,11 +32,22 @@ services:
       - primer_volume:/tmp # zip generated primer designer PDFs
       - static_volume:/staticfiles # serve staticfiles
       - /home/jason/github/Genetics_Ark/logs:/home/ga/log # logging for nginx
-    ports:
-      - "80:80" # define port
+    # ports:
+    #   - "80:80" # define port
+    expose:
+      - 8001
+    environment:
+      - VIRTUAL_HOST=localhost
+      - VIRTUAL_PATH=/genetics_ark
     depends_on:
       - web
+
 volumes:
   static_volume:
   primer_volume:
   igv_volume:
+
+networks:
+  default:
+    name: nginx_default
+    external: true

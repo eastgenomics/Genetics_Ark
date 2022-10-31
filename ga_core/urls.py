@@ -14,7 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path, re_path
+from django.urls import include, path
+# from django.contrib.auth.decorators import login_required
 
 from genetics_ark.views import error404, error500, error502
 
@@ -23,8 +24,8 @@ handler500 = error500
 handler502 = error502
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('genetics_ark.urls')),
-    path('igv/', include('DNAnexus_to_igv.urls')),
-    path('primer_designer/', include('primer_designer.urls'))
+    path('genetics_ark/', include('genetics_ark.urls')),
+    path('genetics_ark/admin/', admin.site.urls),
+    path('genetics_ark/igv/', include('DNAnexus_to_igv.urls')),
+    path('genetics_ark/primer_designer/', include('primer_designer.urls'))
 ]

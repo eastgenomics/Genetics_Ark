@@ -103,7 +103,7 @@ INSTALLED_APPS = [
     'primer_designer',
     # default django
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth', # core of authentication framework
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -264,7 +264,7 @@ LOGGING = {
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 # Explanation on why:
 # https://www.mattlayman.com/understand-django/serving-static-files/
-STATIC_URL = 'static/'
+STATIC_URL = 'genetics_ark/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -273,7 +273,7 @@ STATICFILES_DIRS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:1337',
+    'http://localhost:80',
     'https://dl.ec1.dnanex.us'
 ]
 # CORS_ALLOW_ALL_ORIGINS = True
