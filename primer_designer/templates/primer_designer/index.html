@@ -32,6 +32,8 @@
 </style>
 {% endblock %}
 
+{% load static %}
+
 {% block body %}
 {% load crispy_forms_tags %}
 <div class="container">
@@ -65,7 +67,6 @@
             {{ regions_form|crispy }}
             <div class="row justify-content-between px-3">
               <button id="primer_submit" type="submit" class="btn btn-primary btn-sm">Submit</button>
-              <a id="primerHome" class="btn btn-info btn-sm" href="/" role="button">Home</a>
             </div>
           </form>
       </div>
@@ -73,7 +74,7 @@
       <!-- loading spinner -->
       <div id="shader" style="display:none">
         <div id="spinner" style="display:none">
-          <img id='spinner' src='/static/images/dna-loader.gif' alt="loading.gif"  style="width:300px;height:165px;">
+          <img id='spinner' src="{% static 'images/dna-loader.gif' %}" alt="loading.gif"  style="width:300px;height:165px;">
         </div>
       </div>
     </div>
