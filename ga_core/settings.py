@@ -7,8 +7,8 @@ from pathlib import Path
 from django.contrib.messages import constants
 from dotenv import load_dotenv
 
-# Passwords and database credentials stored in .env file
-# NOT IN VERSION CONTROL
+import ldap
+from django_auth_ldap.config import LDAPSearch
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -103,7 +103,7 @@ INSTALLED_APPS = [
     'primer_designer',
     # default django
     'django.contrib.admin',
-    'django.contrib.auth', # core of authentication framework
+    'django.contrib.auth',  # core of authentication framework
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -130,10 +130,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'ga_core.urls'
 
+# define where to redirect users after login
+LOGIN_REDIRECT_URL = '/genetics_ark'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -193,6 +196,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'accounts.backends.MyLDAPBackend',
+)
+
+AUTH_LDAP_SERVER_URI = "ldap://net.addenbrookes.nhs.uk"
+AUTH_LDAP_BIND_DN = ""
+AUTH_LDAP_BIND_PASSWORD = ""
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "dc=net,dc=addenbrookes,dc=nhs,dc=uk",
+    ldap.SCOPE_SUBTREE,
+    "(uid=%(user)s)"
+)
+
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -210,6 +226,7 @@ USE_TZ = True
 # DEFAULT_FROM_EMAIL = EMAIL_USER
 
 LOG_DIR = '/home/ga/logs'
+# LOG_DIR = '/home/jason/github/Genetics_Ark/logs'
 
 # Settings for logging
 with open(f'{LOG_DIR}/ga-error.log', 'a+'):
@@ -264,7 +281,7 @@ LOGGING = {
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 # Explanation on why:
 # https://www.mattlayman.com/understand-django/serving-static-files/
-STATIC_URL = 'genetic_ark/static/'
+STATIC_URL = 'genetics_ark/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

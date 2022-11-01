@@ -38,7 +38,7 @@ services:
       - 8001
     environment:
       - VIRTUAL_HOST=localhost
-      - VIRTUAL_PATH=/genetic_ark
+      - VIRTUAL_PATH=/genetics_ark
     depends_on:
       - web
 

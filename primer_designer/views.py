@@ -10,13 +10,11 @@ import os
 import random
 import string
 import subprocess
-
 from datetime import datetime
-from glob import glob
 from zipfile import ZipFile
 from pathlib import Path
+
 from django.contrib import messages
-# from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 import primer_designer.forms as Forms

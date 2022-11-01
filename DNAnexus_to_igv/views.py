@@ -16,17 +16,18 @@ generated from find_dx_002_bams.py
 """
 import json
 import logging
-from pathlib import Path
 import re
-import ast
+import requests
+from pathlib import Path
+import dxpy as dx
 
 from django.contrib import messages
 from django.utils.safestring import mark_safe
-from django.shortcuts import render, redirect
-import dxpy as dx
-import requests
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
+# forms import
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 from ga_core.settings import (
@@ -165,6 +166,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
+@login_required
 def index(request):
     """
     Main index page for igv view
@@ -180,6 +182,7 @@ def index(request):
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
+@login_required
 def search(request):
     """
     Search function when sample id entered
@@ -429,6 +432,7 @@ def search(request):
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
+@login_required
 def select(request):
     """
     When a single sample is selected from a multiple sample list
@@ -518,6 +522,7 @@ def select(request):
         context_dict)
 
 
+@login_required
 def view(request):
     """
     Viewing a single sample on IGV
@@ -561,6 +566,7 @@ def view(request):
         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
 
+@login_required
 def link(request):
     """
     When a direct DNANexus link is entered
