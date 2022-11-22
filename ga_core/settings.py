@@ -110,11 +110,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # pip installed app
     'crispy_forms',
-    'corsheaders'
+    'corsheaders',
+    'crispy_bootstrap5'
 ]
 
 # django crispy forms for nice form rendering
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
 MIDDLEWARE = [

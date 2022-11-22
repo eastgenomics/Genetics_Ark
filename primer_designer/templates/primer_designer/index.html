@@ -65,9 +65,7 @@
           <form id="primer_form" clas="my-5" method="POST">
             {% csrf_token %}
             {{ regions_form|crispy }}
-            <div class="row justify-content-between px-3">
-              <button id="primer_submit" type="submit" class="btn btn-primary btn-sm">Submit</button>
-            </div>
+            <button id="primer_submit" type="submit" class="btn btn-primary btn-sm mt-2">Submit</button>
           </form>
       </div>
 
