@@ -128,6 +128,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# use file-based sessions system
+# https://docs.djangoproject.com/en/4.1/topics/http/sessions/
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+
 ROOT_URLCONF = 'ga_core.urls'
 
 # define where to redirect users after login
@@ -196,18 +200,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = '/genetics_ark/accounts/login'
+
 AUTHENTICATION_BACKENDS = (
-    'accounts.backends.MyLDAPBackend',
+    'django_auth_ldap.backend.LDAPBackend',
 )
 
 AUTH_LDAP_SERVER_URI = "ldap://net.addenbrookes.nhs.uk"
 AUTH_LDAP_BIND_DN = ""
 AUTH_LDAP_BIND_PASSWORD = ""
-AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    "dc=net,dc=addenbrookes,dc=nhs,dc=uk",
-    ldap.SCOPE_SUBTREE,
-    "(uid=%(user)s)"
-)
+AUTH_LDAP_USER_SEARCH = LDAPSearch("dc=net,dc=addenbrookes,dc=nhs,dc=uk", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 
 
 # Internationalization

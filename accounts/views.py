@@ -1,10 +1,9 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.shortcuts import render, redirect
 
 import logging
 
-from .backends import LDAPBackend
 from .forms import LoginForm
 
 error_log = logging.getLogger("ga_error")
@@ -24,7 +23,7 @@ def login(request):
         password = request.POST.get('password', '')
 
         print(username, password)
-        user = LDAPBackend().authenticate(
+        user = authenticate(
             request,
             username=username,
             password=password)
