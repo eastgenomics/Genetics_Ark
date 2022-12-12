@@ -19,9 +19,7 @@ from django.shortcuts import render
 
 import primer_designer.forms as Forms
 
-from ga_core.settings import (
-    PRIMER_DOWNLOAD, GRID_BLOG, GRID_SERVICE_DESK, GRID_IVA, GRID_PROJECT
-    )
+from ga_core.settings import PRIMER_DOWNLOAD, GRID_SERVICE_DESK, GRID_IVA
 
 logger = logging.getLogger("general")
 
@@ -34,10 +32,8 @@ def index(request):
     """
 
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
@@ -179,10 +175,8 @@ def create(request, regions_form):
         link to download PDFs zip
     """
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
     context_dict['regions_form'] = Forms.RegionsForm()
 
     regions = regions_form.data['regions'].split('\n')

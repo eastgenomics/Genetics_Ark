@@ -1,17 +1,12 @@
 from django.shortcuts import render
-from ga_core.settings import (
-    GRID_BLOG, GRID_SERVICE_DESK, GRID_IVA,
-    GRID_PROJECT
-)
+from ga_core.settings import GRID_SERVICE_DESK, GRID_IVA
 
 
 # @login_required
 def home(request):
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     # renders homepage
     return render(request, "genetics_ark/genetics_ark.html", context_dict)

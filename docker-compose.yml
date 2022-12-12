@@ -14,6 +14,8 @@ services:
       - /home/jason/github/reference:/reference_files # refs for primer designer
     expose:
       - 8000 # expose port within the container ONLY
+    depends_on:
+      - db
   cron:
     image: genetic_ark_cron:2.0.0
     build: ./cron
@@ -41,11 +43,23 @@ services:
       - VIRTUAL_PATH=/genetics_ark
     depends_on:
       - web
+  db:
+    container_name: genetics_db
+    image: mysql:8
+    environment:
+      MYSQL_TCP_PORT: 3308
+    ports:
+      - "3308:3308"
+    env_file:
+      - /home/jason/github/Genetics_Ark/.env
+    volumes:
+      - genetics_db:/var/lib/mysql
 
 volumes:
   static_volume:
   primer_volume:
   igv_volume:
+  genetics_db:
 
 networks:
   default:

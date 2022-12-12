@@ -34,12 +34,6 @@ try:
     CSRF_TRUSTED_ORIGINS = [
         origin.strip() for origin in CSRF_TRUSTED_ORIGINS.split(',')]
 
-    # Database (not used currently)
-    # ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
-    # ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
-    # ACCOUNT_DB_PASSWORD = os.environ['ACCOUNT_DB_PASSWORD']
-    # ACCOUNT_DB_HOST = os.environ['ACCOUNT_DB_HOST']
-
     # GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
 
     # SMTP Email
@@ -74,11 +68,15 @@ try:
 
     # Grid Links
     GRID_SERVICE_DESK = os.environ['GRID_SERVICE_DESK']
-    GRID_PROJECT = os.environ['GRID_PROJECT']
-    GRID_BLOG = os.environ['GRID_BLOG']
     GRID_IVA = os.environ['GRID_IVA']
 
+    BIND_DN = os.environ['BIND_DN']
+    BIND_PASSWORD = os.environ['BIND_PASSWORD']
 
+    DB_NAME = os.environ['DB_NAME']
+    DB_USERNAME = os.environ['DB_USERNAME']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+    DB_PORT = os.environ['DB_PORT']
 except KeyError as e:
     key = e.args[0]
     raise KeyError(
@@ -135,9 +133,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 ROOT_URLCONF = 'ga_core.urls'
 
-# define where to redirect users after login
-LOGIN_REDIRECT_URL = '/genetics_ark'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -165,18 +160,16 @@ MESSAGE_TAGS = {
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
-# Database (not used currently)
-# default engine (django.db.backends.mysql)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': ACCOUNT_DB_NAME,
-#         'USER': ACCOUNT_DB_USER,
-#         'PASSWORD': ACCOUNT_DB_PASSWORD,
-#         'HOST': ACCOUNT_DB_HOST,
-#         'PORT': 3306
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': DB_NAME,
+        'USER': DB_USERNAME,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'db',
+        'PORT': DB_PORT,
+    }
+}
 
 
 # Password validation
@@ -203,14 +196,35 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOGIN_URL = '/genetics_ark/accounts/login'
 
-AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
-)
+# define where to redirect users after login
+LOGIN_REDIRECT_URL = '/genetics_ark/igv'
+
+# AUTHENTICATION_BACKENDS = (
+#     'django_auth_ldap.backend.LDAPBackend',
+# )
+AUTHENTICATION_BACKENDS = ["django_auth_ldap.backend.LDAPBackend"]
+
+AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: 0}
 
 AUTH_LDAP_SERVER_URI = "ldap://net.addenbrookes.nhs.uk"
-AUTH_LDAP_BIND_DN = ""
-AUTH_LDAP_BIND_PASSWORD = ""
-AUTH_LDAP_USER_SEARCH = LDAPSearch("dc=net,dc=addenbrookes,dc=nhs,dc=uk", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+AUTH_LDAP_BIND_DN = BIND_DN
+AUTH_LDAP_BIND_PASSWORD = BIND_PASSWORD
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "ou=addenbrookes,dc=net,dc=addenbrookes,dc=nhs,dc=uk",
+    ldap.SCOPE_SUBTREE,
+    "(samaccountname=%(user)s)"
+)
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+# Age of cookie, in seconds (default: 2 weeks, here set to 26 weeks).
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 26
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+}
 
 
 # Internationalization

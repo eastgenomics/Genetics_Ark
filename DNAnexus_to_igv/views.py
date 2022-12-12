@@ -34,8 +34,8 @@ from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
     DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES,
-    GRID_SERVICE_DESK, REFSEQ_INDEX_37, REFSEQ_INDEX_38,
-    GRID_PROJECT, GRID_BLOG, GRID_IVA
+    REFSEQ_INDEX_37, REFSEQ_INDEX_38,
+    GRID_SERVICE_DESK, GRID_IVA
 )
 
 logger = logging.getLogger("general")
@@ -166,7 +166,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
-# @login_required
+@login_required(redirect_field_name=None)
 def index(request):
     """
     Main index page for igv view
@@ -174,15 +174,13 @@ def index(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
-# @login_required
+@login_required(redirect_field_name=None)
 def search(request):
     """
     Search function when sample id entered
@@ -192,10 +190,8 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
-        context_dict['blog'] = GRID_BLOG
         context_dict['desk'] = GRID_SERVICE_DESK
         context_dict['iva'] = GRID_IVA
-        context_dict['project'] = GRID_PROJECT
 
         sample_id = request.POST["sample_id"]
         sample_id = str(sample_id).strip()  # in case spaces
@@ -353,10 +349,8 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
-        context_dict['blog'] = GRID_BLOG
         context_dict['desk'] = GRID_SERVICE_DESK
         context_dict['iva'] = GRID_IVA
-        context_dict['project'] = GRID_PROJECT
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -377,8 +371,6 @@ def search(request):
                 Please contact the bioinformatics team"""
             )
             logger.error(IOe)
-
-            context_dict['desk'] = GRID_SERVICE_DESK
 
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
@@ -432,7 +424,7 @@ def search(request):
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
-# @login_required
+@login_required(redirect_field_name=None)
 def select(request):
     """
     When a single sample is selected from a multiple sample list
@@ -447,10 +439,9 @@ def select(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
-    context_dict['blog'] = GRID_BLOG
+
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     sample_type = request.POST['sample_type']
     sample_id = request.POST['sample_id']
@@ -522,16 +513,14 @@ def select(request):
         context_dict)
 
 
-# @login_required
+@login_required(redirect_field_name=None)
 def view(request):
     """
     Viewing a single sample on IGV
     """
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     if request.POST['action'] == 'igv_37':
         context_dict["reference"] = "hg19"
@@ -566,17 +555,15 @@ def view(request):
         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
 
-# @login_required
+@login_required(redirect_field_name=None)
 def link(request):
     """
     When a direct DNANexus link is entered
     """
 
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     form = UrlForm(request.POST)
     file_url = request.POST['file_url']

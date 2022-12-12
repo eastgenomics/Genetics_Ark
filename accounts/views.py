@@ -1,6 +1,13 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import authenticate
 from django.shortcuts import render, redirect
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
+
+from ga_core.settings import GRID_SERVICE_DESK, GRID_IVA, MESSAGE_TAGS
+
+# forms import
+from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 import logging
 
@@ -10,48 +17,48 @@ error_log = logging.getLogger("ga_error")
 
 
 def login(request):
-    print(request)
+
+    context_dict = {}
+    context_dict['login_form'] = LoginForm()
+    context_dict["search_form"] = SearchForm()
+    context_dict["url_form"] = UrlForm()
+    context_dict['desk'] = GRID_SERVICE_DESK
+    context_dict['iva'] = GRID_IVA
+
     if request.method == 'GET':
-        form = LoginForm()
-        context = {
-            'form': form
-        }
-        return render(request, 'registration/login.html', context)
+
+        return render(request, 'registration/login.html', context_dict)
 
     elif request.method == 'POST':
         username = request.POST.get('username', '')
         password = request.POST.get('password', '')
 
-        print(username, password)
         user = authenticate(
             request,
             username=username,
             password=password)
-        print(user)
+
         if user is not None:
-            print('Found User!')
-            login(request, user)
+            auth_login(request, user)
+
+            return redirect('/genetics_ark/igv/', context_dict)
         else:
-            print('user not found')
             messages.add_message(
                 request,
                 messages.ERROR,
-                f"Incorrect login credential"
+                "Incorrect Login Credential"
             )
-            form = LoginForm()
-            context = {
-                'form': form
-                }
             return render(
-                request, 'registration/login.html', context)
+                request, 'registration/login.html', context_dict)
+    else:
+        return render(request, 'registration/login.html', context_dict)
 
 
 def logout(request):
-    logout(request)
+    auth_logout(request)
     messages.add_message(
         request,
         messages.SUCCESS,
         "Successfully logged out"
     )
-    # redirect to home page which goes back to login
-    return redirect('/')
+    return redirect('/genetics_ark')

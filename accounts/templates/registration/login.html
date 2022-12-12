@@ -9,8 +9,8 @@
             <h2>Login</h2>
             <form method="POST">
                 {% csrf_token %}
-                {{ form|crispy }}
-                <input type="submit" class="btn btn-primary btn-sm" value="Login">
+                {{ login_form|crispy }}
+                <input type="submit" class="btn btn-success btn-sm" value="Login">
             </form>
         </div>
     </div>
