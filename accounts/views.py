@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 
-from ga_core.settings import GRID_SERVICE_DESK, GRID_IVA, MESSAGE_TAGS
+from ga_core.settings import GRID_SERVICE_DESK, GRID_IVA
 
 # forms import
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
@@ -43,6 +43,8 @@ def login(request):
 
             return redirect('/genetics_ark/igv/', context_dict)
         else:
+            context_dict['error'] = True
+
             messages.add_message(
                 request,
                 messages.ERROR,

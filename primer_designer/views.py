@@ -49,6 +49,7 @@ def index(request):
                 messages.ERROR,
                 f"Error in given primer design input {region}"
             )
+            context_dict['error'] = True
     else:
         regions_form = Forms.RegionsForm()
 
@@ -183,6 +184,7 @@ def create(request, regions_form):
     regions = [x.rstrip('\r').strip() for x in regions if x]
 
     if len(regions) > 3:
+        context_dict['error'] = True
         messages.add_message(
             request,
             messages.ERROR,

@@ -69,10 +69,12 @@
 			{% for message in messages %}
 				<div class="alert {{ message.tags }} position-absolute top-0 start-50 translate-middle" role="alert" style="z-index: 1001; margin-top: 6rem;" data-value="{{ message }}" id="messageContent">
 					{{ message }}
-					<br><br>
-					<a class="alert-link" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
-					<span id="custom-tooltip-1" class="badge rounded-pill bg-info text-dark" style="display:none;">COPIED</span>
-					<a href="{{ desk }}" class="alert-link" target="_blank">Contact Helpdesk</a>
+					{% if error %}
+						<br><br>
+						<a class="alert-link" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
+						<span id="custom-tooltip-1" class="badge rounded-pill bg-info text-dark" style="display:none;">copied</span>
+						<a href="{{ desk }}" class="alert-link" target="_blank">Contact Helpdesk</a>
+					{% endif %}
 				</div>
 			{% endfor %}
 		{% endif %}

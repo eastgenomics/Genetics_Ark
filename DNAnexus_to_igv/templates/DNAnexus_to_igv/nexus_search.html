@@ -171,15 +171,16 @@
                 <h2 class="mt-5">Results</h2>
                 <b>{{ file_no }}</b> files found for sample <b>{{ sample_id }}</b><br>
                 Please select which project to load the sample from:</b><br></b><br>
-                <ul class="list-group-scrollable pl-0">
+                <ul class="list-group-scrollable" style="padding-left: 0 !important;">
                     {% for file in bam_list %}
                         <div class="card m-3">
                             <div class="card-body">
                                 <h5 class="card-title">{{ file.file_name }}</h5>
                                 {% if file.file_archival_state == 'live' %}
-                                    <h6 class="card-subtitle py-1 text-muted">
+                                    <!-- <h6 class="card-subtitle py-1 text-muted">
                                         <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
-                                    </h6>
+                                    </h6> -->
+                                    <h6 class="card-subtitle mb-2 text-success fw-bold">LIVE</h6>
                                     <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
                                     <form action="select" method="POST" name="select_bam">
                                         {% csrf_token %}
@@ -189,31 +190,30 @@
                                         <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
                                     </form>
                                 {% else %}
-                                    <h6 class="card-subtitle py-1 text-muted">
+                                    <!-- <h6 class="card-subtitle py-1 text-muted">
                                         <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
-                                    </h6>
+                                    </h6> -->
+                                    <h6 class="card-subtitle mb-2 text-danger fw-bold">ARCHIVED</h6>
                                     <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
                                     <div class="alert alert-warning" role="alert">
-                                        To request unarchive, <a href="{{ desk }}" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id and its sequencing project.
+                                        To request unarchive, <a href="{{ desk }}" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id, its sequencing project and all relevant info.
                                     </div>
                                 {% endif %}
                             </div>
                         </div>
                     {% endfor %}
                 </ul>
-                <div class="row justify-content-center">
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination">
-                            {% if bam_list.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page={{ bam_list.previous_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Previous</a></li>
-                            {% endif %}
-                            <li class="page-item"><a class="page-link" href="#">{{ bam_list.number }} of {{ bam_list.paginator.num_pages }}</a></li>
-                            {% if bam_list.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{ bam_list.next_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Next</a></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        {% if bam_list.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ bam_list.previous_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Previous</a></li>
+                        {% endif %}
+                        <li class="page-item"><a class="page-link" href="#">{{ bam_list.number }} of {{ bam_list.paginator.num_pages }}</a></li>
+                        {% if bam_list.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ bam_list.next_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
             {% endif %}
         </div>
     </div>

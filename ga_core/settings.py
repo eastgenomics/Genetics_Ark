@@ -100,7 +100,7 @@ INSTALLED_APPS = [
     'DNAnexus_to_igv',
     'primer_designer',
     # default django
-    'django.contrib.admin',
+    'django.contrib.admin',  # admin
     'django.contrib.auth',  # core of authentication framework
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -202,7 +202,10 @@ LOGIN_REDIRECT_URL = '/genetics_ark/igv'
 # AUTHENTICATION_BACKENDS = (
 #     'django_auth_ldap.backend.LDAPBackend',
 # )
-AUTHENTICATION_BACKENDS = ["django_auth_ldap.backend.LDAPBackend"]
+AUTHENTICATION_BACKENDS = [
+    "django_auth_ldap.backend.LDAPBackend",
+    "django.contrib.auth.backends.ModelBackend"
+    ]
 
 AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: 0}
 

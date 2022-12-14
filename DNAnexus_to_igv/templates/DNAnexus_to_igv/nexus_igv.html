@@ -39,14 +39,17 @@
             "name": "{{ file_name }}",
             "url": "{{ file_url }}",
             "indexURL": "{{ idx_url }}",
-            "displayMode": "EXPANDED"
+            "displayMode": "EXPANDED",
+            "minHeight": 650,
+            "autoHeight": true
           },
           {
             "name": "Refseq Genes",
             "format": "refgene",
             "url": "{{ refseq }}",
             "indexURL": "{{ refindex }}",
-            "order": 1000000
+            "order": 1000000,
+            "minHeight": 180
           }
         ],
       }

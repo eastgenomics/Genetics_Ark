@@ -40,7 +40,7 @@ from ga_core.settings import (
 
 logger = logging.getLogger("general")
 
-PAGINATION = 10
+PAGINATION = 20
 
 
 def dx_login(
@@ -166,7 +166,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def index(request):
     """
     Main index page for igv view
@@ -180,7 +180,7 @@ def index(request):
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def search(request):
     """
     Search function when sample id entered
@@ -213,6 +213,7 @@ def search(request):
                 messages.ERROR,
                 'JSON file containing samples not found.'
             )
+            context_dict['error'] = True
             logger.error(IOe)
 
             return render(
@@ -245,6 +246,7 @@ def search(request):
                     should be available.""".format(sample_id)),
                 extra_tags="alert-danger"
             )
+            context_dict['error'] = True
             logger.error((re.sub(
                 r'\s+', ' ', """Sample {} not found in JSON. Either sample
                 name mistyped or an error in finding the BAMs for the
@@ -281,6 +283,7 @@ def search(request):
                         f"{sample_id}. Please contact the bioinformatics "
                         "team for help."), extra_tags="alert-danger"
                 )
+                context_dict['error'] = True
 
                 logger.error(
                     f'Error generating url for sample {sample_id} '
@@ -370,6 +373,7 @@ def search(request):
                 """JSON file containing samples not found.\
                 Please contact the bioinformatics team"""
             )
+            context_dict['error'] = True
             logger.error(IOe)
 
             return render(
@@ -424,7 +428,7 @@ def search(request):
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def select(request):
     """
     When a single sample is selected from a multiple sample list
@@ -483,6 +487,7 @@ def select(request):
                 f"{selected_file_id}. Please contact the bioinformatics "
                 "team for help.")
         )
+        context_dict['error'] = True
 
         logger.error(
             f'Error generating url for sample {selected_file_id} '
@@ -513,7 +518,7 @@ def select(request):
         context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def view(request):
     """
     Viewing a single sample on IGV
@@ -555,7 +560,7 @@ def view(request):
         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def link(request):
     """
     When a direct DNANexus link is entered
@@ -584,6 +589,7 @@ def link(request):
                 file_url=file_url, idx_url=idx_url
             )
         )
+        context_dict['error'] = True
 
         logger.error(
             "Error loading IGV from pasted urls, most likely pasted "
