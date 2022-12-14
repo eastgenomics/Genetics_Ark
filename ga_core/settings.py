@@ -34,14 +34,6 @@ try:
     CSRF_TRUSTED_ORIGINS = [
         origin.strip() for origin in CSRF_TRUSTED_ORIGINS.split(',')]
 
-    # GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
-
-    # SMTP Email
-    # EMAIL_USER = os.environ['EMAIL_USER']
-    # SMTP_RELAY = os.environ['SMTP_RELAY']
-    # PORT = os.environ['PORT']
-    # EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
-
     # IGVs
     FASTA_37 = os.environ['FASTA_37']
     FASTA_IDX_37 = os.environ['FASTA_IDX_37']
@@ -70,13 +62,16 @@ try:
     GRID_SERVICE_DESK = os.environ['GRID_SERVICE_DESK']
     GRID_IVA = os.environ['GRID_IVA']
 
-    BIND_DN = os.environ['BIND_DN']
-    BIND_PASSWORD = os.environ['BIND_PASSWORD']
+    AUTH_LDAP_BIND_DN = os.environ['BIND_DN']
+    AUTH_LDAP_BIND_PASSWORD = os.environ['BIND_PASSWORD']
 
     DB_NAME = os.environ['DB_NAME']
     DB_USERNAME = os.environ['DB_USERNAME']
     DB_PASSWORD = os.environ['DB_PASSWORD']
     DB_PORT = os.environ['DB_PORT']
+
+    AUTH_LDAP_SERVER_URI = os.environ['AUTH_LDAP_SERVER_URI']
+    LDAP_CONF = os.environ['LDAP_CONF']
 except KeyError as e:
     key = e.args[0]
     raise KeyError(
@@ -128,10 +123,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'user_visit.middleware.UserVisitMiddleware'  # user visit Middleware
 ]
-
-# use file-based sessions system
-# https://docs.djangoproject.com/en/4.1/topics/http/sessions/
-# SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 ROOT_URLCONF = 'ga_core.urls'
 
@@ -201,9 +192,6 @@ LOGIN_URL = '/genetics_ark/accounts/login'
 # define where to redirect users after login
 LOGIN_REDIRECT_URL = '/genetics_ark/igv'
 
-# AUTHENTICATION_BACKENDS = (
-#     'django_auth_ldap.backend.LDAPBackend',
-# )
 AUTHENTICATION_BACKENDS = [
     "django_auth_ldap.backend.LDAPBackend",
     "django.contrib.auth.backends.ModelBackend"
@@ -211,19 +199,11 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: 0}
 
-AUTH_LDAP_SERVER_URI = "ldap://net.addenbrookes.nhs.uk"
-AUTH_LDAP_BIND_DN = BIND_DN
-AUTH_LDAP_BIND_PASSWORD = BIND_PASSWORD
-
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    "ou=addenbrookes,dc=net,dc=addenbrookes,dc=nhs,dc=uk",
+    LDAP_CONF,
     ldap.SCOPE_SUBTREE,
     "(samaccountname=%(user)s)"
 )
-
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-# Age of cookie, in seconds (default: 2 weeks, here set to 26 weeks).
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 26
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -240,15 +220,7 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Settings for account app email verification
-# EMAIL_HOST = SMTP_RELAY
-# EMAIL_PORT = PORT
-# EMAIL_HOST_USER = EMAIL_USER
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = EMAIL_USER
-
 LOG_DIR = '/home/ga/logs'
-# LOG_DIR = '/home/jason/github/Genetics_Ark/logs'
 
 # Settings for logging
 with open(f'{LOG_DIR}/ga-error.log', 'a+'):
@@ -315,4 +287,3 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:80',
     'https://dl.ec1.dnanex.us'
 ]
-# CORS_ALLOW_ALL_ORIGINS = True
