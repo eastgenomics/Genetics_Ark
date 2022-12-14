@@ -109,7 +109,8 @@ INSTALLED_APPS = [
     # pip installed app
     'crispy_forms',
     'corsheaders',
-    'crispy_bootstrap5'
+    'crispy_bootstrap5',
+    'user_visit'
 ]
 
 # django crispy forms for nice form rendering
@@ -125,6 +126,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'user_visit.middleware.UserVisitMiddleware'  # user visit Middleware
 ]
 
 # use file-based sessions system
