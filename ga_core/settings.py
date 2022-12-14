@@ -129,7 +129,7 @@ MIDDLEWARE = [
 
 # use file-based sessions system
 # https://docs.djangoproject.com/en/4.1/topics/http/sessions/
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 ROOT_URLCONF = 'ga_core.urls'
 
