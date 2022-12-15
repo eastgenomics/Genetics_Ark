@@ -1,6 +1,8 @@
 FROM python:3.8-slim
 
 RUN apt-get update && apt-get -y install -qq --force-yes cron
+RUN apt-get -y install vim
+
 WORKDIR /home
 
 ENV PYTHONUNBUFFERED 1
@@ -12,6 +14,4 @@ RUN pip install -r requirements.txt
 COPY crontab /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab
 RUN crontab /etc/cron.d/crontab
-
-RUN touch /var/log/cron.log
 

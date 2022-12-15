@@ -48,9 +48,9 @@
           Example input formats:<br>
     
           <ul>
-            <li class="my-2">Single Position: <pre class="inline px-2">x:123213 grch37</pre></li>
-            <li class="my-2">Range Position: <pre class="inline px-2">x:123213-547363 grch37</pre></li>
-            <li class="my-2">Fusion Design: <pre class="inline px-2">1:125432:b:1 2:2635462:a:1 grch37</pre></li>
+            <li class="my-2">Single Position: <pre class="inline px-2">1:1625342 grch37</pre></li>
+            <li class="my-2">Range Position: <pre class="inline px-2">1:1625342-1625442 grch37</pre></li>
+            <li class="my-2">Fusion Design: <pre class="inline px-2">5:91534939:b:1 5:134453073:a:1 grch37</pre></li>
           </ul>
     
           For fusion designs, each should be in the format of <pre class="inline">chr:pos:side:strand</pre> for both regions,<br>
@@ -58,16 +58,14 @@
           <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>
           should be either <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
           
-          <br></br>
-          <p>Example: 1:1625342 grch37</p>
+          <!-- <br></br>
+          <p>Example: 1:1625342 grch37</p> -->
     
           <!-- Input form -->
           <form id="primer_form" clas="my-5" method="POST">
             {% csrf_token %}
             {{ regions_form|crispy }}
-            <div class="row justify-content-between px-3">
-              <button id="primer_submit" type="submit" class="btn btn-primary btn-sm">Submit</button>
-            </div>
+            <button id="primer_submit" type="submit" class="btn btn-primary btn-sm mt-2">Submit</button>
           </form>
       </div>
 

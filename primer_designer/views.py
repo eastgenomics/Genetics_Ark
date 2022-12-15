@@ -10,20 +10,16 @@ import os
 import random
 import string
 import subprocess
-
 from datetime import datetime
-from glob import glob
 from zipfile import ZipFile
 from pathlib import Path
+
 from django.contrib import messages
-# from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 import primer_designer.forms as Forms
 
-from ga_core.settings import (
-    PRIMER_DOWNLOAD, GRID_BLOG, GRID_SERVICE_DESK, GRID_IVA, GRID_PROJECT
-    )
+from ga_core.settings import PRIMER_DOWNLOAD, GRID_SERVICE_DESK, GRID_IVA
 
 logger = logging.getLogger("general")
 
@@ -36,10 +32,8 @@ def index(request):
     """
 
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
@@ -55,6 +49,7 @@ def index(request):
                 messages.ERROR,
                 f"Error in given primer design input {region}"
             )
+            context_dict['error'] = True
     else:
         regions_form = Forms.RegionsForm()
 
@@ -181,16 +176,15 @@ def create(request, regions_form):
         link to download PDFs zip
     """
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
     context_dict['regions_form'] = Forms.RegionsForm()
 
     regions = regions_form.data['regions'].split('\n')
     regions = [x.rstrip('\r').strip() for x in regions if x]
 
     if len(regions) > 3:
+        context_dict['error'] = True
         messages.add_message(
             request,
             messages.ERROR,

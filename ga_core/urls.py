@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-# from django.contrib.auth.decorators import login_required
+from django.contrib.auth import views as auth_views
 
 from genetics_ark.views import error404, error500, error502
 
@@ -25,6 +25,7 @@ handler502 = error502
 
 urlpatterns = [
     path('genetics_ark/', include('genetics_ark.urls')),
+    path('genetics_ark/accounts/', include('accounts.urls')),
     path('genetics_ark/admin/', admin.site.urls),
     path('genetics_ark/igv/', include('DNAnexus_to_igv.urls')),
     path('genetics_ark/primer_designer/', include('primer_designer.urls'))

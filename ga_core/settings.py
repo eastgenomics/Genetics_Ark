@@ -7,8 +7,8 @@ from pathlib import Path
 from django.contrib.messages import constants
 from dotenv import load_dotenv
 
-# Passwords and database credentials stored in .env file
-# NOT IN VERSION CONTROL
+import ldap
+from django_auth_ldap.config import LDAPSearch
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,20 +33,6 @@ try:
     DEBUG_HOST = [host.strip() for host in DEBUG_HOST.split(',')]
     CSRF_TRUSTED_ORIGINS = [
         origin.strip() for origin in CSRF_TRUSTED_ORIGINS.split(',')]
-
-    # Database (not used currently)
-    # ACCOUNT_DB_NAME = os.environ['ACCOUNT_DB_NAME']
-    # ACCOUNT_DB_USER = os.environ['ACCOUNT_DB_USER']
-    # ACCOUNT_DB_PASSWORD = os.environ['ACCOUNT_DB_PASSWORD']
-    # ACCOUNT_DB_HOST = os.environ['ACCOUNT_DB_HOST']
-
-    # GOOGLE_ANALYTICS = os.environ['GOOGLE_ANALYTICS']
-
-    # SMTP Email
-    # EMAIL_USER = os.environ['EMAIL_USER']
-    # SMTP_RELAY = os.environ['SMTP_RELAY']
-    # PORT = os.environ['PORT']
-    # EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 
     # IGVs
     FASTA_37 = os.environ['FASTA_37']
@@ -74,11 +60,18 @@ try:
 
     # Grid Links
     GRID_SERVICE_DESK = os.environ['GRID_SERVICE_DESK']
-    GRID_PROJECT = os.environ['GRID_PROJECT']
-    GRID_BLOG = os.environ['GRID_BLOG']
     GRID_IVA = os.environ['GRID_IVA']
 
+    AUTH_LDAP_BIND_DN = os.environ['BIND_DN']
+    AUTH_LDAP_BIND_PASSWORD = os.environ['BIND_PASSWORD']
 
+    DB_NAME = os.environ['DB_NAME']
+    DB_USERNAME = os.environ['DB_USERNAME']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+    DB_PORT = os.environ['DB_PORT']
+
+    AUTH_LDAP_SERVER_URI = os.environ['AUTH_LDAP_SERVER_URI']
+    LDAP_CONF = os.environ['LDAP_CONF']
 except KeyError as e:
     key = e.args[0]
     raise KeyError(
@@ -102,19 +95,21 @@ INSTALLED_APPS = [
     'DNAnexus_to_igv',
     'primer_designer',
     # default django
-    'django.contrib.admin',
-    'django.contrib.auth', # core of authentication framework
+    'django.contrib.admin',  # admin
+    'django.contrib.auth',  # core of authentication framework
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # pip installed app
     'crispy_forms',
-    'corsheaders'
+    'corsheaders',
+    'crispy_bootstrap5',
+    'user_visit'
 ]
 
 # django crispy forms for nice form rendering
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
 MIDDLEWARE = [
@@ -126,6 +121,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'user_visit.middleware.UserVisitMiddleware'  # user visit Middleware
 ]
 
 ROOT_URLCONF = 'ga_core.urls'
@@ -133,7 +129,7 @@ ROOT_URLCONF = 'ga_core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -157,18 +153,16 @@ MESSAGE_TAGS = {
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 
 
-# Database (not used currently)
-# default engine (django.db.backends.mysql)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': ACCOUNT_DB_NAME,
-#         'USER': ACCOUNT_DB_USER,
-#         'PASSWORD': ACCOUNT_DB_PASSWORD,
-#         'HOST': ACCOUNT_DB_HOST,
-#         'PORT': 3306
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': DB_NAME,
+        'USER': DB_USERNAME,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'db',
+        'PORT': DB_PORT,
+    }
+}
 
 
 # Password validation
@@ -193,6 +187,30 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = '/genetics_ark/accounts/login'
+
+# define where to redirect users after login
+LOGIN_REDIRECT_URL = '/genetics_ark/igv'
+
+AUTHENTICATION_BACKENDS = [
+    "django_auth_ldap.backend.LDAPBackend",
+    "django.contrib.auth.backends.ModelBackend"
+    ]
+
+AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: 0}
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    LDAP_CONF,
+    ldap.SCOPE_SUBTREE,
+    "(samaccountname=%(user)s)"
+)
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+}
+
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -201,13 +219,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
-# Settings for account app email verification
-# EMAIL_HOST = SMTP_RELAY
-# EMAIL_PORT = PORT
-# EMAIL_HOST_USER = EMAIL_USER
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = EMAIL_USER
 
 LOG_DIR = '/home/ga/logs'
 
@@ -276,4 +287,3 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:80',
     'https://dl.ec1.dnanex.us'
 ]
-# CORS_ALLOW_ALL_ORIGINS = True

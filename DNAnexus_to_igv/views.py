@@ -16,30 +16,31 @@ generated from find_dx_002_bams.py
 """
 import json
 import logging
-from pathlib import Path
 import re
-import ast
+import requests
+from pathlib import Path
+import dxpy as dx
 
 from django.contrib import messages
 from django.utils.safestring import mark_safe
-from django.shortcuts import render, redirect
-import dxpy as dx
-import requests
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
+# forms import
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
 
 from ga_core.settings import (
     FASTA_37, FASTA_IDX_37, CYTOBAND_37, REFSEQ_37,
     FASTA_38, FASTA_IDX_38, CYTOBAND_38, REFSEQ_38,
     DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG, GENOMES,
-    GRID_SERVICE_DESK, REFSEQ_INDEX_37, REFSEQ_INDEX_38,
-    GRID_PROJECT, GRID_BLOG, GRID_IVA
+    REFSEQ_INDEX_37, REFSEQ_INDEX_38,
+    GRID_SERVICE_DESK, GRID_IVA
 )
 
 logger = logging.getLogger("general")
 
-PAGINATION = 10
+PAGINATION = 20
 
 
 def dx_login(
@@ -165,6 +166,7 @@ def get_dx_urls(sample_id, bam_file_id, bam_file_name, idx_file_id,
     return bam_url, idx_url
 
 
+@login_required(redirect_field_name=None)
 def index(request):
     """
     Main index page for igv view
@@ -172,14 +174,13 @@ def index(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     return render(request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
+@login_required(redirect_field_name=None)
 def search(request):
     """
     Search function when sample id entered
@@ -189,10 +190,8 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
-        context_dict['blog'] = GRID_BLOG
         context_dict['desk'] = GRID_SERVICE_DESK
         context_dict['iva'] = GRID_IVA
-        context_dict['project'] = GRID_PROJECT
 
         sample_id = request.POST["sample_id"]
         sample_id = str(sample_id).strip()  # in case spaces
@@ -214,6 +213,7 @@ def search(request):
                 messages.ERROR,
                 'JSON file containing samples not found.'
             )
+            context_dict['error'] = True
             logger.error(IOe)
 
             return render(
@@ -246,6 +246,7 @@ def search(request):
                     should be available.""".format(sample_id)),
                 extra_tags="alert-danger"
             )
+            context_dict['error'] = True
             logger.error((re.sub(
                 r'\s+', ' ', """Sample {} not found in JSON. Either sample
                 name mistyped or an error in finding the BAMs for the
@@ -282,6 +283,7 @@ def search(request):
                         f"{sample_id}. Please contact the bioinformatics "
                         "team for help."), extra_tags="alert-danger"
                 )
+                context_dict['error'] = True
 
                 logger.error(
                     f'Error generating url for sample {sample_id} '
@@ -350,10 +352,8 @@ def search(request):
         context_dict = {}
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
-        context_dict['blog'] = GRID_BLOG
         context_dict['desk'] = GRID_SERVICE_DESK
         context_dict['iva'] = GRID_IVA
-        context_dict['project'] = GRID_PROJECT
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -373,9 +373,8 @@ def search(request):
                 """JSON file containing samples not found.\
                 Please contact the bioinformatics team"""
             )
+            context_dict['error'] = True
             logger.error(IOe)
-
-            context_dict['desk'] = GRID_SERVICE_DESK
 
             return render(
                 request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
@@ -429,6 +428,7 @@ def search(request):
             request, 'DNAnexus_to_igv/nexus_search.html', context_dict)
 
 
+@login_required(redirect_field_name=None)
 def select(request):
     """
     When a single sample is selected from a multiple sample list
@@ -443,10 +443,9 @@ def select(request):
     context_dict = {}
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
-    context_dict['blog'] = GRID_BLOG
+
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     sample_type = request.POST['sample_type']
     sample_id = request.POST['sample_id']
@@ -488,6 +487,7 @@ def select(request):
                 f"{selected_file_id}. Please contact the bioinformatics "
                 "team for help.")
         )
+        context_dict['error'] = True
 
         logger.error(
             f'Error generating url for sample {selected_file_id} '
@@ -518,15 +518,14 @@ def select(request):
         context_dict)
 
 
+@login_required(redirect_field_name=None)
 def view(request):
     """
     Viewing a single sample on IGV
     """
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     if request.POST['action'] == 'igv_37':
         context_dict["reference"] = "hg19"
@@ -561,16 +560,15 @@ def view(request):
         request, 'DNAnexus_to_igv/nexus_igv.html', context_dict)
 
 
+@login_required(redirect_field_name=None)
 def link(request):
     """
     When a direct DNANexus link is entered
     """
 
     context_dict = {}
-    context_dict['blog'] = GRID_BLOG
     context_dict['desk'] = GRID_SERVICE_DESK
     context_dict['iva'] = GRID_IVA
-    context_dict['project'] = GRID_PROJECT
 
     form = UrlForm(request.POST)
     file_url = request.POST['file_url']
@@ -591,6 +589,7 @@ def link(request):
                 file_url=file_url, idx_url=idx_url
             )
         )
+        context_dict['error'] = True
 
         logger.error(
             "Error loading IGV from pasted urls, most likely pasted "

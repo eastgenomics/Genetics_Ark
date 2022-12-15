@@ -23,6 +23,7 @@
 
  html {
   scroll-behavior: smooth;
+  height: 100%;
 }
 
  /* background image in body */
@@ -31,7 +32,8 @@
   z-index: -999;
   background-repeat: no-repeat;
   background-size: cover;
-  padding-bottom: 120px;
+  padding-bottom: 20px;
+  height:100;
 }
 
  /* Navbar */
@@ -60,24 +62,6 @@
     visibility: hidden;
     transform: translateX(-10px);
     transition: visibility 0s 250ms, opacity 250ms, transform 250ms;
-}
-
-/* jumbotron background image */
-.jumbotron {
-  background: url("../images/dna_bg.svg") center no-repeat;
-  -webkit-background-size: 100% 100%;
-  -moz-background-size: 100% 100%;
-  -o-background-size: 100% 100%;
-  background-size: 100% 100%;
-  min-height: 375px;
-  background-color: #47afd8 !important;
-  opacity: 0.8;
-
-  -webkit-animation: fadein 2s; /* Safari, Chrome and Opera > 12.1 */
-       -moz-animation: fadein 2s; /* Firefox < 16 */
-        -ms-animation: fadein 2s; /* Internet Explorer */
-         -o-animation: fadein 2s; /* Opera < 12.1 */
-            animation: fadein 2s;
 }
 
 /* jumbotron fade in timing */
@@ -117,13 +101,13 @@
 
   /* main page grid images sizing */
 .main-img {
-  max-width: 70%;
+  max-width: 100%;
   border-radius: 3%;
 }
 
 /* grid image hover transform */
 .grow { transition: all .2s ease-in-out; }
-.grow:hover { transform: scale(1.05); }
+.grow:hover { transform: scale(1.10); }
 
 .asteriskField {
   display: none;
