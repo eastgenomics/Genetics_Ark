@@ -159,7 +159,7 @@ def call_primer_designer(request, cmd):
         messages.add_message(
             request,
             messages.ERROR,
-            f"Error Message: {err_msg}. Error Code: {e.returncode}"
+            f"{err_msg}\n{e.returncode}"
         )
         return False
     return True
@@ -189,7 +189,7 @@ def create(request, regions_form):
             request,
             messages.ERROR,
             f"{len(regions)} lines detected. "
-            "Maximum three lines at a time."
+            "Maximum 3 lines at a time."
             )
         return render(
             request,

@@ -23,7 +23,7 @@ class RegionsForm(forms.Form):
                 # chr:pos:side:strand chr:pos:side:strand build fusion
                 line = line.rstrip('fusion').strip().lower()
 
-                fusion_pattern = r'^[a-b0-9]+:[0-9]+:[ab]:[-]?1\s+[a-b0-9]+:[0-9]+:[ab]:[-]?1\s+grch3[78]$'
+                fusion_pattern = r'^[a-z0-9]+:[0-9]+:[ab]:[-]?1\s+[a-z0-9]+:[0-9]+:[ab]:[-]?1\s+grch3[78]$'
                 match = re.search(fusion_pattern, line)
 
                 if not match:
