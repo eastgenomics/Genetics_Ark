@@ -60,6 +60,64 @@ Nginx server used to serve django staticfiles, reference files for `igv.js` and 
 
 *access individual container using cmd: `docker exec -it <container id> bash`
 
+## Environments
+```
+PRIMER_VERSION - primer designer version to be displayed in output PDF
+
+REF_37 - directory pathway (docker) to grch37 reference
+SNP_37 - directory pathway (docker) to snp37 gnomad file
+
+REF_38 - directory pathway (docker) to grch38 reference
+SNP_38 - directory pathway (docker) to snp38 gnomad file
+
+PRIMER37_TEXT - text displayed in output primer PDF for grch37 snp file
+PRIMER38_TEXT - text displayed in output primer PDF for grch38 snp file
+
+SECRET_KEY - django secret key
+GENETIC_DEBUG - whether to run in debug or not
+CSRF_TRUSTED_ORIGINS - hostname for csrf form submission
+PRIMER_DOWNLOAD - primer PDF download link (e.g. http://localhost:80/genetics_ark)
+
+DNANEXUS_TOKEN - DNANexus auth token
+
+BIND_DN - ldap bind username
+BIND_PASSWORD - ldap bind password
+AUTH_LDAP_SERVER_URI - ldap uri
+LDAP_CONF - ldap base_dn
+
+PROD_HOST - production host (django)
+DEBUG_HOST - debug host (django) e.g. *
+
+DB_NAME - db name
+DB_USERNAME - db username
+DB_PASSWORD - db password
+DB_PORT - db port
+MYSQL_ROOT_PASSWORD - mysql root password
+
+
+GENOMES - url to genomes.json used by igv
+
+FASTA_37 - url to fasta37 used by igv
+FASTA_IDX_37 -url to fasta37_index used by igv
+CYTOBAND_37 - url to cytoband37 used by igv
+REFSEQ_37 - url to refseq37 used by igv
+REFSEQ_INDEX_37 - url to refseq37_index used by igv
+
+FASTA_38 - url to fasta38 used by igv
+FASTA_IDX_38 - url to fasta38_index used by igv
+CYTOBAND_38 - url to cytoband38 used by igv
+REFSEQ_38 - url to refseq38 used by igv
+REFSEQ_INDEX_38 - url to refseq38_index used by igv
+
+DEV_PROJECT_NAME - name of dev project 003
+PROJECT_CNVS - project-id of cnvs projects
+
+SLACK_TOKEN - slack auth token
+
+GRID_SERVICE_DESK - url for bioinformatics service desk
+GRID_IVA - url for bioinformatics IVA
+```
+
 ## Current Apps
 
  - **Primer designer**: App for designing new sequencing primers, utilises primer3 for designing primers and returns a .pdf report
