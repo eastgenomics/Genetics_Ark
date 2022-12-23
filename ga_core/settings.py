@@ -292,7 +292,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://dl.ec1.dnanex.us'
 ]
 
-# Redies for async task queue
+# Redis for async task queue
 Q_CLUSTER = {
     'timeout': 300,
     'max_attempts': 1,

@@ -8,7 +8,6 @@ services:
     env_file:
       - /home/jason/github/Genetics_Ark/.env
     volumes:
-      # - primer_volume:/home/primer_designer/output # zip generated primer designer PDFs
       - igv_volume:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
       - static_volume:/home/ga/staticfiles # staticfiles
       - /home/jason/github/Genetics_Ark/logs:/home/ga/logs # write logging
