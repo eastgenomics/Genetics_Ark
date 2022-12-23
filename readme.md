@@ -12,7 +12,10 @@ Genetics Ark is a Django based web interface for hosting apps used by clinical s
 - [Primer Designer](https://github.com/eastgenomics/primer_designer) (deployed on Docker)
 
 #### primer designer
-Genetic Ark allows primer input submission: `<chromosome>:<position> <genome build>`
+Genetics Ark allows primer input submission: `<chromosome>:<position> <genome build>`
+
+### igv
+Genetics Ark allows igv searching for BAM or CNV samples (login required)
 
   
 ## Setup and Running 
@@ -31,34 +34,43 @@ Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 0 2 * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1
 # end cron
 ```
-Check schduled cron is running by accessing cron container `docker exec -it <container id> bash` then `tail /home/log/cron.log`. 
+Check schduled cron is running by accessing cron container `docker exec -it <container id> bash` then `crontab -l`. Sometimes cron ran into [pam security issue](https://stackoverflow.com/questions/21926465/issues-running-cron-in-docker-on-different-hosts). 
 
 All cron run log will be stored in cron container `/home/log/cron.log`
 
 ### Running in local system
 - change logging location in `ga_core/settings.py`
-- collect static files `python manage.py collectstatic`
+- change database setting to localhost database
+- change redis setting to localhost redis
 - run server `python manage.py runserver`
 
 ### Running in production
 Ensure `GENETIC_DEBUG` is not in config file to run in production mode
 ```
 docker compose build
+docker compose up db -d # start db first and create a database named genetics
+docker compose up web -d # start web container and run python manage.py migrate
 docker compose up
-# Server should be running in http://localhost:1337 if in local development
 ```
-This will spin up 3 containers: `genetics_ark_web`, `genetics_ark_cron`, `genetics_ark_nginx`
+This will spin up 6 containers: `web`, `cron`, `nginx`, `database`, `redis`, `djangoq`
 
-#### genetics_ark_web
-Main web interface
+#### ga_web
+Main django web interface
 
-#### genetics_ark_cron
-Cron schedule for updating BAM samples jsons & removing generated primer design PDFs in `/home/tmp`
+#### ga_cron
+Cron schedule for updating igv samples jsons & removing generated primer design PDFs in `/home/tmp`
 
-#### genetics_ark_nginx
+#### ga_nginx
 Nginx server used to serve django staticfiles, reference files for `igv.js` and to download primer designer generated zipfile
 
-*access individual container using cmd: `docker exec -it <container id> bash`
+#### ga_djangoq
+Django-q queue system for primer design task
+
+#### ga_redis
+Redis as queue broker
+
+#### genetics_db
+MySQL database
 
 ## Environments
 ```

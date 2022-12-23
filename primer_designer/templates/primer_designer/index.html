@@ -32,8 +32,6 @@
 </style>
 {% endblock %}
 
-{% load static %}
-
 {% block body %}
 {% load crispy_forms_tags %}
 <div class="container">
@@ -41,7 +39,7 @@
     <div class="card-body">
       <h2> Primer Designer</h2>
       <div>
-          Enter regions to design primers for (one region per line - maximum 3)
+          Enter regions to design primers for (one region per line)
     
           <br></br>
     
@@ -58,22 +56,12 @@
           <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>
           should be either <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
           
-          <!-- <br></br>
-          <p>Example: 1:1625342 grch37</p> -->
-    
           <!-- Input form -->
           <form id="primer_form" clas="my-5" method="POST">
             {% csrf_token %}
             {{ regions_form|crispy }}
-            <button id="primer_submit" type="submit" class="btn btn-primary btn-sm mt-2">Submit</button>
+            <button id="primer_submit" type="submit" class="btn btn-primary btn-sm mt-2 shadow">Submit</button>
           </form>
-      </div>
-
-      <!-- loading spinner -->
-      <div id="shader" style="display:none">
-        <div id="spinner" style="display:none">
-          <img id='spinner' src="{% static 'images/dna-loader.gif' %}" alt="loading.gif"  style="width:300px;height:165px;">
-        </div>
       </div>
     </div>
   </div>
@@ -82,14 +70,11 @@
 
 
 {% block script %}
-<!-- function to display loading spinner on form submit -->
+<!-- function to disable submit button on form submission. Prevent double submission -->
 <script>
   $(document).ready(function() {
     $("#primer_form").on("submit", function() {
-      $("#spinner").fadeIn();
-      $('#shader').fadeIn();
       $(this).find(':input[type=submit]').prop('disabled', true);
-      $("#primerHome").addClass("disabled");
     });
   });
 </script>
