@@ -105,10 +105,11 @@ INSTALLED_APPS = [
     'crispy_forms',
     'corsheaders',
     'crispy_bootstrap5',
-    'user_visit'
+    'user_visit',
+    'django_q'
 ]
 
-# django crispy forms for nice form rendering
+# Django crispy forms bootstrap configuration
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
@@ -142,6 +143,7 @@ TEMPLATES = [
     },
 ]
 
+# Error/Info message class configuration
 MESSAGE_TAGS = {
     constants.DEBUG: 'alert-secondary',
     constants.INFO: 'alert-info',
@@ -152,7 +154,7 @@ MESSAGE_TAGS = {
 
 WSGI_APPLICATION = 'ga_core.wsgi.application'
 
-
+# Database configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -187,11 +189,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Login url
 LOGIN_URL = '/genetics_ark/accounts/login'
 
-# define where to redirect users after login
+# Define where to redirect users after login
 LOGIN_REDIRECT_URL = '/genetics_ark/igv'
 
+# Authentication Configuration
 AUTHENTICATION_BACKENDS = [
     "django_auth_ldap.backend.LDAPBackend",
     "django.contrib.auth.backends.ModelBackend"
@@ -220,9 +224,9 @@ USE_L10N = True
 USE_TZ = True
 
 
+# Settings for logging
 LOG_DIR = '/home/ga/logs'
 
-# Settings for logging
 with open(f'{LOG_DIR}/ga-error.log', 'a+'):
     pass
 with open(f'{LOG_DIR}/ga-debug.log', 'a+'):
@@ -287,3 +291,20 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:80',
     'https://dl.ec1.dnanex.us'
 ]
+
+# Redies for async task queue
+Q_CLUSTER = {
+    'timeout': 300,
+    'max_attempts': 1,
+    'workers': 1,  # 2 or more will cause memory alloc issue
+    'redis': {
+        'host': 'redis',
+        'port': 6379,
+        'db': 0,
+        'password': None,
+        'socket_timeout': None,
+        'charset': 'utf-8',
+        'errors': 'strict',
+        'unix_socket_path': None
+    }
+}
