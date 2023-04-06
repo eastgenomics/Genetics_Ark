@@ -1,19 +1,5 @@
 from typing import Union
 
-"""
-Django app to link Genetics Ark to samples in DNAnexus cloud platform.
-
-A sample ID is taken as input through a search field, this is queried
-against DNAnexus for BAMs in 002 sequencing projects. If BAM(s) are
-found, pre authenticated dx download links for the BAM(s) and their
-respective index files are generated. These are returned to the page,
-along with a button to open IGV.js through Genetics Ark, passing the
-generated links to directly stream and view the BAMs.
-
-The dx-toolkit environment must first be sourced and user logged in.
-dx_002_bams.json must also be present in DNAnexus_to_igv/, this is
-generated from find_dx_002_bams.py
-"""
 import json
 import logging
 import re
@@ -46,7 +32,6 @@ from ga_core.settings import (
     REFSEQ_INDEX_37,
     REFSEQ_INDEX_38,
     GRID_SERVICE_DESK,
-    GRID_IVA,
 )
 
 logger = logging.getLogger("general")
@@ -202,7 +187,7 @@ def get_dx_urls(
     return bam_url, idx_url
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def index(request):
     """
     Main index page for igv view
@@ -211,12 +196,11 @@ def index(request):
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
     context_dict["desk"] = GRID_SERVICE_DESK
-    context_dict["iva"] = GRID_IVA
 
     return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def search(request):
     """
     Search function when sample id entered
@@ -227,7 +211,6 @@ def search(request):
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
         context_dict["desk"] = GRID_SERVICE_DESK
-        context_dict["iva"] = GRID_IVA
 
         sample_id = request.POST["sample_id"]
         sample_id = str(sample_id).strip()  # in case spaces
@@ -413,7 +396,6 @@ def search(request):
         context_dict["search_form"] = SearchForm()
         context_dict["url_form"] = UrlForm()
         context_dict["desk"] = GRID_SERVICE_DESK
-        context_dict["iva"] = GRID_IVA
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -496,7 +478,7 @@ def search(request):
         )
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def select(request):
     """
     When a single sample is selected from a multiple sample list
@@ -513,7 +495,6 @@ def select(request):
     context_dict["url_form"] = UrlForm()
 
     context_dict["desk"] = GRID_SERVICE_DESK
-    context_dict["iva"] = GRID_IVA
 
     sample_type = request.POST["sample_type"]
     sample_id = request.POST["sample_id"]
@@ -538,8 +519,6 @@ def select(request):
     selected_sample: list[dict] = [
         v for v in flat_data if selected_file_id == v["file_id"]
     ]
-
-    print(selected_sample)
 
     bam = selected_sample[0]
     # generate urls for selected sample
@@ -588,14 +567,13 @@ def select(request):
     return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def view(request):
     """
     Viewing a single sample on IGV
     """
     context_dict = {}
     context_dict["desk"] = GRID_SERVICE_DESK
-    context_dict["iva"] = GRID_IVA
 
     if request.POST["action"] == "igv_37":
         context_dict["reference"] = "hg19"
@@ -629,7 +607,7 @@ def view(request):
     return render(request, "DNAnexus_to_igv/nexus_igv.html", context_dict)
 
 
-@login_required(redirect_field_name=None)
+# @login_required(redirect_field_name=None)
 def link(request):
     """
     When a direct DNANexus link is entered
@@ -637,7 +615,6 @@ def link(request):
 
     context_dict = {}
     context_dict["desk"] = GRID_SERVICE_DESK
-    context_dict["iva"] = GRID_IVA
 
     form = UrlForm(request.POST)
     file_url = request.POST["file_url"]

@@ -60,7 +60,6 @@ try:
 
     # Grid Links
     GRID_SERVICE_DESK = os.environ['GRID_SERVICE_DESK']
-    GRID_IVA = os.environ['GRID_IVA']
 
     AUTH_LDAP_BIND_DN = os.environ['BIND_DN']
     AUTH_LDAP_BIND_PASSWORD = os.environ['BIND_PASSWORD']

@@ -18,7 +18,7 @@ from django_q.tasks import async_task, result
 
 import primer_designer.forms as Forms
 
-from ga_core.settings import PRIMER_DOWNLOAD, GRID_SERVICE_DESK, GRID_IVA
+from ga_core.settings import PRIMER_DOWNLOAD, GRID_SERVICE_DESK
 
 logger = logging.getLogger("general")
 
@@ -32,7 +32,6 @@ def index(request):
 
     context_dict = {}
     context_dict['desk'] = GRID_SERVICE_DESK
-    context_dict['iva'] = GRID_IVA
 
     if request.method == 'POST':
         regions_form = Forms.RegionsForm(request.POST)
@@ -123,7 +122,6 @@ def create(request, regions_form):
     """
     context_dict = {}
     context_dict['desk'] = GRID_SERVICE_DESK
-    context_dict['iva'] = GRID_IVA
     context_dict['regions_form'] = Forms.RegionsForm()
 
     regions = regions_form.data['regions'].split('\n')

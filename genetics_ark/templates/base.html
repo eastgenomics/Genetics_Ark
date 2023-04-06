@@ -25,8 +25,8 @@
 		<script rel="stylesheet" src="{% static 'js/popper.min.js' %}"></script>
 		<script rel="stylesheet" src="{% static 'js/bootstrap.min.js' %}"></script>
 
-		<!-- IGV JS v2.12.6 -->
-		<script type="text/javascript" src="{% static 'js/igv.min.js' %}"></script>
+		<!-- IGV JS v2.15.3 -->
+		<script type="text/javascript" src="{% static 'js/igv.2.15.3.min.js' %}"></script>
 
 		<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
 		{% block css %}{% endblock %}
@@ -95,11 +95,14 @@
 			var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 				return new bootstrap.Tooltip(tooltipTriggerEl)
 			});
-
+			
+			// this prevent page loading when click to copy
 			$('#copyMessage').click(function(event){
 				event.preventDefault(); //or return false;
 			});
-
+			
+			// this is the function which control how long the error message fade
+			// time is in milliseconds e.g. 5000 is 5 seconds
 			$(document).ready(function() {
 				// check if element 'message' exist
 				s = !!document.getElementById('messageContent');
@@ -107,7 +110,7 @@
 				if (s == true) {
 					var s = document.getElementById('messageContent').style;
 					s.opacity = 1;
-					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,15)})(); }, 5000);
+					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,15)})(); }, 10000);
 				}
 			});
 			
