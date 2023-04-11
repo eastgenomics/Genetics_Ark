@@ -127,7 +127,6 @@ PROJECT_CNVS - project-id of cnvs projects
 SLACK_TOKEN - slack auth token
 
 GRID_SERVICE_DESK - url for bioinformatics service desk
-GRID_IVA - url for bioinformatics IVA
 ```
 
 ## Current Apps

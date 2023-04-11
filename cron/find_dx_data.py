@@ -64,7 +64,6 @@ import requests
 import os
 import json
 
-from dotenv import load_dotenv
 from collections import defaultdict
 from pathlib import Path
 

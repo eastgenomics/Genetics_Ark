@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 
-from ga_core.settings import GRID_SERVICE_DESK, GRID_IVA
+from ga_core.settings import GRID_SERVICE_DESK
 
 # forms import
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
@@ -23,7 +23,6 @@ def login(request):
     context_dict["search_form"] = SearchForm()
     context_dict["url_form"] = UrlForm()
     context_dict['desk'] = GRID_SERVICE_DESK
-    context_dict['iva'] = GRID_IVA
 
     if request.method == 'GET':
 
