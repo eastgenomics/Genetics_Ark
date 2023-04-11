@@ -1,5 +1,3 @@
-from typing import Union
-
 import json
 import logging
 import re
@@ -10,7 +8,6 @@ import dxpy as dx
 from django.contrib import messages
 from django.utils.safestring import mark_safe
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
 # forms import
@@ -79,7 +76,9 @@ def dx_login(
     return True
 
 
-def post_message_to_slack(channel: str, message: str, slack_token: str) -> None:
+def post_message_to_slack(
+    channel: str, message: str, slack_token: str
+) -> None:
     """
     Function to send Slack notification
     Taken from:
@@ -112,14 +111,7 @@ def post_message_to_slack(channel: str, message: str, slack_token: str) -> None:
         logger.error(e)
 
 
-def get_dx_urls(
-    sample_id: str,
-    bam_file_id: str,
-    bam_file_name: str,
-    idx_file_id: str,
-    idx_file_name: str,
-    project_id: str,
-) -> Union[str, str]:
+def get_dx_urls(project_id: str, file_id: str, filename: str) -> dict:
     """
     Get preauthenticated dx download urls for file and its index
 
@@ -134,57 +126,34 @@ def get_dx_urls(
         - bam_url (str): DNAnexus url for downloading BAM/CNV file
         - idx_url (str): DNAnexus url for downloading its index file
     """
-    bam_url = None
-    idx_url = None
 
     if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG):
-        bam_info = dx.bindings.dxfile.DXFile(
-            dxid=bam_file_id, project=project_id
-        )
-        try:
-            bam = bam_info.get_download_url(
-                duration=3600,
-                preauthenticated=True,
-                project=project_id,
-                filename=bam_file_name,
-            )
-        except dx.exceptions.InvalidState as err:
-            logger.error(
-                f"The input-sample-name {bam_file_name} with project-id"
-                f" {project_id} produced an error when generating a DNANexus"
-                f" download link. Error Message returned {err}"
-            )
-            bam_url = None
-        else:
-            bam_url = bam[0]
-
-        idx_info = dx.bindings.dxfile.DXFile(
-            dxid=idx_file_id, project=project_id
+        file_object = dx.bindings.dxfile.DXFile(
+            dxid=file_id, project=project_id
         )
 
         try:
-            idx = idx_info.get_download_url(
+            file_info = file_object.get_download_url(
                 duration=3600,
                 preauthenticated=True,
                 project=project_id,
-                filename=idx_file_name,
+                filename=filename,
             )
-        except dx.exceptions.InvalidState as err:
+        except Exception as err:
             logger.error(
-                f"The input-sample-name {idx_file_name} with project-id"
-                f" {project_id} produced an error when generating a DNANexus"
+                f"The input-sample-name {filename} with file-id {file_id}"
+                f"& project-id {project_id} produced"
+                " an error when generating a DNANexus"
                 f" download link. Error Message returned {err}"
             )
-            idx_url = None
+
+            return {"error": err}
         else:
-            idx_url = idx[0]
+            download_url = file_info[0]
 
     else:
-        logger.error(
-            "Error generating dx download url for sample "
-            f"{sample_id} in {project_id}"
-        )
-    return bam_url, idx_url
+        logger.error("Error logging into dnanexus. Please check auth token")
+    return {"url": download_url}
 
 
 # @login_required(redirect_field_name=None)
@@ -220,8 +189,8 @@ def search(request):
             # search and generate dx download links
             # if json is not present it will raise IOError
             json_path = Path(__file__).parent.absolute()
-            json_file = f'{json_path}/jsons/dx_002_bams.json'
-            logger.info(f'JSON FILE PATH: {json_file}')
+            json_file = f"{json_path}/jsons/dx_002_bams.json"
+            logger.info(f"JSON FILE PATH: {json_file}")
 
             with open(json_file) as json_file:
                 json_bams = json.load(json_file)
@@ -265,7 +234,7 @@ def search(request):
                 mark_safe(
                     """Sample {} is not found in DNAnexus, either it is\
                     not available, the sample name is incorrect\
-                    or some other error. Please contact\
+                    or some other error. <br/>Please contact\
                     the Bioinformatics team if you believe the sample\
                     should be available.""".format(
                         sample_id
@@ -300,24 +269,31 @@ def search(request):
             # ONLY ONE SAMPLE FOUND
             sample_dict = flat_data[0]
 
-            file_url, idx_url = get_dx_urls(
-                sample_id,
+            file_url = get_dx_urls(
+                sample_dict["project_id"],
                 sample_dict["file_id"],
                 sample_dict["file_name"],
+            )
+            idx_url = get_dx_urls(
+                sample_dict["project_id"],
                 sample_dict["idx_id"],
                 sample_dict["idx_name"],
-                sample_dict["project_id"],
             )
 
-            if file_url is None or idx_url is None:
+            if file_url.get("error", False) or idx_url.get("error", False):
+                # get the error returned
+                file_error = file_url.get("error", False)
+                idx_error = idx_url.get("error", False)
+
                 # error generating urls, display message
                 messages.add_message(
                     request,
                     messages.ERROR,
                     mark_safe(
                         "Error generating download URLs for sample "
-                        f"{sample_id}. Please contact the bioinformatics "
-                        "team for help."
+                        f"{sample_id}.<br/>Please contact the bioinformatics "
+                        f"team for help.<br/>File Error Message: {file_error}"
+                        f"<br/>Index Error Message: {idx_error}"
                     ),
                     extra_tags="alert-danger",
                 )
@@ -332,8 +308,8 @@ def search(request):
                     request, "DNAnexus_to_igv/nexus_search.html", context_dict
                 )
 
-            context_dict["file_url"] = file_url
-            context_dict["idx_url"] = idx_url
+            context_dict["file_url"] = file_url["url"]
+            context_dict["idx_url"] = idx_url["url"]
             context_dict["sample_id"] = sample_id
             context_dict["file_id"] = sample_dict["file_id"]
             context_dict["file_name"] = sample_dict["file_name"]
@@ -402,8 +378,8 @@ def search(request):
             # search and generate dx download links
             # if json is not present it will raise IOError
             json_path = Path(__file__).parent.absolute()
-            json_file = f'{json_path}/jsons/dx_002_bams.json'
-            logger.info(f'JSON FILE PATH: {json_file}')
+            json_file = f"{json_path}/jsons/dx_002_bams.json"
+            logger.info(f"JSON FILE PATH: {json_file}")
 
             with open(json_file) as json_file:
                 json_bams = json.load(json_file)
@@ -485,7 +461,7 @@ def select(request):
     """
 
     json_path = Path(__file__).parent.absolute()
-    JSON_FILE_PATH = f'{json_path}/jsons/dx_002_bams.json'
+    JSON_FILE_PATH = f"{json_path}/jsons/dx_002_bams.json"
 
     with open(JSON_FILE_PATH) as f:
         json_bams = json.load(f)
@@ -520,33 +496,38 @@ def select(request):
         v for v in flat_data if selected_file_id == v["file_id"]
     ]
 
-    bam = selected_sample[0]
-    # generate urls for selected sample
-    file_url, idx_url = get_dx_urls(
-        sample_id,
-        bam["file_id"],
-        bam["file_name"],
-        bam["idx_id"],
-        bam["idx_name"],
-        bam["project_id"],
+    sample_dict = selected_sample[0]
+
+    file_url = get_dx_urls(
+        sample_dict["project_id"],
+        sample_dict["file_id"],
+        sample_dict["file_name"],
+    )
+    idx_url = get_dx_urls(
+        sample_dict["project_id"],
+        sample_dict["idx_id"],
+        sample_dict["idx_name"],
     )
 
-    if file_url is None or idx_url is None:
+    if file_url.get("error", False) or idx_url.get("error", False):
+        file_error = file_url.get("error", False)
+        idx_error = idx_url.get("error", False)
         # error generating urls, display message
         messages.add_message(
             request,
             messages.ERROR,
             mark_safe(
                 "Error generating download URLs for sample "
-                f"{selected_file_id}. Please contact the bioinformatics "
-                "team for help."
+                f"{sample_id}.<br/>Please contact the bioinformatics "
+                f"team for help.<br/>File Error Message: {file_error}"
+                f"<br/>Index Error Message: {idx_error}"
             ),
         )
         context_dict["error"] = True
 
         logger.error(
             f"Error generating url for sample {selected_file_id} "
-            f"{sample_type} {bam}"
+            f"{sample_type} {sample_dict}"
         )
 
         return render(
@@ -554,15 +535,15 @@ def select(request):
         )
 
     context_dict["sample_id"] = sample_id
-    context_dict["file_name"] = bam["file_name"]
-    context_dict["project_name"] = bam["project_name"]
-    context_dict["file_url"] = file_url
-    context_dict["idx_url"] = idx_url
-    context_dict["file_path"] = bam["file_path"]
-    context_dict["file_id"] = bam["file_id"]
-    context_dict["idx_id"] = bam["idx_id"]
-    context_dict["file_archival_state"] = bam["file_archival_state"]
-    context_dict["idx_archival_state"] = bam["idx_archival_state"]
+    context_dict["file_name"] = sample_dict["file_name"]
+    context_dict["project_name"] = sample_dict["project_name"]
+    context_dict["file_url"] = file_url["url"]
+    context_dict["idx_url"] = idx_url["url"]
+    context_dict["file_path"] = sample_dict["file_path"]
+    context_dict["file_id"] = sample_dict["file_id"]
+    context_dict["idx_id"] = sample_dict["idx_id"]
+    context_dict["file_archival_state"] = sample_dict["file_archival_state"]
+    context_dict["idx_archival_state"] = sample_dict["idx_archival_state"]
 
     return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
 

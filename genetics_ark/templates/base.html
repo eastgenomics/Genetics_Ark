@@ -68,9 +68,9 @@
 					{{ message }}
 					{% if error %}
 						<br><br>
-						<a class="alert-link" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
+						<a class="btn btn-info btn-sm" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
 						<span id="custom-tooltip-1" class="badge rounded-pill bg-info text-dark" style="display:none;">copied</span>
-						<a href="{{ desk }}" class="alert-link" target="_blank">Contact Helpdesk</a>
+						<a href="{{ desk }}" class="btn btn-danger btn-sm ml-3" target="_blank">Contact Helpdesk</a>
 					{% endif %}
 				</div>
 			{% endfor %}

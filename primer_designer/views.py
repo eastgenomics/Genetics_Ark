@@ -57,7 +57,7 @@ def index(request):
         request, "primer_designer/index.html", context_dict)
 
 
-def task(request, task_id: str) -> HttpResponse:
+def task(task_id: str) -> HttpResponse:
     """
     Function to return task task based on task_id (Django-Q)
 
