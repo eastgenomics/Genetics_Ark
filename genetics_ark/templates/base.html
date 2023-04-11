@@ -64,13 +64,13 @@
 
 		{% if messages %}
 			{% for message in messages %}
-				<div class="alert {{ message.tags }} position-absolute top-0 start-50 translate-middle" role="alert" style="z-index: 1001; margin-top: 6rem;" data-value="{{ message }}" id="messageContent">
+				<div class="alert {{ message.tags }} position-absolute top-0 start-50 translate-middle" role="alert" style="z-index: 1001; margin-top: 12rem;" data-value="{{ message }}" id="messageContent">
 					{{ message }}
 					{% if error %}
 						<br><br>
-						<a class="btn btn-info btn-sm" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
+						<a class="btn btn-secondary btn-sm shadow" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
 						<span id="custom-tooltip-1" class="badge rounded-pill bg-info text-dark" style="display:none;">copied</span>
-						<a href="{{ desk }}" class="btn btn-danger btn-sm ml-3" target="_blank">Contact Helpdesk</a>
+						<a href="{{ desk }}" class="btn btn-danger btn-sm ml-3 shadow" target="_blank">Contact Helpdesk</a>
 					{% endif %}
 				</div>
 			{% endfor %}

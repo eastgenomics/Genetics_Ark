@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.utils.safestring import mark_safe
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 
 # forms import
 from DNAnexus_to_igv.forms import UrlForm, SearchForm
@@ -156,7 +157,7 @@ def get_dx_urls(project_id: str, file_id: str, filename: str) -> dict:
     return {"url": download_url}
 
 
-# @login_required(redirect_field_name=None)
+@login_required(redirect_field_name=None)
 def index(request):
     """
     Main index page for igv view
@@ -169,7 +170,7 @@ def index(request):
     return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
 
 
-# @login_required(redirect_field_name=None)
+@login_required(redirect_field_name=None)
 def search(request):
     """
     Search function when sample id entered
@@ -454,7 +455,7 @@ def search(request):
         )
 
 
-# @login_required(redirect_field_name=None)
+@login_required(redirect_field_name=None)
 def select(request):
     """
     When a single sample is selected from a multiple sample list
@@ -548,7 +549,7 @@ def select(request):
     return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
 
 
-# @login_required(redirect_field_name=None)
+@login_required(redirect_field_name=None)
 def view(request):
     """
     Viewing a single sample on IGV
@@ -588,7 +589,7 @@ def view(request):
     return render(request, "DNAnexus_to_igv/nexus_igv.html", context_dict)
 
 
-# @login_required(redirect_field_name=None)
+@login_required(redirect_field_name=None)
 def link(request):
     """
     When a direct DNANexus link is entered

@@ -57,7 +57,7 @@ def index(request):
         request, "primer_designer/index.html", context_dict)
 
 
-def task(task_id: str) -> HttpResponse:
+def task(request, task_id: str) -> HttpResponse:
     """
     Function to return task task based on task_id (Django-Q)
 
@@ -65,6 +65,9 @@ def task(task_id: str) -> HttpResponse:
     Task_status will return task status only when
     task is successfully executed. Timeout or failed
     task will return None
+
+    The request parameter is required in order to work
+    as a Django request
 
     """
     if result(task_id) is not None:
