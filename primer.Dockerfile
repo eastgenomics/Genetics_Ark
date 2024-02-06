@@ -1,7 +1,8 @@
-FROM primer_designer:2.0.2
+# FROM primer-designer:2.0.2-mac
+FROM primer-designer:2.0.2
 
 RUN apt-get update -y
-RUN apt-get install -y build-essential python3-dev python2.7-dev libldap2-dev libsasl2-dev ldap-utils tox lcov valgrind
+RUN apt-get install -y build-essential gcc python3-dev libldap2-dev libsasl2-dev ldap-utils tox lcov valgrind
 
 WORKDIR /home/ga
 

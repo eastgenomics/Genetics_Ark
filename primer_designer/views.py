@@ -31,9 +31,9 @@ def index(request):
     """
 
     context_dict = {}
-    context_dict['desk'] = GRID_SERVICE_DESK
+    context_dict["desk"] = GRID_SERVICE_DESK
 
-    if request.method == 'POST':
+    if request.method == "POST":
         regions_form = Forms.RegionsForm(request.POST)
 
         if regions_form.is_valid():
@@ -41,20 +41,17 @@ def index(request):
             # generate primers
             return create(request, regions_form)
         else:
-            region = regions_form.data['regions']
+            region = regions_form.data["regions"]
             messages.add_message(
-                request,
-                messages.ERROR,
-                f"Error in given primer design input {region}"
+                request, messages.ERROR, f"Error in given primer design input {region}"
             )
-            context_dict['error'] = True
+            context_dict["error"] = True
     else:
         regions_form = Forms.RegionsForm()
 
-    context_dict['regions_form'] = regions_form
+    context_dict["regions_form"] = regions_form
 
-    return render(
-        request, "primer_designer/index.html", context_dict)
+    return render(request, "primer_designer/index.html", context_dict)
 
 
 def task(request, task_id: str) -> HttpResponse:
@@ -77,17 +74,17 @@ def task(request, task_id: str) -> HttpResponse:
 
     if task_status:
         return HttpResponse(
-            json.dumps({'status': 'done'}), content_type='application/json')
+            json.dumps({"status": "done"}), content_type="application/json"
+        )
     elif task_status is None:
         return HttpResponse(
-            json.dumps({'status': 'pending'}), content_type='application/json')
+            json.dumps({"status": "pending"}), content_type="application/json"
+        )
     else:
         return HttpResponse(
-            json.dumps(
-                {
-                    'status': 'failed',
-                    'error': err
-                    }), content_type='application/json')
+            json.dumps({"status": "failed", "error": err}),
+            content_type="application/json",
+        )
 
 
 def random_string():
@@ -97,9 +94,11 @@ def random_string():
     Returns:
         - random_string (str): str of random characters
     """
-    random_string = ''.join(random.choices(
-        string.ascii_uppercase + string.ascii_lowercase + string.digits, k=5
-    ))
+    random_string = "".join(
+        random.choices(
+            string.ascii_uppercase + string.ascii_lowercase + string.digits, k=5
+        )
+    )
 
     return random_string.upper()
 
@@ -124,31 +123,32 @@ def create(request, regions_form):
         link to download PDFs zip
     """
     context_dict = {}
-    context_dict['desk'] = GRID_SERVICE_DESK
-    context_dict['regions_form'] = Forms.RegionsForm()
+    context_dict["desk"] = GRID_SERVICE_DESK
+    context_dict["regions_form"] = Forms.RegionsForm()
 
-    regions = regions_form.data['regions'].split('\n')
-    regions = [x.rstrip('\r').strip() for x in regions if x]
+    regions = regions_form.data["regions"].split("\n")
+    regions = [x.rstrip("\r").strip() for x in regions if x]
 
     # unique name of date and random 5 char str
-    output_name = f'{time_stamp()}{random_string()}'
+    output_name = f"{time_stamp()}{random_string()}"
 
     # define output dir to host filesystem for primer cmd
-    PARENT_PATH = '/home/primer_designer/output'
+    PARENT_PATH = "/home/primer_designer/output"
 
     # make directory for all the generated PDF(s) to zip later
-    output_directory = f'{PARENT_PATH}/{output_name}'
+    output_directory = f"{PARENT_PATH}/{output_name}"
     Path(output_directory).mkdir(parents=True, exist_ok=True)
 
     # put task into Django-q queue
     task_id = async_task(
-        'primer_designer.services.call_subprocess',
+        "primer_designer.services.call_subprocess",
         output_directory,
         regions,
-        output_name)
+        output_name,
+    )
 
-    context_dict["download_url"] = f'{PRIMER_DOWNLOAD}/tmp/{output_name}.zip'
-    context_dict['task_id'] = task_id
-    context_dict['output_name'] = output_name
+    context_dict["download_url"] = f"{PRIMER_DOWNLOAD}/tmp/{output_name}.zip"
+    context_dict["task_id"] = task_id
+    context_dict["output_name"] = output_name
 
     return render(request, "primer_designer/create.html", context_dict)

@@ -2,8 +2,6 @@ from django.shortcuts import render
 from ga_core.settings import GRID_SERVICE_DESK
 
 
-
-# @login_required
 def home(request):
     # renders homepage
     return render(
