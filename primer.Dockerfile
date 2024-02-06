@@ -1,4 +1,3 @@
-# FROM primer-designer:2.0.2-mac
 FROM primer-designer:2.0.2
 
 RUN apt-get update -y

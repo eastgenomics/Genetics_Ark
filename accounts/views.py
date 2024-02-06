@@ -16,6 +16,9 @@ error_log = logging.getLogger("ga_error")
 
 
 def login_action(request):
+    """
+    function to login user.
+    """
     context_dict = {}
     context_dict["login_form"] = LoginForm()
     context_dict["search_form"] = SearchForm()
@@ -23,8 +26,8 @@ def login_action(request):
     context_dict["desk"] = GRID_SERVICE_DESK
 
     if request.method == "POST":
-        username = request.POST.get("username", "")
-        password = request.POST.get("password", "")
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
 
@@ -42,6 +45,9 @@ def login_action(request):
 
 
 def logout_action(request):
+    """
+    function to logout user
+    """
     logout(request)
     messages.add_message(request, messages.SUCCESS, "Successfully logged out")
     return redirect(reverse("genetics:index"))

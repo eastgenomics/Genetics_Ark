@@ -40,15 +40,12 @@ services:
     image: nginx:1.23
     platform: linux/amd64
     restart: always
-    # build: ./nginx
     volumes:
       - /Users/jason/Github/Genetics_Ark/reference:/reference_files # serve igv references through nginx
       - primer_volume:/tmp # zip generated primer designer PDFs
       - static_volume:/staticfiles # serve staticfiles
       - /Users/jason/Github/Genetics_Ark/logs:/home/ga/log # logging for nginx
       - /Users/jason/Github/Genetics_Ark/nginx:/etc/nginx/conf.d # nginx config
-    # ports:
-    #   - "80:80" # define port
     expose:
       - 8002
     environment:
@@ -82,8 +79,6 @@ services:
     container_name: genetics-ark-db
     # platform: linux/amd64
     image: mysql:8
-    # environment:
-    #   MYSQL_TCP_PORT: 3308
     ports:
       - 3307:3308
     env_file:
