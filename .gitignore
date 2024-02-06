@@ -7,3 +7,5 @@ tmp/*
 .env
 DNAnexus_to_igv/jsons/*
 staticfiles
+reference
+.vscode

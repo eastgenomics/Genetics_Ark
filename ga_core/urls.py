@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from ga_core.settings import LOCAL_WORKSTATION
 
 from genetics_ark.views import error404, error500, error502
 
@@ -22,10 +23,20 @@ handler404 = error404
 handler500 = error500
 handler502 = error502
 
-urlpatterns = [
-    path('genetics_ark/', include('genetics_ark.urls')),
-    path('genetics_ark/accounts/', include('accounts.urls')),
-    path('genetics_ark/admin/', admin.site.urls),
-    path('genetics_ark/igv/', include('DNAnexus_to_igv.urls')),
-    path('genetics_ark/primer_designer/', include('primer_designer.urls'))
-]
+urlpatterns = (
+    [
+        path("genetics_ark/", include("genetics_ark.urls")),
+        path("genetics_ark/accounts/", include("accounts.urls")),
+        path("genetics_ark/admin/", admin.site.urls),
+        path("genetics_ark/igv/", include("DNAnexus_to_igv.urls"), name="igv"),
+        path("genetics_ark/primer_designer/", include("primer_designer.urls")),
+    ]
+    if not LOCAL_WORKSTATION
+    else [
+        path("", include("genetics_ark.urls")),
+        path("accounts/", include("accounts.urls")),
+        path("admin/", admin.site.urls),
+        path("igv/", include("DNAnexus_to_igv.urls")),
+        path("primer_designer/", include("primer_designer.urls")),
+    ]
+)
