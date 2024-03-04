@@ -614,7 +614,7 @@ def link(request):
     context_dict["idx_url"] = idx_url
 
     # check for reference by button name pressed
-    if request.POST["action"] == "url_37":
+    if request.POST["action"] == "form_37":
         context_dict["reference"] = "hg19"
         context_dict["fasta"] = FASTA_37
         context_dict["fasta_idx"] = FASTA_IDX_37
