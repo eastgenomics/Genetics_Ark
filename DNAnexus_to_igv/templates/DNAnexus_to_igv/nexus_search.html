@@ -6,12 +6,13 @@
     #spinner {
         position: fixed;
         z-index: 1000;
-        margin:auto;
-        left:0;
-        right:0;
-        top:0;
-        bottom:0;
+        margin: auto;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
     }
+
     #shader {
         width: 100%;
         height: 100%;
@@ -23,9 +24,11 @@
         position: fixed;
         z-index: 999;
     }
+
     .text-small {
         font-size: 80%;
     }
+
     #custom-tooltip-1 {
         display: none;
         font-size: 10px;
@@ -34,6 +37,7 @@
         border-radius: 4px;
         color: #FFF;
     }
+
     #custom-tooltip-2 {
         display: none;
         font-size: 10px;
@@ -42,6 +46,7 @@
         border-radius: 4px;
         color: #FFF;
     }
+
     .list-group-scrollable {
         max-height: 800px;
         margin-bottom: 10px;
@@ -65,7 +70,8 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p>The selected data is for development use and must not be used for service work. Please confirm if you still want to load IGV.</p>
+                <p>The selected data is for development use and must not be used for service work. Please confirm if you
+                    still want to load IGV.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Confirm</button>
@@ -78,142 +84,164 @@
     <div class="card p-2">
         <div class="card-body">
             <h2>DNAnexus to IGV</h2></br>
-        
-            This page may be used to generate URLs to view BAMs on IGV installed locally on your PC, or to view directly within IGV on Genetics Ark. <br></br>
-        
-            Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to IGV if installed locally <br>
+
+            This page may be used to generate URLs to view BAMs on IGV installed locally on your PC, or to view directly
+            within IGV on Genetics Ark. <br></br>
+
+            Enter the sample ID (e.g. X010000) in the search box and click search, this will return links to paste in to
+            IGV if installed locally <br>
             on the PC, or a button to view the BAM in the web based IGV on Genetics Ark.<br></br>
 
             CNV visualisation will only work within the browser and can't be loaded in IGV desktop<br>
-        
-            The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide" target="_blank">here</a>.<br></br>
-        
+
+            The IGV user guide may be found <a href="https://software.broadinstitute.org/software/igv/UserGuide"
+                target="_blank">here</a>.<br></br>
+
             <!-- FORM FOR MAIN SEARCH -->
             {% load crispy_forms_tags %}
             <form method="POST" action="search" name="search_form" onsubmit="return spinner_function()">
                 {% csrf_token %}
                 {{ search_form|crispy }}<br>
 
-                <button name="action" value="search" id="search" type="submit" class="btn btn-primary btn-sm">Search</button>
+                <button name="action" value="search" id="search" type="submit"
+                    class="btn btn-primary btn-sm">Search</button>
             </form>
 
             <!-- SPINNER VIEW -->
             <div id="shader" style="display:none">
                 <div id="spinner" style="display:none">
-                    <img id="spinner" src="{% static 'images/cloud-loader.gif' %}" alt="loading.gif"  style="width:375px;height:350px"> 
+                    <img id="spinner" src="{% static 'images/cloud-loader.gif' %}" alt="loading.gif"
+                        style="width:375px;height:350px">
                 </div>
             </div>
-            
+
             <!-- IF NORMAL SEARCH FIELD USED, REMOVE DIRECT LINK FIELDS -->
             {% if not file_name and not bam_list %}
-                <h3 class="mt-5">Load direct from URL</h3>
-        
-                To load BAMs directly in to IGV hosted on Genetics Ark please paste the BAM and index url in the respective fields below.
-                This may be used for viewing samples outside of standard seqencing runs (i.e. during development work) where 
-                DNAnexus links have been provided by the bioinformatics team.
-                <br></br>
-        
-                <!-- FORM FOR DIRECT LINKS -->
-                <form method="POST" action="link"  name="url_form" >
-                    {% csrf_token %}
-                    {{ url_form|crispy }}
-                    <div class="form-group-row">
-                        <button name="action" value="form_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV (GRCh37)</button>
-                        <button name="action" value="form_38" type="submit" class ="btn btn-info btn-sm m-2 px-3">View in web IGV (GRCh38)</button>
-                    </div>
-                </form>
+            <h3 class="mt-5">Load direct from URL</h3>
+
+            To load BAMs directly in to IGV hosted on Genetics Ark please paste the BAM and index url in the respective
+            fields below.
+            This may be used for viewing samples outside of standard seqencing runs (i.e. during development work) where
+            DNAnexus links have been provided by the bioinformatics team.
+            <br></br>
+
+            <!-- FORM FOR DIRECT LINKS -->
+            <form method="POST" action="link" name="url_form">
+                {% csrf_token %}
+                {{ url_form|crispy }}
+                <div class="form-group-row">
+                    <button name="action" value="form_37" type="submit" class="btn btn-primary btn-sm m-2 px-3">View in
+                        web IGV (GRCh37)</button>
+                    <button name="action" value="form_38" type="submit" class="btn btn-info btn-sm m-2 px-3">View in web
+                        IGV (GRCh38)</button>
+                </div>
+            </form>
             {% endif %}
-            
+
             <!-- SINGLE SAMPLE VIEW -->
             {% if file_name %}
-                <hr>
-                <h2 class="mt-5">{{ file_name }}</h2>
-                Search Term: {{ sample_id }}<br>
-                File ID: {{ file_id }}<br>
-                Sequencing Project: {{ project_name }}<br>
-                Directory: {{ file_path }}
-                
-                <br></br>
-                BAMs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
-                <br></br>
-                
-                <ul class="list-group">
-                    <li class="list-group-item">
-                        <span class="font-italic text-small" id="bam-url" data-value="{{ file_url }}">{{ file_url }}</span>
-                        <input type="image" class="ml-1 m-y-0 p-0" src="{% static 'images/clipboard.png' %}" onclick="copyToClipboard('bam-url', 1)" width="20" height="20"/>
-                        <span id="custom-tooltip-1" class="badge badge-success">COPIED</span>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="font-italic text-small" id="idx-url" data-value="{{ idx_url }}">{{ idx_url }}</span>
-                        <input type="image" class="ml-1 m-y-0 p-0" src="{% static 'images/clipboard.png' %}" onclick="copyToClipboard('idx-url', 2)" width="20" height="20"/>
-                        <span id="custom-tooltip-2" class="badge badge-success">COPIED</span>
-                    </li>
-                </ul>
-        
-                <br>
-                Load BAMs for sample in web IGV with appropriate reference build: 
-                <br></br>
-        
-                <form action="view" method="POST" name="igv_form" target="_blank">
-                    {% csrf_token %}
-                    <input type="hidden" name="file_name" value="{{ file_name }}">
-                    <input type="hidden" name="file_url" value="{{ file_url }}">
-                    <input type="hidden" name="idx_url" value="{{ idx_url }}">
-                    <input type="hidden" name="file_id" value="{{ file_id }}">
-                    <input type="hidden" id="igv_proj_name" name="project_name" value="{{ project_name }}">
-                    <button name="action" value="igv_37" type="submit" class ="btn btn-primary btn-sm m-2 px-3">View in web IGV (GRCh37)</button>
-                    <button name="action" value="igv_38" type="submit" class ="btn btn-warning btn-sm m-2 px-3">View in web IGV (GRCh38)</button>
-                </form>
+
+            <h2 class="mt-5">{{ file_name }}</h2>
+            Search Term: {{ sample_id }}<br>
+            File ID: {{ file_id }}<br>
+            Sequencing Project: {{ project_name }}<br>
+            Directory: {{ file_path }}
+
+            <br></br>
+            BAMs may be viewed on IGV installed on PC by going to File > Load from URL, and pasting the following links:
+            <br></br>
+
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <span class="font-italic text-small" id="bam-url" data-value="{{ file_url }}">{{ file_url }}</span>
+                    <input type="image" class="ml-1 m-y-0 p-0" src="{% static 'images/clipboard.png' %}"
+                        onclick="copyToClipboard('bam-url', 1)" width="20" height="20" />
+                    <span id="custom-tooltip-1" class="badge badge-success">COPIED</span>
+                </li>
+                <li class="list-group-item">
+                    <span class="font-italic text-small" id="idx-url" data-value="{{ idx_url }}">{{ idx_url }}</span>
+                    <input type="image" class="ml-1 m-y-0 p-0" src="{% static 'images/clipboard.png' %}"
+                        onclick="copyToClipboard('idx-url', 2)" width="20" height="20" />
+                    <span id="custom-tooltip-2" class="badge badge-success">COPIED</span>
+                </li>
+            </ul>
+
+            <br>
+            Load BAMs for sample in web IGV with appropriate reference build:
+            <br></br>
+
+            <form action="view" method="POST" name="igv_form" target="_blank">
+                {% csrf_token %}
+                <input type="hidden" name="file_name" value="{{ file_name }}">
+                <input type="hidden" name="file_url" value="{{ file_url }}">
+                <input type="hidden" name="idx_url" value="{{ idx_url }}">
+                <input type="hidden" name="file_id" value="{{ file_id }}">
+                <input type="hidden" id="igv_proj_name" name="project_name" value="{{ project_name }}">
+                <button name="action" value="igv_37" type="submit" class="btn btn-primary btn-sm m-2 px-3">View in web
+                    IGV (GRCh37)</button>
+                <button name="action" value="igv_38" type="submit" class="btn btn-warning btn-sm m-2 px-3">View in web
+                    IGV (GRCh38)</button>
+            </form>
             {% endif %}
-        
+
             <!-- MULTIPLE SAMPLES VIEW-->
             {% if bam_list %}
-                <h2 class="mt-5">Results</h2>
-                <b>{{ file_no }}</b> files found for sample <b>{{ sample_id }}</b><br>
-                Please select which project to load the sample from:</b><br></b><br>
-                <ul class="list-group-scrollable" style="padding-left: 0 !important;">
-                    {% for file in bam_list %}
-                        <div class="card m-3">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ file.file_name }}</h5>
-                                {% if file.file_archival_state == 'live' %}
-                                    <!-- <h6 class="card-subtitle py-1 text-muted">
+            <h2 class="mt-5">Results</h2>
+            <b>{{ file_no }}</b> files found for sample <b>{{ sample_id }}</b><br>
+            Please select which project to load the sample from:</b><br></b><br>
+            <ul class="list-group-scrollable" style="padding-left: 0 !important;">
+                {% for file in bam_list %}
+                <div class="card m-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ file.file_name }}</h5>
+                        {% if file.file_archival_state == 'live' %}
+                        <!-- <h6 class="card-subtitle py-1 text-muted">
                                         <span class="badge badge-pill badge-success mr-2 px-2 py-1">LIVE</span>
                                     </h6> -->
-                                    <h6 class="card-subtitle mb-2 text-success fw-bold">LIVE</h6>
-                                    <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                    <form action="select" method="POST" name="select_bam">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
-                                        <input type="hidden" name="sample_type" value="{{ sample_type }}">
-                                        <input type="hidden" name="sample_id" value="{{ sample_id }}">
-                                        <button name="action" value="select_bam" type="submit" class = "btn btn-primary btn-sm">Select</button>
-                                    </form>
-                                {% else %}
-                                    <!-- <h6 class="card-subtitle py-1 text-muted">
+                        <h6 class="card-subtitle mb-2 text-success fw-bold">LIVE</h6>
+                        <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File
+                            ID: {{ file.file_id }}</p>
+                        <form action="select" method="POST" name="select_bam">
+                            {% csrf_token %}
+                            <input type="hidden" name="selected_file_id" value="{{ file.file_id }}">
+                            <input type="hidden" name="sample_type" value="{{ sample_type }}">
+                            <input type="hidden" name="sample_id" value="{{ sample_id }}">
+                            <button name="action" value="select_bam" type="submit"
+                                class="btn btn-primary btn-sm">Select</button>
+                        </form>
+                        {% else %}
+                        <!-- <h6 class="card-subtitle py-1 text-muted">
                                         <span class="badge badge-pill badge-danger mr-2 px-2 py-1">ARCHIVED</span>
                                     </h6> -->
-                                    <h6 class="card-subtitle mb-2 text-danger fw-bold">ARCHIVED</h6>
-                                    <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File ID: {{ file.file_id }}</p>
-                                    <div class="alert alert-warning" role="alert">
-                                        To request unarchive, <a href="{{ desk }}" target="_blank">open a ticket</a> on the bioinformatics helpdesk.<br>Please include the unique file-id, its sequencing project and all relevant info.
-                                    </div>
-                                {% endif %}
-                            </div>
+                        <h6 class="card-subtitle mb-2 text-danger fw-bold">ARCHIVED</h6>
+                        <p class="card-text">Project: {{ file.project_name }}<br>Directory: {{ file.file_path }}<br>File
+                            ID: {{ file.file_id }}</p>
+                        <div class="alert alert-warning" role="alert">
+                            To request unarchive, <a href="{{ desk }}" target="_blank">open a ticket</a> on the
+                            bioinformatics helpdesk.<br>Please include the unique file-id, its sequencing project and
+                            all relevant info.
                         </div>
-                    {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </ul>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    {% if bam_list.has_previous %}
+                    <li class="page-item"><a class="page-link"
+                            href="?page={{ bam_list.previous_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item"><a class="page-link" href="#">{{ bam_list.number }} of {{
+                            bam_list.paginator.num_pages }}</a></li>
+                    {% if bam_list.has_next %}
+                    <li class="page-item"><a class="page-link"
+                            href="?page={{ bam_list.next_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Next</a>
+                    </li>
+                    {% endif %}
                 </ul>
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-center">
-                        {% if bam_list.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?page={{ bam_list.previous_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Previous</a></li>
-                        {% endif %}
-                        <li class="page-item"><a class="page-link" href="#">{{ bam_list.number }} of {{ bam_list.paginator.num_pages }}</a></li>
-                        {% if bam_list.has_next %}
-                            <li class="page-item"><a class="page-link" href="?page={{ bam_list.next_page_number }}&sample_type={{ sample_type }}&sample_id={{ sample_id }}">Next</a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
+            </nav>
             {% endif %}
         </div>
     </div>
@@ -237,14 +265,10 @@
     function spinner_function() {
         var spinner = document.getElementById("spinner");
         var shader = document.getElementById("shader");
-        if (spinner.style.display === "none") 
-            {spinner.style.display = "block";}
-        else 
-            {spinner.style.display = "none";}
-        if (shader.style.display === "none") 
-            {shader.style.display = "block";}
-        else 
-            {shader.style.display = "none";}
+        if (spinner.style.display === "none") { spinner.style.display = "block"; }
+        else { spinner.style.display = "none"; }
+        if (shader.style.display === "none") { shader.style.display = "block"; }
+        else { shader.style.display = "none"; }
     }
 </script>
 {% endblock %}

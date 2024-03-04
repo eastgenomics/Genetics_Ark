@@ -9,3 +9,4 @@ DNAnexus_to_igv/jsons/*
 staticfiles
 reference
 .vscode
+.DS_Store

@@ -3,146 +3,155 @@
 {% load static %}
 
 <html>
-	<head>
-		<title>Genetics Ark</title>
-		<meta name="description" content="" />
-		<meta name="keywords" content="" />
 
-		<!-- Bootstrap Required Metadata -->
-		<meta charset="utf-8">
-    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<head>
+	<title>Genetics Ark</title>
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
 
-		<!-- jQuery JS v3.6.0 -->
-		<script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
+	<!-- Bootstrap Required Metadata -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-		<!-- Main CSS -->
-		<link rel="stylesheet" type='text/css' href="{% static 'css/main.css' %}"/>
+	<!-- jQuery JS v3.6.0 -->
+	<script src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
 
-		<!-- Bootstrap 5 CSS -->
-		<link rel="stylesheet" type='text/css' href="{% static 'css/bootstrap.min.css' %}"/>
+	<!-- Main CSS -->
+	<link rel="stylesheet" type='text/css' href="{% static 'css/main.css' %}" />
 
-		<!-- Popper JS -->
-		<script rel="stylesheet" src="{% static 'js/popper.min.js' %}"></script>
-		<script rel="stylesheet" src="{% static 'js/bootstrap.min.js' %}"></script>
+	<!-- Bootstrap 5 CSS -->
+	<link rel="stylesheet" type='text/css' href="{% static 'css/bootstrap.min.css' %}" />
 
-		<!-- IGV JS v2.15.3 -->
-		<script type="text/javascript" src="{% static 'js/igv.2.15.3.min.js' %}"></script>
+	<!-- Popper JS -->
+	<script rel="stylesheet" src="{% static 'js/popper.min.js' %}"></script>
+	<script rel="stylesheet" src="{% static 'js/bootstrap.min.js' %}"></script>
 
-		<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
-		{% block css %}{% endblock %}
-	</head>
-	<body>
-		<!-- Navbar -->
-		<nav class="navbar navbar-expand-lg py-0" style="background-color: #2e738e;">
-			<div class="container-fluid">
-				<a class="navbar-brand text-white fs-4 fw-bold" href="{% url 'genetics:index' %}">Genetics Ark</a>
-			  	<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
-			  	</button>
-			  	<div class="collapse navbar-collapse" id="navbarNav">
-					<ul class="navbar-nav ml-auto">
-						<li class="nav-item">
-							<a class="nav-link text-white" aria-current="page" href="{% url 'primer:index' %}">Primer Designer</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-white " href="{% url 'igv:index' %}">IGV</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-white" target="_blank" href="{{ desk }}">Service Desk</a>
-						</li>
-					</ul>
-			  	</div>
-			  	{% if user.is_authenticated %}
-				<a class="btn btn-success btn-sm text-white fw-bold shadow-sm" href="{% url 'logout' %}" role="button">Logout</a>
-				{% else %}
-				<a class="btn btn-success btn-sm text-white fw-bold shadow-sm" href="{% url 'login' %}" role="button">Login</a>
-				{% endif %}
+	<!-- IGV JS v2.15.3 -->
+	<script type="text/javascript" src="{% static 'js/igv.2.15.3.min.js' %}"></script>
+
+	<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}" />
+	{% block css %}{% endblock %}
+</head>
+
+<body>
+	<!-- Navbar -->
+	<nav class="navbar navbar-expand-lg py-0" style="background-color: #2e738e;">
+		<div class="container-fluid">
+			<a class="navbar-brand text-white fs-4 fw-bold" href="{% url 'genetics:index' %}">Genetics Ark</a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+				aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto">
+					<li class="nav-item">
+						<a class="nav-link text-white" aria-current="page" href="{% url 'primer:index' %}">Primer
+							Designer</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white " href="{% url 'igv:index' %}">IGV</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-white" target="_blank" href="{{ desk }}">Service Desk</a>
+					</li>
+				</ul>
 			</div>
-		</nav>
+			{% if user.is_authenticated %}
+			<a class="btn btn-success btn-sm text-white fw-bold shadow-sm" href="{% url 'logout' %}"
+				role="button">Logout</a>
+			{% else %}
+			<a class="btn btn-success btn-sm text-white fw-bold shadow-sm" href="{% url 'login' %}"
+				role="button">Login</a>
+			{% endif %}
+		</div>
+	</nav>
 
-		<!-- Error Message -->
+	<!-- Error Message -->
 
-		{% if messages %}
-			{% for message in messages %}
-				<div class="alert {{ message.tags }} position-absolute top-0 start-50 translate-middle" role="alert" style="z-index: 1001; margin-top: 12rem;" data-value="{{ message }}" id="messageContent">
-					{{ message }}
-					{% if error %}
-						<br><br>
-						<a class="btn btn-secondary btn-sm shadow" href="#" id="copyMessage" onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
-						<span id="custom-tooltip-1" class="badge rounded-pill bg-info text-dark" style="display:none;">copied</span>
-						<a href="{{ desk }}" class="btn btn-danger btn-sm ml-3 shadow" target="_blank">Contact Helpdesk</a>
-					{% endif %}
-				</div>
-			{% endfor %}
+	{% if messages %}
+	{% for message in messages %}
+	<div class="alert {{ message.tags }} position-absolute top-0 start-50 translate-middle" role="alert"
+		style="z-index: 1001; margin-top: 12rem;" data-value="{{ message }}" id="messageContent">
+		{{ message }}
+		{% if error %}
+		<br><br>
+		<a class="btn btn-secondary btn-sm shadow" href="#" id="copyMessage"
+			onclick="copyToClipboard('messageContent', 1)">Copy Error Message</a>
+		<span id="custom-tooltip-1" class="badge rounded-pill bg-info text-dark" style="display:none;">copied</span>
+		<a href="{{ desk }}" class="btn btn-danger btn-sm ml-3 shadow" target="_blank">Contact Helpdesk</a>
 		{% endif %}
+	</div>
+	{% endfor %}
+	{% endif %}
 
 
-		{% block body %}
-		<!-- body block for inheriting page content -->
-		{% endblock %}
-		
-		<!-- Custom JS Script for MenuBar, IndexPage Banner -->
-		<script src="{% static 'js/breakpoints.min.js' %}"></script>
-		<script src="{% static 'js/util.js' %}"></script>
-		<script src="{% static 'js/main.js' %}"></script>
+	{% block body %}
+	<!-- body block for inheriting page content -->
+	{% endblock %}
 
-		{% block script %}
-		<!-- optional script -->
-		{% endblock %}
-		
-		<script>
-			var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-			var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-				return new bootstrap.Tooltip(tooltipTriggerEl)
-			});
-			
-			// this prevent page loading when click to copy
-			$('#copyMessage').click(function(event){
-				event.preventDefault(); //or return false;
-			});
-			
-			// this is the function which control how long the error message fade
-			// time is in milliseconds e.g. 5000 is 5 seconds
-			$(document).ready(function() {
-				// check if element 'message' exist
-				s = !!document.getElementById('messageContent');
-				// function to fade messages out
-				if (s == true) {
-					var s = document.getElementById('messageContent').style;
-					s.opacity = 1;
-					setTimeout(() => {(function fade(){(s.opacity-=.01)<0?s.display="none":setTimeout(fade,15)})(); }, 10000);
-				}
-			});
-			
-			//Function to copy text to clipboard
-			//Credit: https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
-			//Credit: https://stackoverflow.com/questions/61092432/display-success-message-after-copying-url-to-clipboard
-			function copyToClipboard(elementId, num) {
-				// Create a "hidden" input
-				var aux = document.createElement("input");
-				// Assign it the value of the specified element
-				aux.setAttribute("value", document.getElementById(elementId).getAttribute('data-value'));
-				// Append it to the body
-				document.body.appendChild(aux);
-				// Highlight its content
-				aux.select();
-				// Copy the highlighted text
-				document.execCommand("copy");
-				// Remove it from the body
-				document.body.removeChild(aux);
+	<!-- Custom JS Script for MenuBar, IndexPage Banner -->
+	<script src="{% static 'js/breakpoints.min.js' %}"></script>
+	<script src="{% static 'js/util.js' %}"></script>
+	<script src="{% static 'js/main.js' %}"></script>
 
-				if (num == 1) {
-					document.getElementById("custom-tooltip-1").style.display = "inline";
-					setTimeout( function() {
-						document.getElementById("custom-tooltip-1").style.display = "none";
-					}, 1000);
-				} else {
-					document.getElementById("custom-tooltip-2").style.display = "inline";
-					setTimeout( function() {
-						document.getElementById("custom-tooltip-2").style.display = "none";
-					}, 1000);
-				}
+	{% block script %}
+	<!-- optional script -->
+	{% endblock %}
+
+	<script>
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+			return new bootstrap.Tooltip(tooltipTriggerEl)
+		});
+
+		// this prevent page loading when click to copy
+		$('#copyMessage').click(function (event) {
+			event.preventDefault(); //or return false;
+		});
+
+		// this is the function which control how long the error message fade
+		// time is in milliseconds e.g. 5000 is 5 seconds
+		$(document).ready(function () {
+			// check if element 'message' exist
+			s = !!document.getElementById('messageContent');
+			// function to fade messages out
+			if (s == true) {
+				var s = document.getElementById('messageContent').style;
+				s.opacity = 1;
+				setTimeout(() => { (function fade() { (s.opacity -= .01) < 0 ? s.display = "none" : setTimeout(fade, 15) })(); }, 10000);
 			}
-		</script>
-	</body>
+		});
+
+		//Function to copy text to clipboard
+		//Credit: https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard
+		//Credit: https://stackoverflow.com/questions/61092432/display-success-message-after-copying-url-to-clipboard
+		function copyToClipboard(elementId, num) {
+			// Create a "hidden" input
+			var aux = document.createElement("input");
+			// Assign it the value of the specified element
+			aux.setAttribute("value", document.getElementById(elementId).getAttribute('data-value'));
+			// Append it to the body
+			document.body.appendChild(aux);
+			// Highlight its content
+			aux.select();
+			// Copy the highlighted text
+			document.execCommand("copy");
+			// Remove it from the body
+			document.body.removeChild(aux);
+
+			if (num == 1) {
+				document.getElementById("custom-tooltip-1").style.display = "inline";
+				setTimeout(function () {
+					document.getElementById("custom-tooltip-1").style.display = "none";
+				}, 1000);
+			} else {
+				document.getElementById("custom-tooltip-2").style.display = "inline";
+				setTimeout(function () {
+					document.getElementById("custom-tooltip-2").style.display = "none";
+				}, 1000);
+			}
+		}
+	</script>
+</body>
+
 </html>
