@@ -29,14 +29,14 @@ urlpatterns = (
         path("genetics_ark/accounts/", include("accounts.urls")),
         path("genetics_ark/admin/", admin.site.urls),
         path("genetics_ark/igv/", include("DNAnexus_to_igv.urls"), name="igv"),
-        path("genetics_ark/primer_designer/", include("primer_designer.urls")),
+        path("genetics_ark/primer_designer/", include("primer_designer.urls"), name="primer"),
     ]
     if not LOCAL_WORKSTATION
     else [
         path("", include("genetics_ark.urls")),
         path("accounts/", include("accounts.urls")),
         path("admin/", admin.site.urls),
-        path("igv/", include("DNAnexus_to_igv.urls")),
-        path("primer_designer/", include("primer_designer.urls")),
+        path("igv/", include("DNAnexus_to_igv.urls"), name="igv"),
+        path("primer_designer/", include("primer_designer.urls"), name="primer"),
     ]
 )

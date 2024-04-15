@@ -32,7 +32,7 @@ class RegionsForm(forms.Form):
                     )
             else:
                 # normal design checking
-                line = line.rstrip("\r")
+                line = line.rstrip("\r").replace('\t', ' ') # deal with tab-delimited inputs
                 fields = line.split(" ")
 
                 # strip empty spaces in cases where multiple spaces used

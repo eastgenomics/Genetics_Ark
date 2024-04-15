@@ -5,36 +5,25 @@
 {% block body %}
 
 <div class="container">
-  <!-- Timeout Modal-->
-  <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <!-- Error Modal-->
+  <div class="modal" tabindex="-1" id="staticBackdrop">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="staticBackdropLabel">Error processing primer</h1>
+          <h5 class="modal-title">Error Generating Primer</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          Primer is taking too long to generate. Please try again or contact the Bioinformatics Team via Helpdesk.
-        </div>
-        <div class="accordion" id="accordionExample">
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOne">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                More Details
-              </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-              <div id="accordionBody" class="accordion-body"></div>
-            </div>
-          </div>
+          <p>Please check your input and try again or contact the Bioinformatics Team via Helpdesk.</p>
+          <p id="errorMessage"></p>
         </div>
         <div class="modal-footer">
-          <a class="btn btn-danger btn-sm" href="/genetics_ark/primer_designer" role="button">Back</a>
+          <a class="btn btn-danger btn-sm" href="{% url 'primer:index' %}" role="button">Back</a>
         </div>
       </div>
     </div>
   </div>
-  <!-- Timeout Modal END -->
+  <!-- Error Modal END -->
 
   <div class="card my-5 p-5">
     <div class="card-body">
@@ -43,11 +32,14 @@
         Task reference ID: {{ task_id }}
       </div>
       <div id="spinner">
-        <img id='spinner' src="{% static 'images/dna-loader.gif' %}" alt="loading.gif"  style="width:300px;height:165px;">
+        <img id='spinner' src="{% static 'images/dna-loader.gif' %}" alt="loading.gif"
+          style="width:300px;height:165px;">
         <p>Generating primer.....</p>
       </div>
-      <p id="dlink" style="display:none">Download designed primers: <a href="{{ download_url }}" download>{{ output_name }}</a></p>
-      <a id="back-button" style="display:none" class="btn btn-danger btn-sm shadow" href="/genetics_ark/primer_designer" role="button">Back</a>
+      <p id="dlink" style="display:none">Download designed primers: <a href="{{download_url}}"
+          download>{{output_name}}</a></p>
+      <a id="back-button" style="display:none" class="btn btn-danger btn-sm shadow" href="{% url 'primer:index' %}"
+        role="button">Back</a>
     </div>
   </div>
 </div>
@@ -56,16 +48,16 @@
 
 {% block script %}
 <script>
-  $(document).ready(function() {
+  $(document).ready(function () {
 
     var task_id = "{{ task_id }}";
     var output_name = "{{ output_name }}";
     var current_url = window.location.href;
     var success = null
-    
+
     var intervalId = setInterval(query_task, 5000);
-      
-    setTimeout(function() {
+
+    setTimeout(function () {
       if (success == null) {
         // execute only when task_id remain null for 7 minutes
         clearInterval(intervalId); // stop querying backend about task
@@ -74,7 +66,7 @@
     }, 420000)
 
     // func to query backend on the task
-    function query_task(){
+    function query_task() {
       $.ajax({
         url: current_url + 'task/' + task_id,
         type: "GET",
@@ -82,14 +74,14 @@
         success: (data) => {
           if (data['status'] == 'done') {
             clearInterval(intervalId); // stop querying backend about the task
-            
+
             $('#spinner').fadeOut();
             $('#dlink').fadeIn(); // show download link
             $('#back-button').fadeIn();
 
             success = true;
           } else if (data['status'] == 'failed') {
-            var modalBody = document.getElementById("accordionBody");
+            var modalBody = document.getElementById("errorMessage");
             modalBody.innerHTML = data['error'];
 
             clearInterval(intervalId); // stop querying backend about task
