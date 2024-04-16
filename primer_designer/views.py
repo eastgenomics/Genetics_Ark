@@ -43,7 +43,9 @@ def index(request):
         else:
             region = regions_form.data["regions"]
             messages.add_message(
-                request, messages.ERROR, f"Error in given primer design input {region}"
+                request,
+                messages.ERROR,
+                f"Error in given primer design input {region}",
             )
             context_dict["error"] = True
     else:
@@ -96,7 +98,8 @@ def _random_string():
     """
     random_string = "".join(
         random.choices(
-            string.ascii_uppercase + string.ascii_lowercase + string.digits, k=5
+            string.ascii_uppercase + string.ascii_lowercase + string.digits,
+            k=5,
         )
     )
 
