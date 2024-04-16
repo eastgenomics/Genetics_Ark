@@ -82,7 +82,7 @@
             success = true;
           } else if (data['status'] == 'failed') {
             var modalBody = document.getElementById("errorMessage");
-            modalBody.innerHTML = data['error'];
+            modalBody.innerHTML = task_id + ":" + data['error'];
 
             clearInterval(intervalId); // stop querying backend about task
             $('#staticBackdrop').modal('show'); // show error modal
