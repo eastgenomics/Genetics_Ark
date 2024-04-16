@@ -61,9 +61,12 @@
       if (success == null) {
         // execute only when task_id remain null for 7 minutes
         clearInterval(intervalId); // stop querying backend about task
+
+        var modalBody = document.getElementById("errorMessage");
+        modalBody.innerHTML = "Primer taking too long to generate.";
         $('#staticBackdrop').modal('show'); // show error modal
       }
-    }, 420000)
+    }, 3600000) // one hour timeout
 
     // func to query backend on the task
     function query_task() {
