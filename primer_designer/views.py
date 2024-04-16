@@ -87,7 +87,7 @@ def task(request, task_id: str) -> HttpResponse:
         )
 
 
-def random_string():
+def _random_string():
     """
     Creates a random string
 
@@ -103,7 +103,7 @@ def random_string():
     return random_string.upper()
 
 
-def time_stamp():
+def _time_stamp():
     """
     Return a time stamp to ensure primer designs dont clash
 
@@ -130,7 +130,7 @@ def create(request, regions_form):
     regions = [x.rstrip("\r").strip() for x in regions if x]
 
     # unique name of date and random 5 char str
-    output_name = f"{time_stamp()}{random_string()}"
+    output_name = f"{_time_stamp()}{_random_string()}"
 
     # define output dir to host filesystem for primer cmd
     PARENT_PATH = "/home/primer_designer/output"
