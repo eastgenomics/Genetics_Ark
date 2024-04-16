@@ -18,16 +18,16 @@ def call_subprocess(output_directory: str, regions: str, output_name) -> bool:
         primer_cmd = f'python3 {PRIMER_PATH}/primer_designer_region.py {cmd}'
 
         # call subprocess to run primer3
-        try:
-            call = subprocess.run(
-                primer_cmd.split(),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True)
-        except:
+        call = subprocess.run(
+            primer_cmd.split(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True)
+        
+            
+        if call.returncode != 0:
             print(call.stdout)
-            if call.returncode != 0:
-                return False, call.stdout
+            return False, call.stdout
 
 
     # zip the PDFs in output dir
@@ -50,7 +50,7 @@ def _format_region(region, dir):
         # format for fusion design, will be in format
         # chr:pos:side:strand chr:pos:side:strand build 'fusion'
         b1, b2, build = region.split()
-        cmd = f'--fusion --b1 {b1} --b2 {b2} --{build} -d {dir} -o {b1.replace(':', "_")}_{b2.replace(":", "_")}_{build}'
+        cmd = f'--fusion --b1 {b1} --b2 {b2} --{build} -d {dir} -o {b1.replace(":", "_")}_{b2.replace(":", "_")}_{build}'
     else:
         # either position or range design
         if '-' in region:
