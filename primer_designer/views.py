@@ -43,7 +43,9 @@ def index(request):
         else:
             region = regions_form.data["regions"]
             messages.add_message(
-                request, messages.ERROR, f"Error in given primer design input {region}"
+                request,
+                messages.ERROR,
+                f"Error in given primer design input {region}",
             )
             context_dict["error"] = True
     else:
@@ -87,7 +89,7 @@ def task(request, task_id: str) -> HttpResponse:
         )
 
 
-def random_string():
+def _random_string():
     """
     Creates a random string
 
@@ -96,14 +98,15 @@ def random_string():
     """
     random_string = "".join(
         random.choices(
-            string.ascii_uppercase + string.ascii_lowercase + string.digits, k=5
+            string.ascii_uppercase + string.ascii_lowercase + string.digits,
+            k=5,
         )
     )
 
     return random_string.upper()
 
 
-def time_stamp():
+def _time_stamp():
     """
     Return a time stamp to ensure primer designs dont clash
 
@@ -130,7 +133,7 @@ def create(request, regions_form):
     regions = [x.rstrip("\r").strip() for x in regions if x]
 
     # unique name of date and random 5 char str
-    output_name = f"{time_stamp()}{random_string()}"
+    output_name = f"{_time_stamp()}{_random_string()}"
 
     # define output dir to host filesystem for primer cmd
     PARENT_PATH = "/home/primer_designer/output"
