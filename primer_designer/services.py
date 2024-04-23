@@ -44,7 +44,9 @@ def _format_region(region: str, dir: str) -> str:
     """
     Format region from input form as command (str) for primer designer
 
-    Args: region (str): region passed from Input Form
+    Args:
+        region (str): region passed from Input Form
+        dir (str): output directory for primer designs
     Returns: cmd (str): formatted str of cmd for primer designer
     """
     region = region.replace('\t', ' ')  # deal with tab-delimited inputs
