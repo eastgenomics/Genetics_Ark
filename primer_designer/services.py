@@ -49,7 +49,7 @@ def _format_region(region: str, dir: str) -> str:
         dir (str): output directory for primer designs
     Returns: cmd (str): formatted str of cmd for primer designer
     """
-    region = region.replace('\t', ' ')  # deal with tab-delimited inputs
+    region = region.replace("\t", " ")  # deal with tab-delimited inputs
 
     if region.count(":") > 1:
         # format for fusion design, will be in format

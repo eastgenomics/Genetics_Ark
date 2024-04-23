@@ -22,7 +22,7 @@ class RegionsForm(forms.Form):
 
         for line in cleaned_data["regions"].split("\n"):
             if line.count(":") > 1:
-                line = line.replace('\t', ' ').split(maxsplit=1)[
+                line = line.replace("\t", " ").split(maxsplit=1)[
                     -1
                 ]  # skip the first part (primer name)
 
@@ -72,7 +72,9 @@ class RegionsForm(forms.Form):
                 match = re.search(r"^[0-9]+[-]?[0-9]*$", pos_fields[1])
 
                 if not match:
-                    raise forms.ValidationError(f"{line} chr/position in wrong format")
+                    raise forms.ValidationError(
+                        f"{line} chr/position in wrong format"
+                    )
 
                 chromosomes = [str(x) for x in range(1, 23)]
                 chromosomes.extend(["X", "Y", "MT"])
