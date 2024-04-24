@@ -12,11 +12,11 @@
   #spinner {
     position: fixed;
     z-index: 1000;
-    margin:auto;
-    left:0;
-    right:0;
-    top:0;
-    bottom:0;
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
   }
 
   #shader {
@@ -39,29 +39,41 @@
     <div class="card-body">
       <h2> Primer Designer</h2>
       <div>
-          Enter regions to design primers for (one region per line)
-    
-          <br></br>
-    
-          Example input formats:<br>
-    
-          <ul>
-            <li class="my-2">Single Position: <pre class="inline px-2">1:1625342 grch37</pre></li>
-            <li class="my-2">Range Position: <pre class="inline px-2">1:1625342-1625442 grch37</pre></li>
-            <li class="my-2">Fusion Design: <pre class="inline px-2">5:91534939:b:1 5:134453073:a:1 grch37</pre></li>
-          </ul>
-    
-          For fusion designs, each should be in the format of <pre class="inline">chr:pos:side:strand</pre> for both regions,<br>
-          followed by the <pre class="inline">grch37</pre> or <pre class="inline">grch38</pre>.<br></br>
-          <pre class="inline">side</pre> should be either <pre class="inline">a/b</pre> and <pre class="inline">strand</pre>
-          should be either <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
-          
-          <!-- Input form -->
-          <form id="primer_form" clas="my-5" method="POST">
-            {% csrf_token %}
-            {{ regions_form|crispy }}
-            <button id="primer_submit" type="submit" class="btn btn-primary btn-sm mt-2 shadow">Submit</button>
-          </form>
+        Enter regions to design primers for (one region per line)
+
+        <br></br>
+
+        Example input formats:<br>
+
+        <ul>
+          <li class="my-2">Single Position:
+            <pre class="inline px-2">GLDC_P060_1 1:1625342 grch37</pre>
+          </li>
+          <li class="my-2">Range Position:
+            <pre class="inline px-2">GLDC_P060_1 1:1625342-1625442 grch37</pre>
+          </li>
+          <li class="my-2">Fusion Design:
+            <pre class="inline px-2">GLDC_P060_1 5:91534939:b:1 5:134453073:a:1 grch37</pre>
+          </li>
+        </ul>
+
+        For fusion designs, each should be in the format of
+        <pre class="inline">primer_name chr:pos:side:strand</pre> for both regions,<br>
+        followed by the
+        <pre class="inline">grch37</pre> or
+        <pre class="inline">grch38</pre>.<br></br>
+        <pre class="inline">side</pre> should be either
+        <pre class="inline">a/b</pre> and
+        <pre class="inline">strand</pre>
+        should be either
+        <pre class="inline">1/-1</pre> and denotes where to design primers relative to a breakpoint.
+
+        <!-- Input form -->
+        <form id="primer_form" clas="my-5" method="POST">
+          {% csrf_token %}
+          {{ regions_form|crispy }}
+          <button id="primer_submit" type="submit" class="btn btn-primary btn-sm mt-2 shadow">Submit</button>
+        </form>
       </div>
     </div>
   </div>
@@ -72,8 +84,8 @@
 {% block script %}
 <!-- function to disable submit button on form submission. Prevent double submission -->
 <script>
-  $(document).ready(function() {
-    $("#primer_form").on("submit", function() {
+  $(document).ready(function () {
+    $("#primer_form").on("submit", function () {
       $(this).find(':input[type=submit]').prop('disabled', true);
     });
   });
