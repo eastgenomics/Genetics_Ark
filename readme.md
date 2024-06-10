@@ -10,6 +10,7 @@ Genetics Ark is a Django based web interface for hosting apps used by clinical s
 - reference files for IGV.js (fasta, fai, cytoband, refseq)
 - Docker & Docker Compose
 - [Primer Designer](https://github.com/eastgenomics/primer_designer) (deployed on Docker)
+- [Komodo Cron Metrics](https://github.com/eastgenomics/komodo_cron_metrics) (deployed on Docker)
 
 #### primer designer
 Genetics Ark allows primer input submission: `<chromosome>:<position> <genome build>`
@@ -31,12 +32,13 @@ Edit `env_file` in `docker-compose.yml` to point to your `.env` file
 ```
 # start cron
 0 2 * * * rm -rf /home/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /home/log/ga-cron.log 2>&1
-0 2 * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1
+0 2 * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1 && docker run --rm -v /home/log:/prom_metrics komodo_cron_metrics.v1.0.0 genetics_ark
 # end cron
 ```
 Check schduled cron is running by accessing cron container `docker exec -it <container id> bash` then `crontab -l`. Sometimes cron ran into [pam security issue](https://stackoverflow.com/questions/21926465/issues-running-cron-in-docker-on-different-hosts). 
 
-All cron run log will be stored in cron container `/home/log/cron.log`
+All plain text cron run logs will be stored in the cron container `/home/log/cron.log`
+Prometheus-formatted completion time logs are also produced. They will be stored in the same directory and are named with the '.prom' suffix: `/home/log/*.prom`
 
 ### Running in local system
 - change logging location in `ga_core/settings.py`
