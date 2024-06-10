@@ -5,7 +5,7 @@ version: '2.6'
 services:
   geneticsweb:
     container_name: genetics-ark-web
-    image: genetics-ark-web:2.0.1
+    image: genetics-ark-web:2.0.3
     platform: linux/amd64
     build:
       dockerfile: web.Dockerfile
@@ -24,7 +24,7 @@ services:
       - geneticsdb
   geneticscron:
     container_name: genetics-ark-cron
-    image: genetics-ark-cron:2.0.1
+    image: genetics-ark-cron:add_komodo_monitoring
     platform: linux/amd64
     restart: always
     build: ./cron
@@ -61,7 +61,7 @@ services:
     ports:
       - 6379:6379
   geneticsdjangoq:
-    image: genetics-ark-djangoq:2.0.1
+    image: genetics-ark-djangoq:2.0.3
     platform: linux/amd64
     container_name: genetics-ark-djangoq
     build:

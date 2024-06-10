@@ -10,3 +10,5 @@ staticfiles
 reference
 .vscode
 .DS_Store
+*.gz
+*/*.gz

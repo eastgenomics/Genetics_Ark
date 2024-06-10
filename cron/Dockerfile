@@ -3,6 +3,7 @@ FROM python:3.8-slim
 RUN apt-get update && apt-get -y install -qq --force-yes cron
 RUN apt-get -y install vim
 RUN apt-get install gcc python3-dev -y
+RUN apt-get -y install podman
 
 WORKDIR /home
 
