@@ -22,6 +22,10 @@ class RegionsForm(forms.Form):
 
         for line in cleaned_data["regions"].split("\n"):
             if line.count(":") > 1:
+                line = line.replace("\t", " ").split(maxsplit=1)[
+                    -1
+                ]  # skip the first part (primer name)
+
                 # fusion design given, expected to be in the format
                 # chr:pos:side:strand chr:pos:side:strand build fusion
                 line = line.rstrip("fusion").strip().lower()
@@ -37,13 +41,14 @@ class RegionsForm(forms.Form):
                 line = line.rstrip("\r").replace(
                     "\t", " "
                 )  # deal with tab-delimited inputs
-                fields = line.split(" ")
+                fields: list[str] = line.split(" ")
 
                 # strip empty spaces in cases where multiple spaces used
-                fields = [x for x in fields if x]
+                fields = [x for x in fields if x.strip()]
 
-                if len(fields) != 2:
-                    # each line should have 2 pieces of information
+                if len(fields) != 3:
+                    # each line should have 3 pieces of information:
+                    # primer-name & chr:pos & build
                     raise forms.ValidationError(
                         (
                             f"{line} not in correct format. "
@@ -51,17 +56,19 @@ class RegionsForm(forms.Form):
                         )
                     )
 
-                if fields[-1].lower() not in ["grch37", "grch38"]:
+                _, chromosome_position, build = fields
+
+                if build.lower() not in ["grch37", "grch38"]:
                     # Check on valid reference names
                     raise forms.ValidationError(
                         "{} invalid reference\
                         name".format(
-                            fields[-1]
+                            build
                         )
                     )
 
                 # split chr and postion, will either be chr:pos or chr:pos-pos
-                pos_fields = re.split("[:]", fields[0])
+                pos_fields = re.split("[:]", chromosome_position)
                 match = re.search(r"^[0-9]+[-]?[0-9]*$", pos_fields[1])
 
                 if not match:
