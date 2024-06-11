@@ -13,7 +13,7 @@ COPY requirements.txt find_dx_data.py ./
 RUN pip install -r requirements.txt
 
 # comment out a line in pam.d which stops crons running otherwise
-RUN sed -e '/session required pam_loginuid.so/ s/^#*/#/' -i /etc/pam.d/cron
+RUN sed -e '/session    required     pam_loginuid.so/ s/^#*/#/' -i /etc/pam.d/cron
 
 COPY crontab /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab
