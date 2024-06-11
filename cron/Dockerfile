@@ -16,3 +16,5 @@ COPY crontab /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab
 RUN crontab /etc/cron.d/crontab
 
+# comment out a line in pam.d which stops crons running otherwise
+RUN sed -e '/session required pam_loginuid.so/ s/^#*/#/' -i /etc/pam.d/crond
