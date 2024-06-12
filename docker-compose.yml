@@ -11,12 +11,12 @@ services:
       dockerfile: web.Dockerfile
     restart: always
     env_file:
-      - /Users/jason/Github/Genetics_Ark/.env
+      - ${GA_PATH}/.env
     volumes:
       - igv_volume:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
       - static_volume:/home/ga/staticfiles # staticfiles
-      - /Users/jason/Github/Genetics_Ark/logs:/home/ga/logs # write logging
-      - /Users/jason/Github/Genetics_Ark/reference:/reference_files # refs for primer designer
+      - ${LOG_PATH}:/home/ga/logs # write logging
+      - ${REF_PATH}:/reference_files # refs for primer designer
     expose:
       - 8001 # expose port within the container ONLY
     depends_on:
@@ -31,7 +31,7 @@ services:
     volumes:
       - primer_volume:/home/tmp # to clear generated pdfs
       - igv_volume:/home/jsons # to update the sample json
-      - /Users/jason/Github/Genetics_Ark/logs:/home/log # cron job logging
+      - ${LOG_PATH}:/home/log # cron job logging
     environment:
       - DNANEXUS_TOKEN=${DNANEXUS_TOKEN}
       - PROJECT_CNVS=${PROJECT_CNVS}
@@ -44,16 +44,16 @@ services:
     platform: linux/amd64
     restart: always
     volumes:
-      - /Users/jason/Github/Genetics_Ark/reference:/reference_files # serve igv references through nginx
+      - ${REF_PATH}:/reference_files # serve igv references through nginx
       - primer_volume:/tmp # zip generated primer designer PDFs
       - static_volume:/staticfiles # serve staticfiles
-      - /Users/jason/Github/Genetics_Ark/logs:/home/ga/log # logging for nginx
-      - /Users/jason/Github/Genetics_Ark/nginx:/etc/nginx/conf.d # nginx config
+      - ${LOG_PATH}:/home/ga/log # logging for nginx
+      - ${GA_PATH}/nginx:/etc/nginx/conf.d # nginx config
     expose:
       - 8002
     environment:
-      - VIRTUAL_HOST=localhost
-      - VIRTUAL_PATH=/genetics_ark
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - VIRTUAL_PATH=${VIRTUAL_PATH}
     depends_on:
       - geneticsweb
   redis:
@@ -72,10 +72,10 @@ services:
     command: python manage.py qcluster
     restart: always
     env_file:
-      - /Users/jason/Github/Genetics_Ark/.env
+      - ${GA_PATH}/.env
     volumes:
       - primer_volume:/home/primer_designer/output # zip generated primer designer PDFs
-      - /Users/jason/Github/Genetics_Ark/reference:/reference_files # refs for primer designer
+      - ${REF_PATH}:/reference_files # refs for primer designer
     depends_on:
       - redis
   geneticsdb:
@@ -85,7 +85,7 @@ services:
     ports:
       - 3307:3308
     env_file:
-      - /Users/jason/Github/Genetics_Ark/.env
+      - ${GA_PATH}/.env
     volumes:
       - genetics_db:/var/lib/mysql
 
