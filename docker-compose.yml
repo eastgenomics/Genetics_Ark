@@ -11,7 +11,7 @@ services:
       dockerfile: web.Dockerfile
     restart: always
     env_file:
-      - ${GA_PATH}/.env
+      - ${GA_CONFIG_PATH}
     volumes:
       - igv_volume:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
       - static_volume:/home/ga/staticfiles # staticfiles
@@ -32,12 +32,6 @@ services:
       - primer_volume:/home/tmp # to clear generated pdfs
       - igv_volume:/home/jsons # to update the sample json
       - ${LOG_PATH}:/home/log # cron job logging
-    environment:
-      - DNANEXUS_TOKEN=${DNANEXUS_TOKEN}
-      - PROJECT_CNVS=${PROJECT_CNVS}
-      - DEV_PROJECT_NAME=${DEV_PROJECT_NAME}
-      - SLACK_TOKEN=${SLACK_TOKEN}
-      - GENETIC_DEBUG=${GENETIC_DEBUG}
   geneticsnginx:
     container_name: genetics-ark-nginx
     image: nginx:1.23
@@ -51,9 +45,6 @@ services:
       - ${GA_PATH}/nginx:/etc/nginx/conf.d # nginx config
     expose:
       - 8002
-    environment:
-      - VIRTUAL_HOST=${VIRTUAL_HOST}
-      - VIRTUAL_PATH=${VIRTUAL_PATH}
     depends_on:
       - geneticsweb
   redis:
@@ -72,7 +63,7 @@ services:
     command: python manage.py qcluster
     restart: always
     env_file:
-      - ${GA_PATH}/.env
+      - ${GA_CONFIG_PATH}
     volumes:
       - primer_volume:/home/primer_designer/output # zip generated primer designer PDFs
       - ${REF_PATH}:/reference_files # refs for primer designer
@@ -85,7 +76,7 @@ services:
     ports:
       - 3307:3308
     env_file:
-      - ${GA_PATH}/.env
+      - ${GA_CONFIG_PATH}
     volumes:
       - genetics_db:/var/lib/mysql
 

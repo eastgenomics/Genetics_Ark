@@ -19,8 +19,9 @@ Genetics Ark allows igv searching for BAM or CNV samples (login required)
 
   
 ## Setup and Running 
-
-Genetics Ark requires environment variables in a `.env` file kept in the same directory as your docker-compose.yml file. See the example.env.
+Genetics Ark requires 2 local files containing environment variables:
+- A small `.env` file, kept in the same directory as your docker-compose.yml file. This only contains paths to mounted volumes, plus the path to the main config.txt file, given by GA_CONFIG_PATH. By adjusting this, the user can change their main config path for the docker-compose.yml without having to edit the docker-compose.yml directly. See the example.env.
+- A 'config.txt' file, which contains the majority of the environment variables. See example.config.txt for annotations.
   
 
 ### docker-compose

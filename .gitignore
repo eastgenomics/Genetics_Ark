@@ -10,3 +10,6 @@ staticfiles
 reference
 .vscode
 .DS_Store
+config.dev.txt
+config.prod.txt
+*.config.txt
