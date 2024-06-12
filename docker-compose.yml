@@ -1,4 +1,4 @@
-version: '2.0'
+version: '3.3'
 
 # PORT for web application, nginx, redis and database will change based on Port documentation on Dev and Prod server
 services:
@@ -18,7 +18,7 @@ services:
       - ${LOG_PATH}:/home/ga/logs # write logging
       - ${REF_PATH}:/reference_files # refs for primer designer
     expose:
-      - 8001 # expose port within the container ONLY
+      - 8000 # expose port within the container ONLY
     depends_on:
       - geneticsdb
   geneticscron:
@@ -44,7 +44,7 @@ services:
       - ${LOG_PATH}:/home/ga/log # logging for nginx
       - ${GA_PATH}/nginx:/etc/nginx/conf.d # nginx config
     expose:
-      - 8002
+      - 8001
     depends_on:
       - geneticsweb
   redis:
@@ -74,7 +74,7 @@ services:
     container_name: genetics-ark-db
     image: mysql:8
     ports:
-      - 3307:3308
+      - 3308:3308
     env_file:
       - ${GA_CONFIG_PATH}
     volumes:
