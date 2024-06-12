@@ -76,7 +76,7 @@ Redis as queue broker
 MySQL database
 
 ## Environments
-View the 'example.env' file for descriptions of the required environment variables, which should be stored in a '*.env' file locally.
+View the 'example.env' file for descriptions of the required environment variables, which should be stored in a '.env' file locally. .env files must not be version-controlled.
 
 ## Current Apps
 

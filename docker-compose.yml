@@ -1,4 +1,4 @@
-version: '2.6'
+version: '2.0'
 
 # PORT for web application, nginx, redis and database will change based on Port documentation on Dev and Prod server
 services:
@@ -18,7 +18,7 @@ services:
       - /Users/jason/Github/Genetics_Ark/logs:/home/ga/logs # write logging
       - /Users/jason/Github/Genetics_Ark/reference:/reference_files # refs for primer designer
     expose:
-      - 8000 # expose port within the container ONLY
+      - 8001 # expose port within the container ONLY
     depends_on:
       - geneticsdb
   geneticscron:
@@ -28,12 +28,16 @@ services:
     restart: always
     build: ./cron
     command: bash -c "printenv > /etc/environment && cron -f"
-    env_file:
-      - /Users/jason/Github/Genetics_Ark/.env
     volumes:
       - primer_volume:/home/tmp # to clear generated pdfs
       - igv_volume:/home/jsons # to update the sample json
       - /Users/jason/Github/Genetics_Ark/logs:/home/log # cron job logging
+    environment:
+      - DNANEXUS_TOKEN=${DNANEXUS_TOKEN}
+      - PROJECT_CNVS=${PROJECT_CNVS}
+      - DEV_PROJECT_NAME=${DEV_PROJECT_NAME}
+      - SLACK_TOKEN=${SLACK_TOKEN}
+      - GENETIC_DEBUG=${GENETIC_DEBUG}
   geneticsnginx:
     container_name: genetics-ark-nginx
     image: nginx:1.23
