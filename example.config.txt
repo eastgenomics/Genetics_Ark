@@ -13,6 +13,14 @@ VIRTUAL_HOST=
 VIRTUAL_PATH=/genetics_ark
 
 
+# Paths for Primer Designer - FASTA reference files, and gnomAD VCFs for SNPs
+
+REF_37=
+SNP_37=
+REF_38=
+SNP_38=
+
+
 # For the Primer Designer output PDF - control the displayed SNP file text, displayed version,
 # and download link for PDF results
 
