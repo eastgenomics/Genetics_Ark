@@ -414,6 +414,6 @@ if __name__ == "__main__":
 
     if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG):
         find_dx_bams(get_002_projects())
-    
+
     et = time.time()
     print(f"Execution time: {et-st} seconds")
