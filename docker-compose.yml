@@ -1,30 +1,29 @@
 version: '2.6'
 
 # PORT for web application, nginx, redis and database will change based on Port documentation on Dev and Prod server
-
 services:
   geneticsweb:
     container_name: genetics-ark-web
-    image: genetics-ark-web:2.0.1
+    image: genetics-ark-web:2.0.3
+    command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8003 --timeout 300 --workers 2 --threads 4"
     platform: linux/amd64
     build:
       dockerfile: web.Dockerfile
-    command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8003 --timeout 300 --workers 2 --threads 4"
     restart: always
     env_file:
       - /Users/jason/Github/Genetics_Ark/.env
     volumes:
       - igv_volume:/home/ga/DNAnexus_to_igv/jsons # read updated BAM json file
       - static_volume:/home/ga/staticfiles # staticfiles
-      - /Users/jason/Github/Genetics_Ark/logs # write logging
+      - /Users/jason/Github/Genetics_Ark/logs:/home/ga/logs # write logging
       - /Users/jason/Github/Genetics_Ark/reference:/reference_files # refs for primer designer
     expose:
-      - 8003 # expose port within the container ONLY
+      - 8000 # expose port within the container ONLY
     depends_on:
       - geneticsdb
   geneticscron:
     container_name: genetics-ark-cron
-    image: genetics-ark-cron:2.0.1
+    image: genetics-ark-cron:2.0.3
     platform: linux/amd64
     restart: always
     build: ./cron
@@ -54,16 +53,16 @@ services:
     depends_on:
       - geneticsweb
   redis:
-    # container_name: genetics-ark-redis
-    # platform: linux/amd64
+    container_name: genetics-ark-redis
     image: redis:7-alpine
+    platform: linux/amd64
     restart: always
     ports:
       - 6379:6379
   geneticsdjangoq:
-    image: genetics-ark-djangoq:2.0.1
-    platform: linux/amd64
     container_name: genetics-ark-djangoq
+    image: genetics-ark-djangoq:2.0.3
+    platform: linux/amd64
     build:
       dockerfile: primer.Dockerfile
     command: python manage.py qcluster
@@ -76,8 +75,8 @@ services:
     depends_on:
       - redis
   geneticsdb:
-    container_name: genetics-ark-db
     # platform: linux/amd64
+    container_name: genetics-ark-db
     image: mysql:8
     ports:
       - 3307:3308
@@ -91,7 +90,6 @@ volumes:
   primer_volume:
   igv_volume:
   genetics_db:
-
 
 networks:
   default:
