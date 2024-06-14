@@ -5,7 +5,7 @@ services:
   geneticsweb:
     container_name: genetics-ark-web
     image: genetics-ark-web:2.0.3
-    command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8003 --timeout 300 --workers 2 --threads 4"
+    command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8000 --timeout 300 --workers 2 --threads 4"
     platform: linux/amd64
     build:
       dockerfile: web.Dockerfile
@@ -18,7 +18,7 @@ services:
       - ${LOG_PATH}:/home/ga/logs # write logging
       - ${REF_PATH}:/reference_files # refs for primer designer
     expose:
-      - 8000 # expose port within the container ONLY
+      - 8001 # expose port within the container ONLY
     depends_on:
       - geneticsdb
   geneticscron:
@@ -44,7 +44,7 @@ services:
       - ${LOG_PATH}:/home/ga/log # logging for nginx
       - ${GA_PATH}/nginx:/etc/nginx/conf.d # nginx config
     expose:
-      - 8001
+      - 8002
     depends_on:
       - geneticsweb
   redis:
@@ -73,8 +73,8 @@ services:
     # platform: linux/amd64
     container_name: genetics-ark-db
     image: mysql:8
-    ports:
-      - 3308:3308
+    expose:
+      - 3306
     env_file:
       - ${GA_CONFIG_PATH}
     volumes:
