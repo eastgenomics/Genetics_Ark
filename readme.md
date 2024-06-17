@@ -52,7 +52,7 @@ Ensure the following environment variables are correct:
 You must also run a server, with `python manage.py runserver`
 
 ### Running in production
-Ensure `GENETIC_DEBUG` is not in config file to run in production mode
+Ensure `GENETIC_DEBUG` is not in config file, to run in production mode
 ```
 docker compose build
 docker compose up db -d # start db first and create a database named genetics
