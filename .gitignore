@@ -1,12 +1,18 @@
 # config.py must NOT be in version control
 django_example/config.py
 env
+.env
 __pycache__
 logs/*
 tmp/*
-.env
 DNAnexus_to_igv/jsons/*
 staticfiles
 reference
 .vscode
 .DS_Store
+config.dev.txt
+config.prod.txt
+config.*.txt
+*.config.txt
+# avoid incorporating zipped Docker image files
+*.gz
