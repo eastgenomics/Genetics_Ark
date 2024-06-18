@@ -122,14 +122,18 @@ def get_002_projects() -> dict:
     project_id_to_name = {
         project["id"]: project["describe"]["name"]
         for project in dx.search.find_projects(
-            name="002*", name_mode="glob", describe={"fields": {"name": True}}
+            name="002*",
+            name_mode="glob",
+            describe={"fields": {"name": True}}
         )
     }
 
     # might return multiple results as it's searched by name
     for development_project in dx.search.find_projects(
-        name=DEV_PROJECT_NAME, name_mode="glob"
-    ):
+        name=DEV_PROJECT_NAME,
+        name_mode="glob", 
+        describe={'fields':{'folder':True, 'name': True, 'archivalState': True}},
+        ):
         project_id_to_name[development_project["id"]] = DEV_PROJECT_NAME
 
     print("Total 002 projects found:", len(project_id_to_name))
