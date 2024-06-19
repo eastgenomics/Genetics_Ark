@@ -122,27 +122,29 @@ def get_002_projects() -> dict:
     project_id_to_name = {
         project["id"]: project["describe"]["name"]
         for project in dx.search.find_projects(
-            name="002*",
-            name_mode="glob",
-            describe={"fields": {"name": True}}
+            name="002*", name_mode="glob", describe={"fields": {"name": True}}
         )
     }
 
     # might return multiple results as it's searched by name
     for development_project in dx.search.find_projects(
         name=DEV_PROJECT_NAME,
-        name_mode="glob", 
-        describe={'fields':{'folder':True, 'name': True, 'archivalState': True}},
-        ):
+        name_mode="glob",
+        describe={
+            "fields": {"folder": True, "name": True, "archivalState": True}
+        },
+    ):
         project_id_to_name[development_project["id"]] = DEV_PROJECT_NAME
 
     print("Total 002 projects found:", len(project_id_to_name))
 
     return project_id_to_name
 
+
 def find_in_parallel_multiproject(projects, search_term) -> list:
     """
-    Parallel search across multiple named project, adapted from dias report bulk reanalyser.
+    Parallel search for files matching a name pattern across multiple project IDs;
+    adapted from dias report bulk reanalyser.
 
     Call dxpy.find_data_objects in parallel.
 
@@ -158,29 +160,33 @@ def find_in_parallel_multiproject(projects, search_term) -> list:
     list
         list of all found dxpy object details
     """
+
     def _find(project, search_term):
         """
         Query given patterns as a regex search term to find all files
         """
-        return list(dx.find_data_objects(
-            project=project,
-            name=rf'{search_term}',
-            name_mode='regexp',
-            describe={
-                'fields': {
-                    'name': True,
-                    'folder': True,
-                    'archivalState': True,
-                    'createdBy': True
-                }
-            }
-        ))
+        return list(
+            dx.find_data_objects(
+                project=project,
+                name=rf"{search_term}",
+                name_mode="regexp",
+                describe={
+                    "fields": {
+                        "name": True,
+                        "folder": True,
+                        "archivalState": True,
+                        "createdBy": True,
+                    }
+                },
+            )
+        )
 
     results = []
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
         concurrent_jobs = {
-            executor.submit(_find, project, search_term) for project in projects
+            executor.submit(_find, project, search_term)
+            for project in projects
         }
 
         for future in concurrent.futures.as_completed(concurrent_jobs):
@@ -190,9 +196,7 @@ def find_in_parallel_multiproject(projects, search_term) -> list:
 
             except Exception as exc:
                 # catch any errors that might get raised during querying
-                print(
-                    f"Error getting data for {future}: {exc}"
-                )
+                print(f"Error getting data for {future}: {exc}")
                 raise exc
 
     return results
@@ -222,7 +226,9 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
-    bams_idxs = find_in_parallel_multiproject(list(project_id_to_name.keys()), "^.*\.bam$|^.*\.bai$")
+    bams_idxs = find_in_parallel_multiproject(
+        list(project_id_to_name.keys()), "^.*\.bam$|^.*\.bai$"
+    )
     bams = [x for x in bams_idxs if x["describe"]["name"].endswith(".bam")]
     idxs = [x for x in bams_idxs if x["describe"]["name"].endswith(".bai")]
 
@@ -357,7 +363,9 @@ def find_cnvs(data_dict: dict):
         )
     )
     beds = [x for x in beds_indices if x["describe"]["name"].endswith(".gz")]
-    indices = [x for x in beds_indices if x["describe"]["name"].endswith(".tbi")]
+    indices = [
+        x for x in beds_indices if x["describe"]["name"].endswith(".tbi")
+    ]
 
     for file in beds:
         cnv_name = file["describe"]["name"]
@@ -384,9 +392,10 @@ def find_cnvs(data_dict: dict):
 
         if cnv_index:
             if len(cnv_index) > 1:
-                # very occasionally there's more than one index file
-                # try the first (error will happen if unlucky)
-                print(f"Multiple index files found for {cnv_name} - using the first only")
+                # very occasionally there's more than one index file - use the first
+                print(
+                    f"Multiple index files found for {cnv_name} - using the first only"
+                )
             cnv_index = cnv_index[0]
             cnv_dict["idx_name"] = cnv_index["describe"]["name"]
             cnv_dict["idx_id"] = cnv_index["id"]
