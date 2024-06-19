@@ -307,42 +307,37 @@ def find_cnvs(data_dict: dict):
         data_dict
 
     """
-
     print("Searching for CNVs")
 
     project_name = dx.DXProject(PROJECT_CNVS).describe()["name"]
 
-    for file in list(
-        dx.find_data_objects(
+    beds = list(
+        dx.search.find_data_objects(
             project=PROJECT_CNVS,
-            name=".*_copy_ratios.gcnv.bed.gz\Z",
+            name=".*_copy_ratios.gcnv.bed.gz\Z", # or .*_copy_ratios.gcnv.bed.gz.tbi\Z
             name_mode="regexp",
             describe={
                 "fields": {"folder": True, "name": True, "archivalState": True}
             },
         )
-    ):
+    )
+
+    indices = list(
+        dx.search.find_data_objects(
+            project=PROJECT_CNVS,
+            name=".*_copy_ratios.gcnv.bed.gz.tbi\Z",
+            name_mode="regexp",
+            describe={
+                "fields": {"folder": True, "name": True, "archivalState": True}
+            },
+        )
+    )
+
+    for file in beds:
         cnv_name = file["describe"]["name"]
         cnv_path = file["describe"]["folder"]
         cnv_id = file["id"]
         cnv_archival_status = file["describe"]["archivalState"]
-
-        cnv_index = list(
-            dx.find_data_objects(
-                project=PROJECT_CNVS,
-                name=f"{cnv_name}.tbi",
-                name_mode="regexp",
-                folder=cnv_path,
-                describe={
-                    "fields": {
-                        "folder": True,
-                        "name": True,
-                        "archivalState": True,
-                    }
-                },
-                limit=1,
-            )
-        )
 
         cnv_dict = {
             "file_name": cnv_name,
@@ -354,14 +349,24 @@ def find_cnvs(data_dict: dict):
             "CNV": True,
         }
 
-        if cnv_index:
-            cnv_dict["idx_name"] = cnv_index[0]["describe"]["name"]
-            cnv_dict["idx_id"] = cnv_index[0]["id"]
-            cnv_dict["idx_path"] = cnv_index[0]["describe"]["folder"]
-            cnv_dict["idx_archival_state"] = cnv_index[0]["describe"][
+        # find the index file for each CNV
+        cnv_index = []
+        for index_file in indices:
+            if index_file["describe"]["folder"] == cnv_path:
+                if index_file["describe"]["name"] == f"{cnv_name}.tbi":
+                    cnv_index.append(index_file)
+
+        if len(cnv_index) == 1:
+            cnv_index = cnv_index[0]
+            cnv_dict["idx_name"] = cnv_index["describe"]["name"]
+            cnv_dict["idx_id"] = cnv_index["id"]
+            cnv_dict["idx_path"] = cnv_index["describe"]["folder"]
+            cnv_dict["idx_archival_state"] = cnv_index["describe"][
                 "archivalState"
             ]
         else:
+            if len(cnv_index) > 1:
+                print(f"Multiple index files found for {cnv_name} - returning no index results")
             cnv_dict["idx_name"] = None
             cnv_dict["idx_id"] = None
             cnv_dict["idx_path"] = None
