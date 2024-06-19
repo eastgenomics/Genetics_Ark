@@ -229,8 +229,8 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
-    bams = find_in_parallel_multiproject(project_id_to_name.keys(), "*bam")
-    idxs = find_in_parallel_multiproject(project_id_to_name.keys(), "*bam.bai")
+    bams = find_in_parallel_multiproject(list(project_id_to_name.keys()), "*bam")
+    idxs = find_in_parallel_multiproject(list(project_id_to_name.keys()), "*bam.bai")
 
     for project_id, project_name in project_id_to_name.items():
         bam_dict = {}
