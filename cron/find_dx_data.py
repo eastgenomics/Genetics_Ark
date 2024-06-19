@@ -57,7 +57,7 @@ Creates JSONs with following structure:
 
 Jethro Rainford 080620
 """
-
+import concurrent
 import datetime as date
 import dxpy as dx
 import requests
@@ -141,6 +141,70 @@ def get_002_projects() -> dict:
     return project_id_to_name
 
 
+def find_in_parallel_multiproject(projects, search_term) -> list:
+    """
+    Parallel search across multiple named project, adapted from dias report bulk reanalyser.
+
+    Call dxpy.find_data_objects in parallel.
+
+    Projects are chunked into max 100 items and queried in one
+    go as a regex pattern for more efficient querying
+
+    Parameters
+    ----------
+    projects : list
+        project IDs in which to restrict search scope
+    search_term : str
+        search term to search for
+
+    Returns
+    -------
+    list
+        list of all found dxpy object details
+    """
+    def _find(project, search_term):
+        """
+        Query given patterns as a regex search term to find all files
+        """
+        return list(dx.find_data_objects(
+            project=project,
+            name=search_term,
+            name_mode='glob',
+            describe={
+                'fields': {
+                    'name': True,
+                    'folder': True,
+                    'archivalState': True,
+                    'createdBy': True
+                }
+            }
+        ))
+
+    results = []
+
+    # create chunks of 100 projects from list for querying
+    chunked_projects = [projects[i:i + 100] for i in range(0, len(projects), 100)]
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+        concurrent_jobs = {
+            executor.submit(_find, project, search_term) for project in chunked_projects
+        }
+
+        for future in concurrent.futures.as_completed(concurrent_jobs):
+            # access returned output as each is returned in any order
+            try:
+                results.extend(future.result())
+
+            except Exception as exc:
+                # catch any errors that might get raised during querying
+                print(
+                    f"Error getting data for {future}: {exc}"
+                )
+                raise exc
+
+    return results
+
+
 def find_dx_bams(project_id_to_name: dict) -> None:
     """
     Function to find file-id and index-id for BAM and CNVs
@@ -165,45 +229,21 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
+    bams = find_in_parallel_multiproject(project_id_to_name.keys(), "*bam")
+    idxs = find_in_parallel_multiproject(project_id_to_name.keys(), "*bam.bai")
+
     for project_id, project_name in project_id_to_name.items():
         bam_dict = {}
         idx_dict = {}
 
-        bams = list(
-            dx.search.find_data_objects(
-                name="*bam",
-                name_mode="glob",
-                project=project_id,
-                describe={
-                    "fields": {
-                        "folder": True,
-                        "name": True,
-                        "archivalState": True,
-                    }
-                },
-            )
-        )
-
-        idxs = list(
-            dx.search.find_data_objects(
-                name="*bam.bai",
-                name_mode="glob",
-                project=project_id,
-                describe={
-                    "fields": {
-                        "folder": True,
-                        "name": True,
-                        "archivalState": True,
-                    }
-                },
-            )
-        )
+        # extract the project-relevant results
+        project_bams = [x for x in bams if x["project"] == project_id]
+        project_idxs = [x for x in idxs if x["project"] == project_id]
 
         if bams and idxs:
-            # if BAM(s) and index found, should always be found
-
+            # if BAM(s) and index found for the project,
             # add path, name and id of each bam and index to dicts
-            for bam in bams:
+            for bam in project_bams:
                 bam_dict[
                     (bam["describe"]["folder"], bam["describe"]["name"])
                 ] = {
@@ -211,7 +251,7 @@ def find_dx_bams(project_id_to_name: dict) -> None:
                     "archivalState": bam["describe"]["archivalState"],
                 }
 
-            for idx in idxs:
+            for idx in project_idxs:
                 idx_dict[
                     (idx["describe"]["folder"], idx["describe"]["name"])
                 ] = {
@@ -314,7 +354,7 @@ def find_cnvs(data_dict: dict):
     beds = list(
         dx.search.find_data_objects(
             project=PROJECT_CNVS,
-            name=".*_copy_ratios.gcnv.bed.gz\Z", # or .*_copy_ratios.gcnv.bed.gz.tbi\Z
+            name=".*_copy_ratios.gcnv.bed.gz\Z",
             name_mode="regexp",
             describe={
                 "fields": {"folder": True, "name": True, "archivalState": True}
