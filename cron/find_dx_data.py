@@ -140,15 +140,11 @@ def get_002_projects() -> dict:
 
     return project_id_to_name
 
-
 def find_in_parallel_multiproject(projects, search_term) -> list:
     """
     Parallel search across multiple named project, adapted from dias report bulk reanalyser.
 
     Call dxpy.find_data_objects in parallel.
-
-    Projects are chunked into max 100 items and queried in one
-    go as a regex pattern for more efficient querying
 
     Parameters
     ----------
@@ -182,12 +178,9 @@ def find_in_parallel_multiproject(projects, search_term) -> list:
 
     results = []
 
-    # create chunks of 100 projects from list for querying
-    chunked_projects = [projects[i:i + 100] for i in range(0, len(projects), 100)]
-
     with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
         concurrent_jobs = {
-            executor.submit(_find, project, search_term) for project in chunked_projects
+            executor.submit(_find, project, search_term) for project in projects
         }
 
         for future in concurrent.futures.as_completed(concurrent_jobs):
@@ -229,6 +222,7 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
+    #TODO: compare bam and bai calls, fix the results with list comprehensions
     bams = find_in_parallel_multiproject(list(project_id_to_name.keys()), "*bam")
     idxs = find_in_parallel_multiproject(list(project_id_to_name.keys()), "*bam.bai")
 
