@@ -356,7 +356,11 @@ def find_cnvs(data_dict: dict):
                 if index_file["describe"]["name"] == f"{cnv_name}.tbi":
                     cnv_index.append(index_file)
 
-        if len(cnv_index) == 1:
+        if len(cnv_index):
+            if len(cnv_index) > 1:
+                # very occasionally there's more than one index file
+                # try the first (error will happen if unlucky)
+                print(f"Multiple index files found for {cnv_name} - using the first only")
             cnv_index = cnv_index[0]
             cnv_dict["idx_name"] = cnv_index["describe"]["name"]
             cnv_dict["idx_id"] = cnv_index["id"]
@@ -365,8 +369,6 @@ def find_cnvs(data_dict: dict):
                 "archivalState"
             ]
         else:
-            if len(cnv_index) > 1:
-                print(f"Multiple index files found for {cnv_name} - returning no index results")
             cnv_dict["idx_name"] = None
             cnv_dict["idx_id"] = None
             cnv_dict["idx_path"] = None
