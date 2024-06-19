@@ -164,8 +164,8 @@ def find_in_parallel_multiproject(projects, search_term) -> list:
         """
         return list(dx.find_data_objects(
             project=project,
-            name=search_term,
-            name_mode='glob',
+            name=rf'{search_term}',
+            name_mode='regexp',
             describe={
                 'fields': {
                     'name': True,
@@ -222,9 +222,9 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
-    #TODO: compare bam and bai calls, fix the results with list comprehensions
-    bams = find_in_parallel_multiproject(list(project_id_to_name.keys()), "*bam")
-    idxs = find_in_parallel_multiproject(list(project_id_to_name.keys()), "*bam.bai")
+    bams_idxs = find_in_parallel_multiproject(list(project_id_to_name.keys()), "^.*\.bam$|^.*\.bai$")
+    bams = [x for x in bams_idxs if x["describe"]["name"].endswith(".bam")]
+    idxs = [x for x in bams_idxs if x["describe"]["name"].endswith(".bai")]
 
     for project_id, project_name in project_id_to_name.items():
         bam_dict = {}
@@ -390,7 +390,7 @@ def find_cnvs(data_dict: dict):
                 if index_file["describe"]["name"] == f"{cnv_name}.tbi":
                     cnv_index.append(index_file)
 
-        if len(cnv_index):
+        if cnv_index:
             if len(cnv_index) > 1:
                 # very occasionally there's more than one index file
                 # try the first (error will happen if unlucky)
