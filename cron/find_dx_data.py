@@ -345,27 +345,19 @@ def find_cnvs(data_dict: dict):
 
     project_name = dx.DXProject(PROJECT_CNVS).describe()["name"]
 
-    beds = list(
+    # combine into one API call for speed
+    beds_indices = list(
         dx.search.find_data_objects(
             project=PROJECT_CNVS,
-            name=".*_copy_ratios.gcnv.bed.gz\Z",
+            name=".*_copy_ratios.gcnv.bed.gz\Z|.*_copy_ratios.gcnv.bed.gz.tbi\Z",
             name_mode="regexp",
             describe={
                 "fields": {"folder": True, "name": True, "archivalState": True}
             },
         )
     )
-
-    indices = list(
-        dx.search.find_data_objects(
-            project=PROJECT_CNVS,
-            name=".*_copy_ratios.gcnv.bed.gz.tbi\Z",
-            name_mode="regexp",
-            describe={
-                "fields": {"folder": True, "name": True, "archivalState": True}
-            },
-        )
-    )
+    beds = [x for x in beds_indices if x["describe"]["name"].endswith(".gz")]
+    indices = [x for x in beds_indices if x["describe"]["name"].endswith(".tbi")]
 
     for file in beds:
         cnv_name = file["describe"]["name"]
