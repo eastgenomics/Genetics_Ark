@@ -231,7 +231,9 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     bams_idxs = find_in_parallel_multiproject(
         list(project_id_to_name.keys()), "^.*\.bam$|^.*\.bai$"
     )
-    grouped_bam_idxs = {k: list(v) for k, v in groupby(bams_idxs, lambda x: x['project'])}
+    grouped_bam_idxs = {
+        k: list(v) for k, v in groupby(bams_idxs, lambda x: x["project"])
+    }
 
     for project_id, project_name in project_id_to_name.items():
         bam_dict = {}
@@ -240,8 +242,16 @@ def find_dx_bams(project_id_to_name: dict) -> None:
         # get project-relevant data, split by bam and bai
         project_info = grouped_bam_idxs.get(project_id)
         if project_info:
-            project_bams = [x for x in project_info if x["describe"]["name"].endswith(".bam")]
-            project_idxs = [x for x in project_info if x["describe"]["name"].endswith(".bai")]
+            project_bams = [
+                x
+                for x in project_info
+                if x["describe"]["name"].endswith(".bam")
+            ]
+            project_idxs = [
+                x
+                for x in project_info
+                if x["describe"]["name"].endswith(".bai")
+            ]
 
         if project_bams and project_idxs:
             # if BAM(s) and index found for the project,
