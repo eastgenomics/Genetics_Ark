@@ -65,6 +65,7 @@ import os
 import json
 import time
 
+from itertools import groupby
 from collections import defaultdict
 from pathlib import Path
 
@@ -226,21 +227,23 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
+    # the group-by step reduces the size of the list comprehensions
     bams_idxs = find_in_parallel_multiproject(
         list(project_id_to_name.keys()), "^.*\.bam$|^.*\.bai$"
     )
-    bams = [x for x in bams_idxs if x["describe"]["name"].endswith(".bam")]
-    idxs = [x for x in bams_idxs if x["describe"]["name"].endswith(".bai")]
+    grouped_bam_idxs = {k: list(v) for k, v in groupby(bams_idxs, lambda x: x['project'])}
 
     for project_id, project_name in project_id_to_name.items():
         bam_dict = {}
         idx_dict = {}
 
-        # extract the project-relevant results
-        project_bams = [x for x in bams if x["project"] == project_id]
-        project_idxs = [x for x in idxs if x["project"] == project_id]
+        # get project-relevant data, split by bam and bai
+        project_info = grouped_bam_idxs.get(project_id)
+        if project_info:
+            project_bams = [x for x in project_info if x["describe"]["name"].endswith(".bam")]
+            project_idxs = [x for x in project_info if x["describe"]["name"].endswith(".bai")]
 
-        if bams and idxs:
+        if project_bams and project_idxs:
             # if BAM(s) and index found for the project,
             # add path, name and id of each bam and index to dicts
             for bam in project_bams:
