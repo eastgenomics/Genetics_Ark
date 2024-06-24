@@ -362,8 +362,6 @@ def find_cnvs(data_dict: dict):
     """
     print("Searching for CNVs")
 
-    project_name = dx.DXProject(PROJECT_CNVS).describe()["name"]
-
     # combine into one API call for speed
     beds_indices = list(
         dx.search.find_data_objects(
@@ -380,12 +378,14 @@ def find_cnvs(data_dict: dict):
         x for x in beds_indices if x["describe"]["name"].endswith(".tbi")
     ]
 
+    project_name = dx.DXProject(PROJECT_CNVS).describe()["name"]
+
     for file in beds:
         cnv_name = file["describe"]["name"]
         cnv_path = file["describe"]["folder"]
         cnv_id = file["id"]
         cnv_archival_status = file["describe"]["archivalState"]
-
+        
         cnv_dict = {
             "file_name": cnv_name,
             "file_id": cnv_id,
