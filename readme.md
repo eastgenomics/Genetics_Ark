@@ -30,16 +30,14 @@ In addition, you'll need to check that nginx/nginx.conf displays the correct por
 ### docker-compose
 
 #### cron
-- By default, find_dx_data.py runs hourly, and checks for new samples in DNAnexus which can be made available to IGV. A script which clears out a temporary directory runs every morning at 2am.
+- By default, find_dx_data.py runs every 15 minutes, and checks for new samples in DNAnexus which can be made available to IGV. A script which clears out a temporary directory runs every morning at 2am.
 - Edit `crontab` file to tweak cron schedule.
 ```
 # start cron
 0 2 * * * rm -rf /home/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /home/log/ga-cron.log 2>&1
-0 * * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1
+*/15 * * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1
 # end cron
 ```
-Check schduled cron is running by accessing cron container `docker exec -it <container id> bash` then `crontab -l`.
-
 All cron run logs will be stored in cron container `/home/log/cron.log`
 
 ### Running in local system
