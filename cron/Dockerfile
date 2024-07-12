@@ -6,7 +6,7 @@ RUN apt-get install gcc python3-dev -y
 
 WORKDIR /home
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED="1"
 
 COPY requirements.txt find_dx_data.py ./
 
