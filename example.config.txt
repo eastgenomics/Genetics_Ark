@@ -1,0 +1,84 @@
+
+# General Django settings - including Django secret key, whether to run in
+# debug or not, and production versus development/debug hosts 
+# VIRTUAL_HOST should be the base URL to run on, VIRTUAL_PATH the suffix
+
+SECRET_KEY=
+GENETIC_DEBUG= #only add 'True' if you're wanting to use in Debug mode
+CSRF_TRUSTED_ORIGINS=http://localhost
+PROD_HOST=localhost
+DEBUG_HOST=
+
+VIRTUAL_HOST=
+VIRTUAL_PATH=/genetics_ark
+
+
+# Paths for Primer Designer - FASTA reference files, and gnomAD VCFs for SNPs
+
+REF_37=
+SNP_37=
+
+REF_38=
+SNP_38=
+
+
+# For the Primer Designer output PDF - control the displayed SNP file text, displayed version,
+# and download link for PDF results
+
+PRIMER37_TEXT=Common SNP annotation: A common SNP is one that has (minor) allele frequency higher than or equal to 1% in the gnomad database version 2.0.1
+PRIMER38_TEXT=Common SNP annotation: A common SNP is one that has (minor) allele frequency higher than or equal to 1% in the gnomad database version 3.1.2
+
+PRIMER_VERSION=2.0.2
+
+PRIMER_DOWNLOAD=http://localhost:80/genetics_ark
+
+
+# Variables for authorising log-ins using LDAP. LDAP_CONF is the base DN. 
+
+BIND_DN=
+BIND_PASSWORD=
+AUTH_LDAP_SERVER_URI=
+LDAP_CONF=
+
+
+# Variables for the GA database
+
+DB_NAME=
+DB_USERNAME=
+DB_PASSWORD=
+DB_PORT=
+
+MYSQL_ROOT_PASSWORD=
+MYSQL_DATABASE=
+
+
+# Variables needed for IGV/ga_core and find_dx_data
+# DEV_PROJECT_NAME is the name of dev project 003, PROJECT_CNVS is the CNV project IDs
+
+DEV_PROJECT_NAME=
+PROJECT_CNVS=
+
+
+# Variables for using IGV - all the below should be set to URLs to the named resource
+
+GENOMES=
+
+FASTA_37= 
+FASTA_IDX_37=
+CYTOBAND_37=
+REFSEQ_37=
+REFSEQ_INDEX_37=
+
+FASTA_38=
+FASTA_IDX_38=
+CYTOBAND_38=
+REFSEQ_38=
+REFSEQ_INDEX_38=
+
+
+# external services - tokens for accessing DNAnexus and Slack,
+# and the URL for the bioinformatics service desk 
+
+DNANEXUS_TOKEN=
+SLACK_TOKEN=
+GRID_SERVICE_DESK=

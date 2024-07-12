@@ -57,7 +57,7 @@ Creates JSONs with following structure:
 
 Jethro Rainford 080620
 """
-
+import concurrent
 import datetime as date
 import dxpy as dx
 import requests
@@ -65,6 +65,7 @@ import os
 import json
 import time
 
+from itertools import groupby
 from collections import defaultdict
 from pathlib import Path
 
@@ -128,13 +129,78 @@ def get_002_projects() -> dict:
 
     # might return multiple results as it's searched by name
     for development_project in dx.search.find_projects(
-        name=DEV_PROJECT_NAME, name_mode="glob"
+        name=DEV_PROJECT_NAME,
+        name_mode="glob",
+        describe={
+            "fields": {"folder": True, "name": True, "archivalState": True}
+        },
     ):
         project_id_to_name[development_project["id"]] = DEV_PROJECT_NAME
 
     print("Total 002 projects found:", len(project_id_to_name))
 
     return project_id_to_name
+
+
+def find_in_parallel_multiproject(projects, search_term) -> list:
+    """
+    Parallel search for files matching a name pattern across multiple project IDs;
+    adapted from dias report bulk reanalyser.
+
+    Call dxpy.find_data_objects in parallel.
+
+    Parameters
+    ----------
+    projects : list
+        project IDs in which to restrict search scope
+    search_term : str
+        search term to search for
+
+    Returns
+    -------
+    list
+        list of all found dxpy object details
+    """
+
+    def _find(project, search_term):
+        """
+        Query given patterns as a regex search term to find all files
+        """
+        return list(
+            dx.find_data_objects(
+                project=project,
+                name=rf"{search_term}",
+                name_mode="regexp",
+                describe={
+                    "fields": {
+                        "name": True,
+                        "folder": True,
+                        "archivalState": True,
+                        "createdBy": True,
+                    }
+                },
+            )
+        )
+
+    results = []
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+        concurrent_jobs = {
+            executor.submit(_find, project, search_term)
+            for project in projects
+        }
+
+        for future in concurrent.futures.as_completed(concurrent_jobs):
+            # access returned output as each is returned in any order
+            try:
+                results.extend(future.result())
+
+            except Exception as exc:
+                # catch any errors that might get raised during querying
+                print(f"Error getting data for {future}: {exc}")
+                raise exc
+
+    return results
 
 
 def find_dx_bams(project_id_to_name: dict) -> None:
@@ -161,45 +227,36 @@ def find_dx_bams(project_id_to_name: dict) -> None:
     missing_bam = defaultdict(list)
 
     # loop through proj to get bam file in each of them
+    # the group-by step reduces the size of the list comprehensions
+    bams_idxs = find_in_parallel_multiproject(
+        list(project_id_to_name.keys()), "^.*\.bam$|^.*\.bai$"
+    )
+    grouped_bam_idxs = {
+        k: list(v) for k, v in groupby(bams_idxs, lambda x: x["project"])
+    }
+
     for project_id, project_name in project_id_to_name.items():
         bam_dict = {}
         idx_dict = {}
 
-        bams = list(
-            dx.search.find_data_objects(
-                name="*bam",
-                name_mode="glob",
-                project=project_id,
-                describe={
-                    "fields": {
-                        "folder": True,
-                        "name": True,
-                        "archivalState": True,
-                    }
-                },
-            )
-        )
+        # get project-relevant data, split by bam and bai
+        project_info = grouped_bam_idxs.get(project_id)
+        if project_info:
+            project_bams = [
+                x
+                for x in project_info
+                if x["describe"]["name"].endswith(".bam")
+            ]
+            project_idxs = [
+                x
+                for x in project_info
+                if x["describe"]["name"].endswith(".bai")
+            ]
 
-        idxs = list(
-            dx.search.find_data_objects(
-                name="*bam.bai",
-                name_mode="glob",
-                project=project_id,
-                describe={
-                    "fields": {
-                        "folder": True,
-                        "name": True,
-                        "archivalState": True,
-                    }
-                },
-            )
-        )
-
-        if bams and idxs:
-            # if BAM(s) and index found, should always be found
-
+        if project_bams and project_idxs:
+            # if BAM(s) and index found for the project,
             # add path, name and id of each bam and index to dicts
-            for bam in bams:
+            for bam in project_bams:
                 bam_dict[
                     (bam["describe"]["folder"], bam["describe"]["name"])
                 ] = {
@@ -207,7 +264,7 @@ def find_dx_bams(project_id_to_name: dict) -> None:
                     "archivalState": bam["describe"]["archivalState"],
                 }
 
-            for idx in idxs:
+            for idx in project_idxs:
                 idx_dict[
                     (idx["describe"]["folder"], idx["describe"]["name"])
                 ] = {
@@ -303,43 +360,32 @@ def find_cnvs(data_dict: dict):
         data_dict
 
     """
-
     print("Searching for CNVs")
 
-    project_name = dx.DXProject(PROJECT_CNVS).describe()["name"]
-
-    for file in list(
-        dx.find_data_objects(
+    # combine into one API call for speed
+    beds_indices = list(
+        dx.search.find_data_objects(
             project=PROJECT_CNVS,
-            name=".*_copy_ratios.gcnv.bed.gz\Z",
+            name=".*_copy_ratios.gcnv.bed.gz\Z|.*_copy_ratios.gcnv.bed.gz.tbi\Z",
             name_mode="regexp",
             describe={
                 "fields": {"folder": True, "name": True, "archivalState": True}
             },
         )
-    ):
+    )
+    beds = [x for x in beds_indices if x["describe"]["name"].endswith(".gz")]
+    indices = [
+        x for x in beds_indices if x["describe"]["name"].endswith(".tbi")
+    ]
+
+    project_name = dx.DXProject(PROJECT_CNVS).describe()["name"]
+
+    for file in beds:
         cnv_name = file["describe"]["name"]
         cnv_path = file["describe"]["folder"]
         cnv_id = file["id"]
         cnv_archival_status = file["describe"]["archivalState"]
-
-        cnv_index = list(
-            dx.find_data_objects(
-                project=PROJECT_CNVS,
-                name=f"{cnv_name}.tbi",
-                name_mode="regexp",
-                folder=cnv_path,
-                describe={
-                    "fields": {
-                        "folder": True,
-                        "name": True,
-                        "archivalState": True,
-                    }
-                },
-                limit=1,
-            )
-        )
-
+        
         cnv_dict = {
             "file_name": cnv_name,
             "file_id": cnv_id,
@@ -350,11 +396,24 @@ def find_cnvs(data_dict: dict):
             "CNV": True,
         }
 
+        # find the index file for each CNV
+        cnv_index = []
+        for index_file in indices:
+            if index_file["describe"]["folder"] == cnv_path:
+                if index_file["describe"]["name"] == f"{cnv_name}.tbi":
+                    cnv_index.append(index_file)
+
         if cnv_index:
-            cnv_dict["idx_name"] = cnv_index[0]["describe"]["name"]
-            cnv_dict["idx_id"] = cnv_index[0]["id"]
-            cnv_dict["idx_path"] = cnv_index[0]["describe"]["folder"]
-            cnv_dict["idx_archival_state"] = cnv_index[0]["describe"][
+            if len(cnv_index) > 1:
+                # very occasionally there's more than one index file - use the first
+                print(
+                    f"Multiple index files found for {cnv_name} - using the first only"
+                )
+            cnv_index = cnv_index[0]
+            cnv_dict["idx_name"] = cnv_index["describe"]["name"]
+            cnv_dict["idx_id"] = cnv_index["id"]
+            cnv_dict["idx_path"] = cnv_index["describe"]["folder"]
+            cnv_dict["idx_archival_state"] = cnv_index["describe"][
                 "archivalState"
             ]
         else:
@@ -414,6 +473,6 @@ if __name__ == "__main__":
 
     if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG):
         find_dx_bams(get_002_projects())
-    
+
     et = time.time()
     print(f"Execution time: {et-st} seconds")
