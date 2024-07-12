@@ -10,7 +10,6 @@ Genetics Ark is a Django based web interface for hosting apps used by clinical s
 - reference files for IGV.js (fasta, fai, cytoband, refseq)
 - Docker & Docker Compose
 - [Primer Designer](https://github.com/eastgenomics/primer_designer) (deployed on Docker)
-- [Komodo Cron Metrics](https://github.com/eastgenomics/komodo_cron_metrics) (deployed on Docker)
 
 #### primer designer
 Genetics Ark allows primer input submission: `<chromosome>:<position> <genome build>`
@@ -32,11 +31,12 @@ In addition, you'll need to check that nginx/nginx.conf displays the correct por
 
 #### cron
 - By default, find_dx_data.py runs every 15 minutes, and checks for new samples in DNAnexus which can be made available to IGV. A script which clears out a temporary directory runs every morning at 2am.
+- Both the above cron jobs, on successful completion, emit text log files plus Prometheus-formatted metric files.
 - Edit `crontab` file to tweak cron schedule.
 ```
 # start cron
-0 2 * * * rm -rf /home/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /home/log/ga-cron.log 2>&1
-0 2 * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1 && docker run --rm -v /home/log:/prom_metrics komodo_cron_metrics.v1.0.0 genetics_ark
+0 2 * * * rm -rf /home/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1 && /usr/local/bin/python -u /home/emit_prom_metric.py "ga_temp_deleted"
+*/15 * * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1 && /usr/local/bin/python -u /home/emit_prom_metric.py "ga_cron_completed"
 # end cron
 ```
 All cron run logs will be stored in cron container `/home/log/cron.log`
