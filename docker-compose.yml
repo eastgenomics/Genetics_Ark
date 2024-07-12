@@ -58,8 +58,6 @@ services:
     image: genetics-ark-djangoq:2.0.3
     platform: linux/amd64
     container_name: genetics-ark-djangoq
-    image: genetics-ark-djangoq:2.0.3
-    platform: linux/amd64
     build:
       dockerfile: primer.Dockerfile
     command: python manage.py qcluster
