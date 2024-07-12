@@ -4,6 +4,7 @@ import glob
 from pathlib import Path
 import os
 
+
 def get_args():
     """
     Parse the logging path and the job name

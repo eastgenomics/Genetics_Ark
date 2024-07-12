@@ -8,7 +8,7 @@ WORKDIR /home
 
 ENV PYTHONUNBUFFERED="1"
 
-COPY requirements.txt find_dx_data.py ./
+COPY requirements.txt find_dx_data.py emit_prom_metric.py ./
 
 RUN pip install -r requirements.txt
 
