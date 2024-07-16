@@ -31,11 +31,12 @@ In addition, you'll need to check that nginx/nginx.conf displays the correct por
 
 #### cron
 - By default, find_dx_data.py runs every 15 minutes, and checks for new samples in DNAnexus which can be made available to IGV. A script which clears out a temporary directory runs every morning at 2am.
-- Edit `crontab` file to tweak cron schedule.
+- Both the above cron jobs, on successful completion, emit text log files plus Prometheus-formatted metric files. The metrics can be used with Prometheus to send alerts, if they do not run when expected.
+- Edit the `crontab` file to tweak the cron schedule.
 ```
 # start cron
-0 2 * * * rm -rf /home/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /home/log/ga-cron.log 2>&1
-*/15 * * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1
+0 2 * * * rm -rf /home/tmp/* && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` tmp folder cleared" >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1 && /usr/local/bin/python -u /home/emit_prom_metric.py "ga_temp_deleted"
+*/15 * * * * /usr/local/bin/python -u /home/find_dx_data.py >> /home/log/ga-cron.log 2>&1 && echo "`date +\%Y\%m\%d-\%H:\%M:\%S` sample file updated" >> /home/log/ga-cron.log 2>&1 && /usr/local/bin/python -u /home/emit_prom_metric.py "ga_cron_completed"
 # end cron
 ```
 All cron run logs will be stored in cron container `/home/log/cron.log`

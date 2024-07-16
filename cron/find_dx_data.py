@@ -385,7 +385,7 @@ def find_cnvs(data_dict: dict):
         cnv_path = file["describe"]["folder"]
         cnv_id = file["id"]
         cnv_archival_status = file["describe"]["archivalState"]
-        
+
         cnv_dict = {
             "file_name": cnv_name,
             "file_id": cnv_id,

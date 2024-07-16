@@ -10,9 +10,10 @@ staticfiles
 reference
 .vscode
 .DS_Store
+# avoid incorporating zipped Docker image files
+*.gz
+*/*.gz
 config.dev.txt
 config.prod.txt
 config.*.txt
 *.config.txt
-# avoid incorporating zipped Docker image files
-*.gz

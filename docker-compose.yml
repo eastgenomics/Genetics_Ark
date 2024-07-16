@@ -23,7 +23,7 @@ services:
       - geneticsdb
   geneticscron:
     container_name: genetics-ark-cron
-    image: genetics-ark-cron:2.0.3
+    image: genetics-ark-cron:add_komodo_monitoring
     platform: linux/amd64
     restart: always
     build: ./cron
@@ -55,9 +55,9 @@ services:
     ports:
       - 6379:6379
   geneticsdjangoq:
-    container_name: genetics-ark-djangoq
     image: genetics-ark-djangoq:2.0.3
     platform: linux/amd64
+    container_name: genetics-ark-djangoq
     build:
       dockerfile: primer.Dockerfile
     command: python manage.py qcluster
