@@ -8,7 +8,7 @@ from django.contrib.messages import constants
 from dotenv import load_dotenv
 
 import ldap
-from django_auth_ldap.config import LDAPSearch
+from django_auth_ldap.config import LDAPSearch, LDAPGroupQuery
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -74,12 +74,19 @@ try:
 
     AUTH_LDAP_SERVER_URI = os.environ["AUTH_LDAP_SERVER_URI"]
     LDAP_CONF = os.environ["LDAP_CONF"]
+    LDAP_PERMITTED_GROUP = os.environ["LDAP_PERMITTED_GROUP"]
+
 except KeyError as e:
     key = e.args[0]
     raise KeyError(
         f"Unable to import {key} from environment, is an .env file "
         "present or env variables set?"
     )
+
+# load up LDAP user groups, and restrict access to the named group given
+# in the config file
+AUTH_LDAP_FIND_GROUP_PERMS = True
+AUTH_LDAP_REQUIRE_GROUP = LDAPGroupQuery(LDAP_PERMITTED_GROUP)
 
 
 if DEBUG:

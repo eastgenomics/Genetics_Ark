@@ -34,11 +34,14 @@ PRIMER_DOWNLOAD=http://localhost:80/genetics_ark
 
 
 # Variables for authorising log-ins using LDAP. LDAP_CONF is the base DN. 
+# LDAP_PERMITTED_GROUP restricts authentication to a named group
 
 BIND_DN=
 BIND_PASSWORD=
 AUTH_LDAP_SERVER_URI=
 LDAP_CONF=
+LDAP_PERMITTED_GROUP=
+
 
 
 # Variables for the GA database
