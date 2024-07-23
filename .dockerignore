@@ -16,3 +16,8 @@ app/*/*/*/__pycache__/
 .venv/
 venv/
 reference
+
+# Images that were saved to file already
+*.tar
+*.gz
+*.tar.gz
