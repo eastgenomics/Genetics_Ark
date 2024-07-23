@@ -8,7 +8,7 @@ from django.contrib.messages import constants
 from dotenv import load_dotenv
 
 import ldap
-from django_auth_ldap.config import LDAPSearch, LDAPGroupQuery
+from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -82,11 +82,6 @@ except KeyError as e:
         f"Unable to import {key} from environment, is an .env file "
         "present or env variables set?"
     )
-
-# load up LDAP user groups, and restrict access to the named group given
-# in the config file
-AUTH_LDAP_FIND_GROUP_PERMS = True
-AUTH_LDAP_REQUIRE_GROUP = LDAPGroupQuery(LDAP_PERMITTED_GROUP)
 
 
 if DEBUG:
@@ -206,6 +201,8 @@ LOGIN_URL = (
 LOGIN_REDIRECT_URL = "/genetics_ark/igv" if not LOCAL_WORKSTATION else "/igv"
 
 # Authentication Configuration
+# this also checks that the logged-in user is Authorised, e.g., that they
+# are a member of the LDAP group specified in the config file
 AUTHENTICATION_BACKENDS = [
     "django_auth_ldap.backend.LDAPBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -219,12 +216,25 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 
 LDAPSearch("dc=net,dc=addenbrookes,dc=nhs,dc=uk", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    LDAP_PERMITTED_GROUP,
+    ldap.SCOPE_SUBTREE,
+    '(objectClass=groupOfNames)',
+)
+
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr='cn')
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
     ),
 }
 
+AUTH_LDAP_REQUIRE_GROUP = LDAP_PERMITTED_GROUP
+
+AUTH_LDAP_FIND_GROUP_PERMS = True
+
+AUTH_LDAP_CACHE_TIMEOUT = 3600
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
