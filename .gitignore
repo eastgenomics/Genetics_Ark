@@ -11,6 +11,7 @@ reference
 .vscode
 .DS_Store
 # avoid incorporating zipped Docker image files
+*.tar
 *.gz
 */*.gz
 config.dev.txt
