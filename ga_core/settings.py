@@ -8,7 +8,7 @@ from django.contrib.messages import constants
 from dotenv import load_dotenv
 
 import ldap
-from django_auth_ldap.config import LDAPSearch
+from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -74,6 +74,8 @@ try:
 
     AUTH_LDAP_SERVER_URI = os.environ["AUTH_LDAP_SERVER_URI"]
     LDAP_CONF = os.environ["LDAP_CONF"]
+    LDAP_PERMITTED_GROUP = os.environ["LDAP_PERMITTED_GROUP"]
+
 except KeyError as e:
     key = e.args[0]
     raise KeyError(
@@ -109,6 +111,8 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "user_visit",
     "django_q",
+    # just useful
+    "debug_toolbar",
 ]
 
 # Django crispy forms bootstrap configuration
@@ -199,6 +203,8 @@ LOGIN_URL = (
 LOGIN_REDIRECT_URL = "/genetics_ark/igv" if not LOCAL_WORKSTATION else "/igv"
 
 # Authentication Configuration
+# this also checks that the logged-in user is Authorised, e.g., that they
+# are a member of the LDAP group specified in the config file
 AUTHENTICATION_BACKENDS = [
     "django_auth_ldap.backend.LDAPBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -210,7 +216,13 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
     LDAP_CONF, ldap.SCOPE_SUBTREE, "(samaccountname=%(user)s)"
 )
 
-LDAPSearch("dc=net,dc=addenbrookes,dc=nhs,dc=uk", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    LDAP_PERMITTED_GROUP,
+    ldap.SCOPE_SUBTREE,
+    '(objectClass=groupOfNames)',
+)
+
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr='cn')
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -218,6 +230,11 @@ REST_FRAMEWORK = {
     ),
 }
 
+AUTH_LDAP_REQUIRE_GROUP = LDAP_PERMITTED_GROUP
+
+AUTH_LDAP_FIND_GROUP_PERMS = True
+
+AUTH_LDAP_CACHE_TIMEOUT = 3600
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
