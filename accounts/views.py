@@ -38,7 +38,7 @@ def login_action(request):
         else:
             context_dict["error"] = True
 
-            messages.add_message(request, messages.ERROR, "Incorrect Login Credential")
+            messages.add_message(request, messages.ERROR, "Username or password incorrect")
             return render(request, "registration/login.html", context_dict)
     else:
         return render(request, "registration/login.html", context_dict)
