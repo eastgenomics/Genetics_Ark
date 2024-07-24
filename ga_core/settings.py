@@ -111,6 +111,8 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "user_visit",
     "django_q",
+    # just useful
+    "debug_toolbar",
 ]
 
 # Django crispy forms bootstrap configuration
@@ -213,8 +215,6 @@ AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: 0}
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
     LDAP_CONF, ldap.SCOPE_SUBTREE, "(samaccountname=%(user)s)"
 )
-
-LDAPSearch("dc=net,dc=addenbrookes,dc=nhs,dc=uk", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
     LDAP_PERMITTED_GROUP,
