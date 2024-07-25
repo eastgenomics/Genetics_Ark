@@ -78,7 +78,7 @@ services:
     image: mysql:8
     platform: linux/amd64
     expose:
-      - 3306
+      - 3308
     env_file:
       - ${GA_CONFIG_PATH}
     volumes:
