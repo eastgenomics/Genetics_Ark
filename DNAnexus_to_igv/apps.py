@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 
 class DnanexusToIgvConfig(AppConfig):
-    name = 'DNAnexus_to_igv'
+    name = "DNAnexus_to_igv"

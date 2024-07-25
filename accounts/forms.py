@@ -6,10 +6,14 @@ username_validator = UnicodeUsernameValidator()
 
 class LoginForm(forms.Form):
     username = forms.CharField(
-        label='Username',
+        label="Username",
         widget=forms.TextInput(
-            attrs={'class': 'form-input', 'placeholder': 'Enter username'}))
+            attrs={"class": "form-input", "placeholder": "Enter username"}
+        ),
+    )
     password = forms.CharField(
-        label='Password',
+        label="Password",
         widget=forms.PasswordInput(
-            attrs={'class': 'form-input', 'placeholder': 'Enter password'}))
+            attrs={"class": "form-input", "placeholder": "Enter password"}
+        ),
+    )

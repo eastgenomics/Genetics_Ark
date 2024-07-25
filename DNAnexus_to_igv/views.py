@@ -62,7 +62,8 @@ def dx_login(
         dx.api.system_whoami()
     except Exception as err:
         message = (
-            "Genetics Ark: Failed connecting to DNAnexus\n" f"Error Message: `{err}`"
+            "Genetics Ark: Failed connecting to DNAnexus\n"
+            f"Error Message: `{err}`"
         )
         logger.error(err)
 
@@ -76,7 +77,9 @@ def dx_login(
     return True
 
 
-def post_message_to_slack(channel: str, message: str, slack_token: str) -> None:
+def post_message_to_slack(
+    channel: str, message: str, slack_token: str
+) -> None:
     """
     Function to send Slack notification
     Taken from:
@@ -130,7 +133,9 @@ def get_dx_urls(
     """
 
     if dx_login(DNANEXUS_TOKEN, SLACK_TOKEN, DEBUG):
-        file_object = dx.bindings.dxfile.DXFile(dxid=file_id, project=project_id)
+        file_object = dx.bindings.dxfile.DXFile(
+            dxid=file_id, project=project_id
+        )
 
         try:
             file_info = file_object.get_download_url(
@@ -154,7 +159,9 @@ def get_dx_urls(
 
     else:
         logger.error("Error logging into dnanexus. Please check auth token")
-        return {"error": 'Failed to login with DNAnexus API token. Please check token.'}
+        return {
+            "error": "Failed to login with DNAnexus API token. Please check token."
+        }
 
 
 @login_required()
@@ -205,7 +212,9 @@ def search(request):
             context_dict["error"] = True
             logger.error(IOe)
 
-            return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+            return render(
+                request, "DNAnexus_to_igv/nexus_search.html", context_dict
+            )
 
         if request.POST["sample_type"] == "BAM":
             # select bams matching sample id, return original entry from
@@ -256,7 +265,9 @@ def search(request):
                 )
             )
 
-            return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+            return render(
+                request, "DNAnexus_to_igv/nexus_search.html", context_dict
+            )
 
         flat_data = [x for xs in sample_data for x in xs]
 
@@ -297,7 +308,8 @@ def search(request):
                 context_dict["error"] = True
 
                 logger.error(
-                    f"Error generating url for sample {sample_id} " f"{sample_dict}"
+                    f"Error generating url for sample {sample_id} "
+                    f"{sample_dict}"
                 )
 
                 return render(
@@ -311,10 +323,16 @@ def search(request):
             context_dict["file_name"] = sample_dict["file_name"]
             context_dict["project_name"] = sample_dict["project_name"]
             context_dict["file_path"] = sample_dict["file_path"]
-            context_dict["file_archival_state"] = sample_dict["file_archival_state"]
-            context_dict["idx_archival_state"] = sample_dict["idx_archival_state"]
+            context_dict["file_archival_state"] = sample_dict[
+                "file_archival_state"
+            ]
+            context_dict["idx_archival_state"] = sample_dict[
+                "idx_archival_state"
+            ]
 
-            return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+            return render(
+                request, "DNAnexus_to_igv/nexus_search.html", context_dict
+            )
         else:
             # MULTIPLE BAMS FOUND
 
@@ -353,7 +371,9 @@ def search(request):
             context_dict["file_no"] = len(bam_list)
             context_dict["sample_type"] = request.POST["sample_type"]
 
-            return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+            return render(
+                request, "DNAnexus_to_igv/nexus_search.html", context_dict
+            )
     else:
         # This is for Pagination e.g. going to Page 2, 3 ...
         context_dict = {}
@@ -382,7 +402,9 @@ def search(request):
             context_dict["error"] = True
             logger.error(IOe)
 
-            return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+            return render(
+                request, "DNAnexus_to_igv/nexus_search.html", context_dict
+            )
 
         sample_id = request.GET["sample_id"]
         if request.GET["sample_type"] == "BAM":
@@ -435,7 +457,9 @@ def search(request):
         context_dict["sample_type"] = request.GET["sample_type"]
         context_dict["sample_id"] = sample_id
 
-        return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+        return render(
+            request, "DNAnexus_to_igv/nexus_search.html", context_dict
+        )
 
 
 @login_required()
@@ -514,7 +538,9 @@ def select(request):
             f"{sample_type} {sample_dict}"
         )
 
-        return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+        return render(
+            request, "DNAnexus_to_igv/nexus_search.html", context_dict
+        )
 
     context_dict["sample_id"] = sample_id
     context_dict["file_name"] = sample_dict["file_name"]
@@ -606,7 +632,9 @@ def link(request):
             f"{idx_url}"
         )
 
-        return render(request, "DNAnexus_to_igv/nexus_search.html", context_dict)
+        return render(
+            request, "DNAnexus_to_igv/nexus_search.html", context_dict
+        )
 
     context_dict["file_name"] = "DIRECT URL"
     context_dict["file_id"] = "DIRECT URL"
