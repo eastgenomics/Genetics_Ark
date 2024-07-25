@@ -4,12 +4,12 @@ version: '3.3'
 services:
   geneticsweb:
     container_name: genetics-ark-web
-    image: genetics-ark-web:2.0.3
+    image: genetics-ark-web:2.1.0
     command: bash -c "python manage.py collectstatic --noinput && gunicorn ga_core.wsgi:application --bind :8000 --timeout 300 --workers 2 --threads 4"
     platform: linux/amd64
+    restart: always
     build:
       dockerfile: web.Dockerfile
-    restart: always
     env_file:
       - ${GA_CONFIG_PATH}
     volumes:
@@ -23,11 +23,13 @@ services:
       - geneticsdb
   geneticscron:
     container_name: genetics-ark-cron
-    image: genetics-ark-cron:add_komodo_monitoring
+    image: genetics-ark-cron:2.1.0
     platform: linux/amd64
     restart: always
     build: ./cron
     command: bash -c "printenv > /etc/environment && cron -f"
+    env_file:
+      - ${GA_CONFIG_PATH}
     volumes:
       - primer_volume:/home/tmp # to clear generated pdfs
       - igv_volume:/home/jsons # to update the sample json
@@ -43,6 +45,8 @@ services:
       - static_volume:/staticfiles # serve staticfiles
       - ${LOG_PATH}:/home/ga/log # logging for nginx
       - ${GA_PATH}/nginx:/etc/nginx/conf.d # nginx config
+    env_file:
+      - ${GA_CONFIG_PATH}
     expose:
       - 8002
     depends_on:
@@ -55,7 +59,7 @@ services:
     ports:
       - 6379:6379
   geneticsdjangoq:
-    image: genetics-ark-djangoq:2.0.3
+    image: genetics-ark-djangoq:2.1.0
     platform: linux/amd64
     container_name: genetics-ark-djangoq
     build:
@@ -70,11 +74,11 @@ services:
     depends_on:
       - redis
   geneticsdb:
-    # platform: linux/amd64
     container_name: genetics-ark-db
     image: mysql:8
+    platform: linux/amd64
     expose:
-      - 3306
+      - 3308
     env_file:
       - ${GA_CONFIG_PATH}
     volumes:

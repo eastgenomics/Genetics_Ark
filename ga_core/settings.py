@@ -184,19 +184,29 @@ AUTH_PASSWORD_VALIDATORS = [
         ),
     },
     {
-        "NAME": ("django.contrib.auth.password_validation." "MinimumLengthValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation." "MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": ("django.contrib.auth.password_validation." "CommonPasswordValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": ("django.contrib.auth.password_validation." "NumericPasswordValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
 # Login url
 LOGIN_URL = (
-    "/genetics_ark/accounts/login" if not LOCAL_WORKSTATION else "/accounts/login"
+    "/genetics_ark/accounts/login"
+    if not LOCAL_WORKSTATION
+    else "/accounts/login"
 )
 
 # Define where to redirect users after login
@@ -219,10 +229,10 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
     LDAP_PERMITTED_GROUP,
     ldap.SCOPE_SUBTREE,
-    '(objectClass=groupOfNames)',
+    "(objectClass=groupOfNames)",
 )
 
-AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr='cn')
+AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr="cn")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -253,7 +263,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "standard": {"format": "{levelname} {asctime} {name} {message}", "style": "{"}
+        "standard": {
+            "format": "{levelname} {asctime} {name} {message}",
+            "style": "{",
+        }
     },
     # Handlers
     "handlers": {
@@ -273,7 +286,11 @@ LOGGING = {
     },
     "loggers": {
         "": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
-        "general": {"handlers": ["error_log"], "level": "DEBUG", "propagate": True},
+        "general": {
+            "handlers": ["error_log"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
     },
 }
 
