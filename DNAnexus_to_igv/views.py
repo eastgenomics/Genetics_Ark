@@ -158,9 +158,10 @@ def get_dx_urls(
             return {"url": download_url}
 
     else:
-        logger.error("Error logging into dnanexus. Please check auth token")
+        msg = "Failed to login with DNAnexus API token. Please check token."
+        logger.error(msg)
         return {
-            "error": "Failed to login with DNAnexus API token. Please check token."
+            "error": msg
         }
 
 
