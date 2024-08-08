@@ -175,8 +175,8 @@ def sanitize_sample_id(original):
         - sample_id (str): sample ID after sanitizing
     """
     sample_id = str(original).strip()
-    if sample_id.startswith("SP_"):
-        sample_id = sample_id.replace("SP_", "")
+    if sample_id.startswith("SP-"):
+        sample_id = sample_id.replace("SP-", "")
     return sample_id
 
 @login_required()
