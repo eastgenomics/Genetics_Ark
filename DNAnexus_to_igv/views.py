@@ -165,6 +165,22 @@ def get_dx_urls(
         }
 
 
+def sanitize_sample_id(original):
+    """
+    Strip out spaces from the sample ID entered by the user, and if the sample
+    begins with 'SP-', remove this.
+
+    Args:
+        - original (str): sample ID as retrieved from the search form
+    Returns:
+        - sample_id (str): sample ID after sanitizing
+    """
+    sample_id = str(original).strip()
+    if sample_id.startswith("SP-"):
+        sample_id = sample_id.replace("SP-", "")
+    return sample_id
+
+
 @login_required()
 def index(request):
     """
@@ -190,8 +206,8 @@ def search(request):
         context_dict["url_form"] = UrlForm()
         context_dict["desk"] = GRID_SERVICE_DESK
 
-        sample_id = request.POST["sample_id"]
-        sample_id = str(sample_id).strip()  # in case spaces
+        entered_sample_id = request.POST["sample_id"]
+        sample_id = sanitize_sample_id(entered_sample_id)
 
         try:
             # load in json with all bams and dx attributes needed to
@@ -246,7 +262,7 @@ def search(request):
                     or some other error. <br/>Please contact\
                     the Bioinformatics team if you believe the sample\
                     should be available.""".format(
-                        sample_id
+                        entered_sample_id
                     )
                 ),
                 extra_tags="alert-danger",
@@ -260,7 +276,7 @@ def search(request):
                         """Sample {} not found in JSON. Either sample
                 name mistyped or an error in finding the BAMs for the
                 sample, possibly missing index.""".format(
-                            sample_id
+                            entered_sample_id
                         ),
                     )
                 )
@@ -300,8 +316,9 @@ def search(request):
                     messages.ERROR,
                     mark_safe(
                         "Error generating download URLs for sample "
-                        f"{sample_id}.<br/>Please contact the bioinformatics "
-                        f"team for help.<br/>File Error Message: {file_error}"
+                        f"{entered_sample_id}.<br/>Please contact the "
+                        f"bioinformatics team for help."
+                        f"<br/>File Error Message: {file_error}"
                         f"<br/>Index Error Message: {idx_error}"
                     ),
                     extra_tags="alert-danger",
@@ -309,7 +326,7 @@ def search(request):
                 context_dict["error"] = True
 
                 logger.error(
-                    f"Error generating url for sample {sample_id} "
+                    f"Error generating url for sample {entered_sample_id} "
                     f"{sample_dict}"
                 )
 
