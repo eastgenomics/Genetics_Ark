@@ -164,6 +164,7 @@ def get_dx_urls(
             "error": msg
         }
 
+
 def sanitize_sample_id(original):
     """
     Strip out spaces from the sample ID entered by the user, and if the sample
@@ -178,6 +179,7 @@ def sanitize_sample_id(original):
     if sample_id.startswith("SP-"):
         sample_id = sample_id.replace("SP-", "")
     return sample_id
+
 
 @login_required()
 def index(request):
@@ -314,8 +316,9 @@ def search(request):
                     messages.ERROR,
                     mark_safe(
                         "Error generating download URLs for sample "
-                        f"{entered_sample_id}.<br/>Please contact the bioinformatics "
-                        f"team for help.<br/>File Error Message: {file_error}"
+                        f"{entered_sample_id}.<br/>Please contact the "
+                        f"bioinformatics team for help."
+                        f"<br/>File Error Message: {file_error}"
                         f"<br/>Index Error Message: {idx_error}"
                     ),
                     extra_tags="alert-danger",
