@@ -253,24 +253,27 @@ def find_dx_bams(project_id_to_name: dict) -> None:
                 if x["describe"]["name"].endswith(".bai")
             ]
 
-        if project_bams and project_idxs:
-            # if BAM(s) and index found for the project,
-            # add path, name and id of each bam and index to dicts
-            for bam in project_bams:
-                bam_dict[
-                    (bam["describe"]["folder"], bam["describe"]["name"])
-                ] = {
-                    "id": bam["id"],
-                    "archivalState": bam["describe"]["archivalState"],
-                }
+            if project_bams and project_idxs:
+                # if BAM(s) and index found for the project,
+                # add path, name and id of each bam and index to dicts
+                for bam in project_bams:
+                    bam_dict[
+                        (bam["describe"]["folder"], bam["describe"]["name"])
+                    ] = {
+                        "id": bam["id"],
+                        "archivalState": bam["describe"]["archivalState"],
+                    }
 
-            for idx in project_idxs:
-                idx_dict[
-                    (idx["describe"]["folder"], idx["describe"]["name"])
-                ] = {
-                    "id": idx["id"],
-                    "archivalState": bam["describe"]["archivalState"],
-                }
+                for idx in project_idxs:
+                    idx_dict[
+                        (idx["describe"]["folder"], idx["describe"]["name"])
+                    ] = {
+                        "id": idx["id"],
+                        "archivalState": bam["describe"]["archivalState"],
+                    }
+            else:
+                print(f"Either BAMs or BAIs not available for project: {project_id}")
+
 
             # match bams to indexes on filename and dir path
             for path, bam_file in bam_dict.keys():
